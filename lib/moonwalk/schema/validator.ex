@@ -15,6 +15,7 @@ defmodule Moonwalk.Schema.Validator.Error do
 end
 
 defmodule Moonwalk.Schema.Validator do
+  alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema
   alias Moonwalk.Schema.Validator.Error
 
@@ -55,6 +56,10 @@ defmodule Moonwalk.Schema.Validator do
         {:error, reason} -> {:halt, {:error, reason}}
       end
     end)
+  end
+
+  def validate(data, %BooleanSchema{value: valid?}) do
+    if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
   end
 
   def validate(data, {:type, list}) when is_list(list) do
@@ -251,10 +256,6 @@ defmodule Moonwalk.Schema.Validator do
       {[{_, data} | _], _} -> {:ok, data}
       {[], _} -> {:error, Error.of(:any_of, data, validated_schemas: [])}
     end
-  end
-
-  def validate(data, {:boolean_schema, valid?}) do
-    if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
   end
 
   def validate(data, {:required, keys}) when is_map(data) do

@@ -1,5 +1,9 @@
 defmodule Moonwalk.Schema do
-  defstruct [:meta, :layers]
+  defstruct [:meta, :layers, :schema, :defs]
+
+  defmodule BooleanSchema do
+    defstruct [:value]
+  end
 
   def denormalize(schema) do
     {:ok, denormalize!(schema)}
@@ -17,12 +21,14 @@ defmodule Moonwalk.Schema do
     {:ok, denormalize!(json_schema, meta)}
   end
 
-  def denormalize!(bool, meta) when is_boolean(bool) do
-    denormalize!([{:boolean_schema, bool}], meta) |> reduce_layers()
+  def denormalize!(bool, _meta) when is_boolean(bool) do
+    %BooleanSchema{value: bool}
   end
 
   def denormalize!(json_schema, meta) do
-    json_schema |> Enum.reduce(%__MODULE__{meta: meta, layers: []}, &denorm/2) |> reduce_layers()
+    json_schema
+    |> Enum.reduce(%__MODULE__{meta: meta, layers: [], schema: json_schema}, &denorm/2)
+    |> reduce_layers()
   end
 
   defp reduce_layers(schema) do
