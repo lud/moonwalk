@@ -158,6 +158,13 @@ defmodule Moonwalk.Schema.Validator do
     if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
   end
 
+  def validate(data, {:required, keys}) when is_map(data) do
+    case Enum.reject(keys, &Map.has_key?(data, &1)) do
+      [] -> {:ok, data}
+      missing -> {:error, Error.of(:required, data, missing: missing)}
+    end
+  end
+
   defp validate_type(data, :array), do: is_list(data)
   defp validate_type(data, :object), do: is_map(data)
   defp validate_type(data, :null), do: data === nil

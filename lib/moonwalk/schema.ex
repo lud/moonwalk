@@ -98,6 +98,10 @@ defmodule Moonwalk.Schema do
     put_checker(s, layer_of(:properties), {:properties, subschemas})
   end
 
+  defp denorm({"required", keys}, s) when is_list(keys) do
+    put_checker(s, layer_of(:required), {:required, keys})
+  end
+
   defp denorm({:boolean_schema, _} = ck, s) do
     put_checker(s, layer_of(:boolean_schema), ck)
   end
@@ -110,6 +114,7 @@ defmodule Moonwalk.Schema do
     content_schema: "contentSchema",
     minimum: "minimum",
     maximum: "maximum",
+    required: "required",
     multiple_of: "multipleOf",
     min_items: "minItems",
     max_items: "maxItems"
@@ -137,7 +142,8 @@ defmodule Moonwalk.Schema do
       :minimum,
       :multiple_of,
       :prefix_items,
-      :type
+      :type,
+      :required
     ],
     [
       :additional_properties,
