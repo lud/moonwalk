@@ -5,6 +5,20 @@ defmodule Moonwalk.Schema do
     defstruct [:value]
   end
 
+  raise """
+  TODO denormalize with remote refs
+
+  1. do not rely on :root/:sub to know if we need to resolve.
+     Just call resolve_refs in denormalize/1
+  2. store {:root, ref} or {"http://....", ref} in layers. Split the remote url
+     and fragment to ref is always local to the left part of the tuple.
+  3. in the defs (and so in the context), organize the schemas with the same
+     keys: {:root, ref}.
+  4. when denormalizing a remote schema, pass the opts but do not pass meta, so
+     a new context is createt BUT still steal the refs/defs!
+  5. use a remote resolver to target priv/schemas/draft-2020-12.schema.json
+  """
+
   def denormalize(schema) do
     {:ok, denormalize!(schema)}
   end
