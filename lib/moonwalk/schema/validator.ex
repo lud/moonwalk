@@ -146,31 +146,15 @@ defmodule Moonwalk.Schema.Validator do
   defp descend(data, {:all_items, {item_schema, prefix_items_schemas}}, ctx)
        when is_list(data) do
     with {:ok, casted_prefix, offset} <- validate_prefix_items(data, prefix_items_schemas, ctx),
-         items = data |> Enum.drop(offset) |> Enum.with_index(offset) |> dbg(),
-         {:ok, casted_items} <- validate_items(items, item_schema, ctx) do
+         rest_items = data |> Enum.drop(offset) |> Enum.with_index(offset) |> dbg(),
+         {:ok, casted_items} <- validate_items(rest_items, item_schema, ctx) do
       {:ok, casted_prefix ++ casted_items} |> dbg()
     end
   end
 
-  defp validate_items(items_with_index, items_chema, ctx) do
-    items_with_index
-    |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
-      item |> IO.inspect(label: ~S/item/)
-      index |> IO.inspect(label: ~S/index/)
-      items_chema |> IO.inspect(label: ~S/items_chema/)
-
-      case descend(item, items_chema, ctx) |> dbg() do
-        {:ok, casted} ->
-          {[casted | items], errors}
-
-        {:error, reason} ->
-          {items, [Error.of(:item_error, item, index: index, reason: reason) | errors]}
-      end
-    end)
-    |> case do
-      {items, []} -> {:ok, :lists.reverse(items)}
-      {_, errors} -> {:error, Error.group(errors)}
-    end
+  defp descend(data, {:all_items, _}, _ctx) do
+    # not a list
+    {:ok, data}
   end
 
   defp descend(data, {:maximum, max}, ctx) when is_number(data) do
@@ -318,6 +302,12 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  defp descend(data, {:"$ref", ref}, ctx) do
+    case ctx.root.defs do
+      %{^ref => schema} -> descend(data, schema, ctx)
+    end
+  end
+
   defp validate_type(data, :array) do
     is_list(data)
   end
@@ -431,6 +421,31 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  defp validate_items(items_with_index, nil = _items_chema, _ctx) do
+    {:ok, Enum.map(items_with_index, fn {item, _index} -> item end)}
+  end
+
+  defp validate_items(items_with_index, items_chema, ctx) do
+    items_with_index
+    |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
+      item |> IO.inspect(label: ~S/item/)
+      index |> IO.inspect(label: ~S/index/)
+      items_chema |> IO.inspect(label: ~S/items_chema/)
+
+      case descend(item, items_chema, ctx) |> dbg() do
+        {:ok, casted} ->
+          {[casted | items], errors}
+
+        {:error, reason} ->
+          {items, [Error.of(:item_error, item, index: index, reason: reason) | errors]}
+      end
+    end)
+    |> case do
+      {items, []} -> {:ok, :lists.reverse(items)}
+      {_, errors} -> {:error, Error.group(errors)}
+    end
+  end
+
   defp validate_prefix_items(_values, nil = _prefix_schemas, _ctx) do
     {:ok, [], 0}
   end
@@ -449,6 +464,11 @@ defmodule Moonwalk.Schema.Validator do
           Error.of(:item_error, vh, index: index, reason: reason, prefix: true) | errors
         ])
     end
+  end
+
+  defp validate_prefix_items(_vt, _, _ctx, _, _, [_ | _] = errors) do
+    # we do not return the tail
+    {:error, Error.group(errors)}
   end
 
   defp validate_prefix_items(_vt, [], _ctx, offset, validated, []) do

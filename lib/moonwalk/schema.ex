@@ -85,6 +85,8 @@ defmodule Moonwalk.Schema do
     [{:all_items, {items, prefix_items}}]
   end
 
+  defp pull_refs(term, acc)
+
   defp pull_refs(list, acc) when is_list(list) do
     Enum.map_reduce(list, acc, fn item, acc -> pull_refs(item, acc) end)
   end
@@ -93,18 +95,9 @@ defmodule Moonwalk.Schema do
     {{:"$ref", ref}, [ref | acc]}
   end
 
-  # defp pull_refs({:all_items, {items, prefix_items}}, acc) do
-  #   {items, acc} = pull_refs(items, acc)
-  #   {prefix_items, acc} = pull_refs(prefix_items, acc)
-  #   {{:all_items, {items, prefix_items}}, acc}
-  # end
-
-  # defp pull_refs({:all_properties, {properties, pattern_properties, additional_properties}}, acc) do
-  #   {properties, acc} = pull_refs(properties, acc)
-  #   {pattern_properties, acc} = pull_refs(pattern_properties, acc)
-  #   {additional_properties, acc} = pull_refs(additional_properties, acc)
-  #   {{:all_properties, {properties, pattern_properties, additional_properties}}, acc}
-  # end
+  defp pull_refs({:"$ref", other}, acc) do
+    raise "todo ref not a string: #{inspect(other)}"
+  end
 
   defp pull_refs({k, v}, acc) when is_atom(k) do
     {v, acc} = pull_refs(v, acc)
@@ -118,16 +111,27 @@ defmodule Moonwalk.Schema do
     {scalar, acc}
   end
 
-  defp pull_refs(%BooleanSchema{} = s, acc) do
-    {s, acc}
-  end
-
   defp pull_refs(%__MODULE__{} = s, acc) do
     {s, refs} = steal_refs(s)
     {s, refs ++ acc}
   end
 
-  defp steal_refs(%{refs: refs} = schema) do
+  defp pull_refs(%BooleanSchema{} = s, acc) do
+    {s, acc}
+  end
+
+  defp pull_refs(map, acc) when is_map(map) do
+    {as_list, acc} =
+      Enum.map_reduce(map, acc, fn {k, v}, acc ->
+        {v2, acc} = pull_refs(v, acc)
+        {{k, v2}, acc}
+      end)
+
+    {Map.new(as_list), acc}
+  end
+
+  # STEAL the refs from sub schema
+  defp steal_refs(%__MODULE__{refs: refs} = schema) do
     {%{schema | refs: []}, refs}
   end
 
