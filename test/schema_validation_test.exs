@@ -7,17 +7,20 @@ defmodule Moonwalk.SchemaValidationTest do
   # Each json schema "test suite" defined a series of test cases with a schema
   # and an array of "unit tests".
 
-  {:ok, loader} = JsonSchemaTestSuite.load_dir("draft2020-12")
+  {:ok, agent} = JsonSchemaTestSuite.load_dir("draft2020-12")
 
   ignored = [
     "anchor.json",
-    "contains.json"
+    "contains.json",
+    "format.json"
   ]
 
-  Enum.each(ignored, fn filename -> JsonSchemaTestSuite.checkout_suite(loader, filename) end)
+  Enum.each(ignored, fn filename -> JsonSchemaTestSuite.checkout_suite(agent, filename) end)
 
   suites = [
     # {"items.json", []},
+    # {"id.json", []},
+    # {"infinite-loop-detection.json", []},
     {"exclusiveMaximum.json", []},
     {"exclusiveMinimum.json", []},
     {"boolean_schema.json", []},
@@ -34,7 +37,7 @@ defmodule Moonwalk.SchemaValidationTest do
   ]
 
   Enum.each(suites, fn {filename, opts} ->
-    suite = JsonSchemaTestSuite.checkout_suite(loader, filename)
+    suite = JsonSchemaTestSuite.checkout_suite(agent, filename)
     validate? = Keyword.get(opts, :validate, true)
 
     for test_case <- suite do
@@ -129,7 +132,7 @@ defmodule Moonwalk.SchemaValidationTest do
     end
   end
 
-  JsonSchemaTestSuite.stop_warn_unchecked(loader)
+  JsonSchemaTestSuite.stop_warn_unchecked(agent)
 
   test "same layers" do
     assert Moonwalk.Schema.layer_of(:properties) ==

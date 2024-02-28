@@ -22,8 +22,15 @@ defmodule Moonwalk.Test.JsonSchemaTestSuite do
 
       found =
         case List.keyfind(files, subpath, 0) do
-          {^subpath, path, _checked?} -> {:ok, path}
-          nil -> {:error, :not_found}
+          {^subpath, path, false} ->
+            {:ok, path}
+
+          {^subpath, path, true} ->
+            IO.warn("File #{path} already checked out")
+            {:ok, path}
+
+          nil ->
+            {:error, :not_found}
         end
 
       case found do
