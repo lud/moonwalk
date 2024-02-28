@@ -10,6 +10,7 @@ defmodule Moonwalk.Test.JsonSchemaTestSuite do
       dir
       |> Path.join("**/*.json")
       |> Path.wildcard()
+      |> Enum.sort()
       |> Enum.map(fn path ->
         {Path.relative_to(path, dir), path, false}
       end)
