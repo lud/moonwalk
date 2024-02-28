@@ -359,6 +359,10 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  defp validate_prefix_items(_values, nil = _prefix_schemas) do
+    {:ok, [], 0}
+  end
+
   defp validate_prefix_items(values, schemas) do
     validate_prefix_items(values, schemas, 0, [], [])
   end
@@ -377,6 +381,11 @@ defmodule Moonwalk.Schema.Validator do
 
   defp validate_prefix_items(_vt, [], offset, validated, []) do
     # we do not return the tail
+    {:ok, :lists.reverse(validated), offset}
+  end
+
+  defp validate_prefix_items([], [_schema | _], offset, validated, []) do
+    # fewer items than prefix is valid
     {:ok, :lists.reverse(validated), offset}
   end
 
