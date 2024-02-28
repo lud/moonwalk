@@ -6,7 +6,7 @@ defmodule Moonwalk.Schema do
   end
 
   def denormalize(json_schema, meta) do
-    {:ok, Enum.reduce(json_schema, %__MODULE__{meta: meta, layers: []}, &denorm/2)} |> dbg()
+    {:ok, Enum.reduce(json_schema, %__MODULE__{meta: meta, layers: []}, &denorm/2)}
   end
 
   defp denorm({"$schema", vsn}, %{meta: meta} = s) do

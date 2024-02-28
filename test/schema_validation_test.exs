@@ -10,13 +10,13 @@ defmodule Moonwalk.SchemaValidationTest do
   {:ok, loader} = JsonSchemaTestSuite.load_dir("draft2020-12")
 
   suites = [
-    {"content.json", validate: false}
-    # {"type.json", []}
+    {"content.json", validate: false},
+    {"type.json", []}
   ]
 
   Enum.each(suites, fn {filename, opts} ->
     suite = JsonSchemaTestSuite.checkout_suite(loader, filename)
-    validate? = Keyword.get(opts, :validate, true) |> dbg()
+    validate? = Keyword.get(opts, :validate, true)
 
     for test_case <- suite do
       %{"description" => case_descr, "schema" => json_schema, "tests" => tests} = test_case
@@ -28,15 +28,15 @@ defmodule Moonwalk.SchemaValidationTest do
 
         # If we are not testing the validation we must at least ensure that
         # the schema can be manipulated by the library
-        for %{"description" => test_descr} = test <- tests do
-          test test_descr, %{test_case: test_case} do
-            denorm_schema(Map.fetch!(test_case, "schema"))
-          end
+
+        test "schema denormalization", %{test_case: test_case} do
+          denorm_schema(Map.fetch!(test_case, "schema"))
         end
 
         if validate? do
           for %{"description" => test_descr} = unit_test <- tests do
-            test test_descr, %{test_case: test_case, unit_test: unit_test} do
+            test test_descr, %{test_case: test_case} do
+              unit_test = unquote(Macro.escape(unit_test))
               validation_test(test_case, unit_test)
             end
           end
@@ -61,8 +61,8 @@ defmodule Moonwalk.SchemaValidationTest do
   end
 
   defp validation_test(test_case, unit_test) do
-    %{"data" => data, "schema" => json_schema} = test_case
-    %{"valid" => expected_valid, "description" => test_descr} = unit_test
+    %{"schema" => json_schema} = test_case
+    %{"data" => data, "valid" => expected_valid, "description" => test_descr} = unit_test
 
     schema = denorm_schema(json_schema)
 
