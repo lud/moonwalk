@@ -63,6 +63,28 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  def validate(data, {:all_properties, {properties, patterns, additional}}) when is_map(data) do
+    errors = []
+    seen = MapSet.new()
+
+    {data, errors, seen} = validate_properties(data, properties, errors, seen)
+    {data, errors, seen} = validate_pattern_properties(data, patterns, errors, seen)
+    {data, errors} = validate_additional_properties(data, additional, errors, seen)
+
+    case errors do
+      [] -> {:ok, data}
+      _ -> {:error, Error.group(errors)}
+    end
+  end
+
+  def validate(data, {:all_properties, _}) do
+    {:ok, data}
+  end
+
+  defp validate_properties(data, nil, errors, seen) do
+    {data, errors, seen}
+  end
+
   def validate(data, {:const, expected}) do
     case data == expected do
       true -> {:ok, data}
@@ -116,6 +138,22 @@ defmodule Moonwalk.Schema.Validator do
     {:ok, data}
   end
 
+  def validate(data, {:max_items, max}) when is_list(data) do
+    len = length(data)
+
+    if len <= max,
+      do: {:ok, data},
+      else: {:error, Error.of(:max_items, data, max_items: max, len: len)}
+  end
+
+  def validate(data, {:min_items, min}) when is_list(data) do
+    len = length(data)
+
+    if len >= min,
+      do: {:ok, data},
+      else: {:error, Error.of(:min_items, data, min_items: min, len: len)}
+  end
+
   def validate(data, {:all_of, schemas}) do
     validate_multi(data, schemas)
   end
@@ -140,6 +178,78 @@ defmodule Moonwalk.Schema.Validator do
   # TODO this will not work with large numbers
   defp fractional_is_zero?(n) do
     n - trunc(n) === 0.0
+  end
+
+  defp validate_properties(data, schema_map, errors, seen) do
+    Enum.reduce(schema_map, {data, errors, seen}, fn {key, subschema}, {data, errors, seen} ->
+      case Map.fetch(data, key) do
+        :error ->
+          {data, errors, seen}
+
+        {:ok, value} ->
+          seen = MapSet.put(seen, key)
+
+          case validate(value, subschema) do
+            {:ok, casted} ->
+              {Map.put(data, key, casted), errors, seen}
+
+            {:error, reason} ->
+              {data, [Error.of(:properties, value, key: key, reason: reason) | errors], seen}
+          end
+      end
+    end)
+  end
+
+  defp validate_pattern_properties(data, nil, errors, seen) do
+    {data, errors, seen}
+  end
+
+  defp validate_pattern_properties(data, schema_map, errors, seen) do
+    for {{pattern, regex}, subschema} <- schema_map,
+        {key, value} <- data,
+        Regex.match?(regex, key),
+        reduce: {data, errors, seen} do
+      {data, errors, seen} ->
+        seen = MapSet.put(seen, key)
+
+        case validate(value, subschema) do
+          {:ok, casted} ->
+            {Map.put(data, key, casted), errors, seen}
+
+          {:error, reason} ->
+            error =
+              Error.of(:pattern_properties, value,
+                key: key,
+                pattern: pattern,
+                reason: reason
+              )
+
+            {data, [error | errors], seen}
+        end
+    end
+  end
+
+  defp validate_additional_properties(data, nil, errors, _seen) do
+    {data, errors}
+  end
+
+  defp validate_additional_properties(data, subschema, errors, seen) do
+    for {key, value} <- data, not MapSet.member?(seen, key), reduce: {data, errors} do
+      {data, errors} ->
+        case validate(value, subschema) do
+          {:ok, casted} ->
+            {Map.put(data, key, casted), errors}
+
+          {:error, reason} ->
+            error =
+              Error.of(:additional_properties, value,
+                key: key,
+                reason: reason
+              )
+
+            {data, [error | errors]}
+        end
+    end
   end
 
   defp validate_prefix_items(values, schemas) do

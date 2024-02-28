@@ -18,11 +18,37 @@ defmodule Moonwalk.Schema do
   end
 
   def denormalize!(bool, meta) when is_boolean(bool) do
-    denormalize!([{:boolean_schema, bool}], meta)
+    denormalize!([{:boolean_schema, bool}], meta) |> reduce_layers()
   end
 
   def denormalize!(json_schema, meta) do
-    Enum.reduce(json_schema, %__MODULE__{meta: meta, layers: []}, &denorm/2)
+    json_schema |> Enum.reduce(%__MODULE__{meta: meta, layers: []}, &denorm/2) |> reduce_layers()
+  end
+
+  defp reduce_layers(schema) do
+    layers =
+      schema.layers
+      |> Enum.filter(fn
+        [] -> false
+        _ -> true
+      end)
+      |> Enum.map(fn
+        [{k, _} | _] = layer
+        when k in [:properties, :pattern_properties, :additional_properties] ->
+          merge_properties_layer(layer)
+
+        other ->
+          other
+      end)
+
+    %{schema | layers: layers}
+  end
+
+  defp merge_properties_layer(layer) do
+    properties = Keyword.get(layer, :properties, nil)
+    pattern_properties = Keyword.get(layer, :pattern_properties, nil)
+    additional_properties = Keyword.get(layer, :additional_properties, nil)
+    [{:all_properties, {properties, pattern_properties, additional_properties}}]
   end
 
   defp denorm({"$schema", vsn}, %{meta: meta} = s) do
@@ -53,6 +79,25 @@ defmodule Moonwalk.Schema do
     put_checker(s, layer_of(:all_of), {:all_of, subschemas})
   end
 
+  defp denorm({"additionalProperties", schema}, s) do
+    subschema = denormalize!(schema, s.meta)
+    put_checker(s, layer_of(:additional_properties), {:additional_properties, subschema})
+  end
+
+  defp denorm({"patternProperties", props}, s) when is_map(props) do
+    subschemas =
+      Map.new(props, fn {k, v} when is_binary(k) ->
+        {{k, Regex.compile!(k)}, denormalize!(v, s.meta)}
+      end)
+
+    put_checker(s, layer_of(:pattern_properties), {:pattern_properties, subschemas})
+  end
+
+  defp denorm({"properties", props}, s) when is_map(props) do
+    subschemas = Map.new(props, fn {k, v} -> {k, denormalize!(v, s.meta)} end)
+    put_checker(s, layer_of(:properties), {:properties, subschemas})
+  end
+
   defp denorm({:boolean_schema, _} = ck, s) do
     put_checker(s, layer_of(:boolean_schema), ck)
   end
@@ -64,7 +109,10 @@ defmodule Moonwalk.Schema do
     content_media_type: "contentMediaType",
     content_schema: "contentSchema",
     minimum: "minimum",
-    maximum: "maximum"
+    maximum: "maximum",
+    multiple_of: "multipleOf",
+    min_items: "minItems",
+    max_items: "maxItems"
   ]
   |> Enum.each(fn {internal, external} ->
     defp denorm({unquote(external), value}, s) do
@@ -75,16 +123,31 @@ defmodule Moonwalk.Schema do
   # TODO @optimize make layer_of/1 a macro so we compile to literal integers
   # when deciding the layer
   layers = [
-    [:type, :boolean_schema],
-    [:const, :items, :prefix_items, :minimum, :maximum],
-    [:all_of],
-    [:content_encoding],
-    [:content_media_type],
-    [:content_schema]
+    [
+      :all_of,
+      :boolean_schema,
+      :const,
+      :content_encoding,
+      :content_media_type,
+      :content_schema,
+      :items,
+      :maximum,
+      :min_items,
+      :max_items,
+      :minimum,
+      :multiple_of,
+      :prefix_items,
+      :type
+    ],
+    [
+      :additional_properties,
+      :properties,
+      :pattern_properties
+    ]
   ]
 
   for {checkers, n} <- Enum.with_index(layers), c <- checkers do
-    defp layer_of(unquote(c)), do: unquote(n)
+    def layer_of(unquote(c)), do: unquote(n)
   end
 
   defp put_checker(%__MODULE__{layers: layers} = s, layer, checker) do

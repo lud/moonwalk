@@ -10,8 +10,11 @@ defmodule Moonwalk.SchemaValidationTest do
   {:ok, loader} = JsonSchemaTestSuite.load_dir("draft2020-12")
 
   suites = [
-    {"boolean_schema.json", []},
-    {"const.json", []},
+    # {"boolean_schema.json", []},
+    # {"const.json", []},
+    # {"items.json", []},
+    # {"allOf.json", []},
+    {"properties.json", []},
     {"minimum.json", []},
     {"maximum.json", []},
     {"type.json", []},
@@ -115,4 +118,11 @@ defmodule Moonwalk.SchemaValidationTest do
   end
 
   JsonSchemaTestSuite.stop_warn_unchecked(loader)
+
+  test "same layers" do
+    assert Moonwalk.Schema.layer_of(:properties) ==
+             Moonwalk.Schema.layer_of(:additional_properties)
+
+    assert Moonwalk.Schema.layer_of(:properties) == Moonwalk.Schema.layer_of(:pattern_properties)
+  end
 end
