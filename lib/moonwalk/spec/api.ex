@@ -2,20 +2,17 @@ defmodule Moonwalk.Spec.Api do
   defstruct [:openapi, :info]
 
   def define(opts) do
-    opts
-    |> validate_opts!()
-    |> Enum.reduce(%{}, &collect_opt/2)
-    |> Map.put_new(:openapi, "4.0.0")
-    |> then(&struct!(__MODULE__, &1))
+    acc = %__MODULE__{openapi: "4.0.0", info: %{}}
+    Enum.reduce(opts, acc, &collect_opt/2)
   end
 
-  # TODO use self schema
-  defp validate_opts!(opts) do
-    opts
+  defp collect_opt({key, value}, acc) when is_atom(key) do
+    with_info(acc, Moonwalk.json_key!(key), value)
   end
 
-  defp collect_opt({:title, title}, acc) do
-    Map.update(acc, :info, %{title: title}, &Map.put(&1, :title, title))
+  def with_info(%{info: info} = api, key, value) when is_binary(key) do
+    info = Map.put(info, Moonwalk.json_key!(key), Moonwalk.json_serializable!(value))
+    %__MODULE__{api | info: info}
   end
 
   def normalize_spec(api) do
@@ -23,16 +20,10 @@ defmodule Moonwalk.Spec.Api do
     |> Map.from_struct()
     |> Enum.reduce(%{}, fn
       {_, nil}, acc -> acc
+      {:info, map}, acc when map_size(map) == 0 -> acc
+      {:info, map}, acc -> Map.put(acc, "info", map)
       pair, acc -> normalize(pair, acc)
     end)
-  end
-
-  defp normalize({:info, info}, raw) when is_map(info) do
-    Map.put(raw, "info", Enum.reduce(info, %{}, &normalize/2))
-  end
-
-  defp normalize({:title, title}, raw) do
-    Map.put(raw, "title", title)
   end
 
   defp normalize({:openapi, vsn}, raw) do
