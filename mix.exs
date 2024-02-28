@@ -34,11 +34,12 @@ defmodule Moonwalk.MixProject do
        app: false},
 
       # Dev
-      {:credo, "~> 1.7"}
+      {:credo, "~> 1.7"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 
   defp package do
-    [licenses: "MIT", links: %{"Github" => "https://github.com/lud/moonwalk"}]
+    [licenses: ["MIT"], links: %{"Github" => "https://github.com/lud/moonwalk"}]
   end
 end
