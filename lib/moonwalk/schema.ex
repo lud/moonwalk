@@ -158,7 +158,7 @@ defmodule Moonwalk.Schema do
   defp resolve_refs([], schema, seen) do
     # once resolved, refs aren't used anymore, but for the sake of clarity we
     # want people to see all what was pulled.
-    %{schema | refs: Map.keys(seen)} |> dbg()
+    %{schema | refs: Map.keys(seen)}
   end
 
   defp parse_ref(ref) do
@@ -200,8 +200,7 @@ defmodule Moonwalk.Schema do
         {[{k, new_v} | mapped], acc}
       end)
 
-    {new_list, acc} = fun.(Map.new(mapped), acc)
-    {new_list, acc} |> dbg()
+    fun.(Map.new(mapped), acc)
   end
 
   defp traverse_layers(tuple, acc, fun) when is_tuple(tuple) do

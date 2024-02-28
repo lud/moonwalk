@@ -146,9 +146,9 @@ defmodule Moonwalk.Schema.Validator do
   defp descend(data, {:all_items, {item_schema, prefix_items_schemas}}, ctx)
        when is_list(data) do
     with {:ok, casted_prefix, offset} <- validate_prefix_items(data, prefix_items_schemas, ctx),
-         rest_items = data |> Enum.drop(offset) |> Enum.with_index(offset) |> dbg(),
+         rest_items = data |> Enum.drop(offset) |> Enum.with_index(offset),
          {:ok, casted_items} <- validate_items(rest_items, item_schema, ctx) do
-      {:ok, casted_prefix ++ casted_items} |> dbg()
+      {:ok, casted_prefix ++ casted_items}
     end
   end
 
@@ -428,11 +428,7 @@ defmodule Moonwalk.Schema.Validator do
   defp validate_items(items_with_index, items_chema, ctx) do
     items_with_index
     |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
-      item |> IO.inspect(label: ~S/item/)
-      index |> IO.inspect(label: ~S/index/)
-      items_chema |> IO.inspect(label: ~S/items_chema/)
-
-      case descend(item, items_chema, ctx) |> dbg() do
+      case descend(item, items_chema, ctx) do
         {:ok, casted} ->
           {[casted | items], errors}
 
