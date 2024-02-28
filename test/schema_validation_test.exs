@@ -12,6 +12,7 @@ defmodule Moonwalk.SchemaValidationTest do
   suites = [
     # {"boolean_schema.json", []},
     # {"items.json", []},
+    {"anyOf.json", []},
     {"allOf.json", []},
     {"const.json", []},
     {"properties.json", []},

@@ -134,7 +134,9 @@ defmodule Moonwalk.Schema do
     # Passthrough schema properties that only accept integers
     multiple_of: "multipleOf",
     min_items: "minItems",
-    max_items: "maxItems"
+    max_items: "maxItems",
+    max_length: "maxLength",
+    min_length: "minLength"
   ]
   |> Enum.each(fn {internal, external} ->
     defp denorm({unquote(external), value}, s) when is_integer(value) do
@@ -173,6 +175,8 @@ defmodule Moonwalk.Schema do
       :multiple_of,
       :prefix_items,
       :type,
+      :max_length,
+      :min_length,
       :required
     ],
     [

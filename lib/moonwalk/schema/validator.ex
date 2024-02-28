@@ -172,6 +172,30 @@ defmodule Moonwalk.Schema.Validator do
       else: {:error, Error.of(:min_items, data, min_items: min, len: len)}
   end
 
+  def validate(data, {:max_length, max}) when is_binary(data) do
+    len = String.length(data)
+
+    if len <= max,
+      do: {:ok, data},
+      else: {:error, Error.of(:max_length, data, max_items: max, len: len)}
+  end
+
+  def validate(data, {:max_length, _}) do
+    {:ok, data}
+  end
+
+  def validate(data, {:min_length, min}) when is_binary(data) do
+    len = String.length(data)
+
+    if len >= min,
+      do: {:ok, data},
+      else: {:error, Error.of(:min_length, data, min_items: min, len: len)}
+  end
+
+  def validate(data, {:min_length, _}) do
+    {:ok, data}
+  end
+
   def validate(data, {:all_of, schemas}) do
     validate_multi(data, schemas)
   end

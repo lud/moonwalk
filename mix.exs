@@ -34,7 +34,7 @@ defmodule Moonwalk.MixProject do
        app: false},
 
       # Dev
-      {:credo, "~> 1.7"},
+      {:credo, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end

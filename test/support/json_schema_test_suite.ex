@@ -11,9 +11,7 @@ defmodule Moonwalk.Test.JsonSchemaTestSuite do
       |> Path.join("**/*.json")
       |> Path.wildcard()
       |> Enum.sort()
-      |> Enum.map(fn path ->
-        {Path.relative_to(path, dir), path, false}
-      end)
+      |> Enum.map(fn path -> {Path.relative_to(path, dir), path, false} end)
 
     {:ok, _} = Agent.start_link(fn -> %{dir: dir, files: files} end, name: __MODULE__)
   end
