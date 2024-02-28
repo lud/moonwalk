@@ -302,9 +302,9 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:"$ref", ref}, ctx) do
+  defp descend(data, {:"$ref", %{ns: ns, fragment: fg}}, ctx) do
     case ctx.root.defs do
-      %{^ref => schema} -> descend(data, schema, ctx)
+      %{{^ns, ^fg} => schema} -> descend(data, schema, ctx)
     end
   end
 
@@ -350,24 +350,22 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp validate_properties(data, schema_map, ctx, errors, seen) do
-    Enum.reduce(schema_map, {data, errors, seen}, fn {key, subschema}, {data, errors, seen} ->
-      case Map.fetch(data, key) do
-        :error -> {data, errors, seen}
-        {:ok, value} -> validate_property(data, key, value, subschema, ctx, errors, seen)
-      end
+    Enum.reduce(schema_map, {data, errors, seen}, fn
+      {key, subschema}, {data, errors, seen} when is_map_key(data, key) ->
+        seen = MapSet.put(seen, key)
+        value = Map.fetch!(data, key)
+
+        case descend(value, subschema, ctx) do
+          {:ok, casted} ->
+            {Map.put(data, key, casted), errors, seen}
+
+          {:error, reason} ->
+            {data, [Error.of(:properties, value, key: key, reason: reason) | errors], seen}
+        end
+
+      _, acc ->
+        acc
     end)
-  end
-
-  defp validate_property(data, key, value, subschema, ctx, errors, seen) do
-    seen = MapSet.put(seen, key)
-
-    case descend(value, subschema, ctx) do
-      {:ok, casted} ->
-        {Map.put(data, key, casted), errors, seen}
-
-      {:error, reason} ->
-        {data, [Error.of(:properties, value, key: key, reason: reason) | errors], seen}
-    end
   end
 
   defp validate_pattern_properties(data, nil, _ctx, errors, seen) do

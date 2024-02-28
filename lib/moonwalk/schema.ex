@@ -1,7 +1,8 @@
 defmodule Moonwalk.Schema.Context do
   @moduledoc false
   defstruct [
-    :uri,
+    # The namespace of a schema using the context, either :root or a binary URI
+    :ns,
     :vsn
   ]
 end
@@ -10,6 +11,8 @@ defmodule Moonwalk.Schema do
   alias Moonwalk.Schema.Context
 
   defstruct [
+    # The namespace of a schema using the context, either :root or a binary URI
+    :ns,
     # Non-validating informations
     :meta,
     # Lists of validators
@@ -27,19 +30,18 @@ defmodule Moonwalk.Schema do
     defstruct [:value]
   end
 
-  # raise """
-  # TODO denormalize with remote refs
-
-  # 1. do not rely on :root/:sub to know if we need to resolve.
-  #    Just call resolve_refs in denormalize/1
-  # 2. store {:root, ref} or {"http://....", ref} in layers. Split the remote url
-  #    and fragment to ref is always local to the left part of the tuple.
-  # 3. in the defs (and so in the context), organize the schemas with the same
-  #    keys: {:root, ref}.
-  # 4. when denormalizing a remote schema, pass the opts but do not pass meta, so
-  #    a new context is createt BUT still steal the refs/defs!
-  # 5. use a remote resolver to target priv/schemas/draft-2020-12.schema.json
-  # """
+  defmodule Ref do
+    defstruct [
+      # :root or the binary URI the schema was fetched from
+      :ns,
+      # The path segments to the referenced schema, derived from the fragment
+      :docpath,
+      # The binary fragment of the URI, as defined in the schema
+      :fragment,
+      # The orginal $ref value
+      :raw
+    ]
+  end
 
   def denormalize(schema, opts \\ []) do
     {:ok, denormalize!(schema, opts)}
@@ -52,9 +54,12 @@ defmodule Moonwalk.Schema do
     # pulling the vsn in the top schema, we cannot support having a different
     # version nested somewhere.
     vsn = Map.get(json_schema, "$schema", nil)
-    ctx = %Context{uri: :root, vsn: vsn}
+    ctx = %Context{ns: :root, vsn: vsn}
     schema = child!(json_schema, ctx)
     schema = resolve_refs(schema, ctx)
+    # TODO cleanup:
+    # * remove the fetched remote schemas in their full form, keeping only used
+    #   defs.
     schema
   end
 
@@ -69,6 +74,7 @@ defmodule Moonwalk.Schema do
   def child!(json_schema, ctx) when is_map(json_schema) do
     schema =
       %__MODULE__{
+        ns: ctx.ns,
         meta: %{vsn: ctx.vsn},
         layers: [],
         raw: json_schema,
@@ -85,9 +91,8 @@ defmodule Moonwalk.Schema do
 
     layers = assemble_layers(validators)
 
-    # Collect refs and store it on the schema. So they can be stolen by a parent
-    # schema if there is one, otherwise our resolve_context is :root and we will
-    # extract the defs from the refs and denormalize them as well.
+    # Finally store the layers in the schema but also put the refs where they
+    # can be taken by a parent schema.
     %{schema | layers: layers, refs: refs}
   end
 
@@ -149,7 +154,7 @@ defmodule Moonwalk.Schema do
   end
 
   defp cast_pair({"$ref", ref}, ctx) when is_binary(ref) do
-    {:"$ref", ref}
+    {:"$ref", parse_ref(ref, ctx)}
   end
 
   [
@@ -314,12 +319,12 @@ defmodule Moonwalk.Schema do
     Enum.map_reduce(list, acc, fn item, acc -> pull_refs(item, acc) end)
   end
 
-  defp pull_refs({:"$ref", ref}, acc) when is_binary(ref) do
-    {{:"$ref", ref}, [ref | acc]}
+  defp pull_refs({:"$ref", %Ref{} = ref}, acc) do
+    {{:"$ref", ref}, collect_ref(ref, acc)}
   end
 
-  defp pull_refs({:"$ref", other}, acc) do
-    raise "todo ref not a string: #{inspect(other)}"
+  defp pull_refs({:"$ref", other}, _acc) do
+    raise "invalid ref: #{inspect(other)}"
   end
 
   defp pull_refs({k, v}, acc) when is_atom(k) do
@@ -336,7 +341,7 @@ defmodule Moonwalk.Schema do
 
   defp pull_refs(%__MODULE__{} = s, acc) do
     {s, refs} = steal_refs(s)
-    {s, refs ++ acc}
+    {s, Enum.reduce(refs, acc, &collect_ref/2)}
   end
 
   defp pull_refs(%BooleanSchema{} = s, acc) do
@@ -358,84 +363,64 @@ defmodule Moonwalk.Schema do
     {%{schema | refs: []}, refs}
   end
 
+  defp collect_ref(ref, acc) do
+    if ref in acc do
+      acc
+    else
+      [ref | acc]
+    end
+  end
+
   defp resolve_refs(schema, ctx) do
     resolve_refs(schema.refs, schema, %{}, ctx)
   end
 
-  defp resolve_refs([h | t], schema, seen, ctx) when is_map_key(seen, h) do
-    h |> dbg()
-    resolve_refs(t, schema, seen, ctx)
-  end
-
   defp resolve_refs([ref | tail], schema, seen, ctx) do
-    %{raw: json_schema, meta: meta, defs: defs} = schema
-    raw_sub = resolve_ref(json_schema, parse_ref(ref))
-    subschema = child!(raw_sub, meta)
-    {subschema, tail} = pull_refs(subschema, tail)
+    %{ns: ns, fragment: fragment} = ref
+    key = {ns, fragment}
 
-    schema = %__MODULE__{schema | defs: Map.put(defs, ref, subschema)}
-    seen = Map.put(seen, ref, true)
-
-    resolve_refs(tail, schema, seen, ctx)
+    if is_map_key(seen, key) do
+      resolve_refs(tail, schema, seen, ctx)
+    else
+      seen = Map.put(seen, key, true)
+      schema = resolve_ns(schema, ref.ns, ctx)
+      raw_sub = fetch_ref!(schema, ref)
+      subschema = child!(raw_sub, ctx)
+      # recursively pull refs from the new schemas, adding them to our tail
+      {subschema, new_tail} = pull_refs(subschema, tail)
+      schema = %__MODULE__{schema | defs: Map.put(schema.defs, key, subschema)}
+      resolve_refs(new_tail, schema, seen, ctx)
+    end
   end
 
   defp resolve_refs([], schema, _seen, _ctx) do
     schema
   end
 
-  defp parse_ref(ref) do
-    _uri = URI.parse(ref)
+  # If multiple refs target the same remote document (local path or web URL) we
+  # want to fetch that document only once.
+  #
+  # the document is put in the defs, with :__fetched__ as the right tuple key
+  defp resolve_ns(schema, :root, _ctx) do
+    schema
   end
 
-  defp resolve_ref(raw_schema, %{host: nil, path: nil, fragment: "/" <> path}) do
-    segments = String.split(path, "/")
+  defp parse_ref(ref, ctx) do
+    case URI.parse(ref) do
+      %{host: nil, path: nil, fragment: frag} when is_binary(frag) ->
+        %Ref{ns: ctx.ns, fragment: frag, docpath: parse_fragment(frag), raw: ref}
+    end
+  end
 
-    case get_in(raw_schema, segments) do
-      nil -> raise "Could not resolve ref: #{inspect(path)}"
+  defp fetch_ref!(%{ns: ns, raw: raw_schema} = schema, %{ns: ns} = ref) do
+    case get_in(raw_schema, ref.docpath) do
+      nil -> raise "Could not resolve ref: #{inspect(ref.raw)}"
       schema -> schema
     end
   end
 
-  defp traverse_layers(list, acc, fun) when is_list(list) do
-    {mapped, acc} =
-      Enum.reduce(list, {[], acc}, fn el, {mapped, acc} ->
-        {new_el, acc} = traverse_layers(el, acc, fun)
-        {[new_el | mapped], acc}
-      end)
-
-    {new_list, acc} = fun.(:lists.reverse(mapped), acc)
-    {new_list, acc}
-  end
-
-  defp traverse_layers(%__MODULE__{layers: layers} = s, acc, fun) do
-    traverse_layers(layers, acc, fun)
-  end
-
-  defp traverse_layers(%BooleanSchema{} = s, acc, fun) do
-    fun.(s, acc)
-  end
-
-  defp traverse_layers(map, acc, fun) when is_map(map) do
-    {mapped, acc} =
-      Enum.reduce(map, {[], acc}, fn {k, v}, {mapped, acc} ->
-        {new_v, acc} = traverse_layers(v, acc, fun)
-        {[{k, new_v} | mapped], acc}
-      end)
-
-    fun.(Map.new(mapped), acc)
-  end
-
-  defp traverse_layers(tuple, acc, fun) when is_tuple(tuple) do
-    {list, acc} =
-      tuple
-      |> Tuple.to_list()
-      |> traverse_layers(acc, fun)
-
-    fun.(List.to_tuple(list), acc)
-  end
-
-  defp traverse_layers(el, acc, _fun) when is_binary(el) when is_atom(el) when is_number(el) do
-    {el, acc}
+  defp parse_fragment("/" <> path) do
+    String.split(path, "/")
   end
 
   defp valid_type!(list) when is_list(list) do
