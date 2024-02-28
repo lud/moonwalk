@@ -1,18 +1,7 @@
 defmodule Moonwalk do
-  @moduledoc """
-  Documentation for `Moonwalk`.
-  """
+  alias Moonwalk.Spec.Api
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Moonwalk.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def normalize_spec(%Api{} = api) do
+    Api.normalize_spec(api)
   end
 end
