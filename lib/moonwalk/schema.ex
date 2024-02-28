@@ -5,6 +5,10 @@ defmodule Moonwalk.Schema do
     denormalize(json_schema, %{vsn: vsn})
   end
 
+  def denormalize(bool) when is_boolean(bool) do
+    denormalize([{:boolean_schema, bool}], %{})
+  end
+
   def denormalize(json_schema, meta) do
     {:ok, Enum.reduce(json_schema, %__MODULE__{meta: meta, layers: []}, &denorm/2)}
   end
@@ -20,6 +24,10 @@ defmodule Moonwalk.Schema do
 
   defp denorm({"const", value}, s) do
     put_checker(s, layer_of(:const), {:const, value})
+  end
+
+  defp denorm({:boolean_schema, _} = ck, s) do
+    put_checker(s, layer_of(:boolean_schema), ck)
   end
 
   # Passthrough schema properties – we do not use them but we must accept them
@@ -39,7 +47,7 @@ defmodule Moonwalk.Schema do
   # TODO @optimize make layer_of/1 a macro so we compile to literal integers
   # when deciding the layer
   layers = [
-    [:type],
+    [:type, :boolean_schema],
     [:const],
     [:content_encoding],
     [:content_media_type],

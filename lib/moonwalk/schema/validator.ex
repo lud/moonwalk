@@ -66,6 +66,10 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  def validate(data, {:boolean_schema, valid?}) do
+    if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
+  end
+
   defp validate_type(data, :array), do: is_list(data)
   defp validate_type(data, :object), do: is_map(data)
   defp validate_type(data, :null), do: data === nil

@@ -12,6 +12,7 @@ defmodule Moonwalk.SchemaValidationTest do
   suites = [
     {"content.json", validate: false},
     {"const.json", []},
+    {"boolean_schema.json", []},
     {"type.json", []}
   ]
 
@@ -31,7 +32,7 @@ defmodule Moonwalk.SchemaValidationTest do
         # the schema can be manipulated by the library
 
         test "schema denormalization", %{test_case: test_case} do
-          denorm_schema(Map.fetch!(test_case, "schema"))
+          denorm_schema(Map.fetch!(test_case, "schema"), test_case["description"])
         end
 
         if validate? do
@@ -46,26 +47,36 @@ defmodule Moonwalk.SchemaValidationTest do
     end
   end)
 
-  defp denorm_schema(json_schema) do
+  defp denorm_schema(json_schema, description) do
     case Moonwalk.Schema.denormalize(json_schema) do
-      {:ok, schema} ->
-        schema
-
-      {:error, error} ->
-        flunk("""
-        Failed to denormalize schema: #{inspect(error)}
-
-        SCHEMA
-        #{inspect(json_schema, pretty: true)}
-        """)
+      {:ok, schema} -> schema
+      {:error, reason} -> flunk(denorm_failure(json_schema, reason, [], description))
     end
+  rescue
+    e in FunctionClauseError ->
+      IO.puts(denorm_failure(json_schema, e, __STACKTRACE__, description))
+      reraise e, __STACKTRACE__
+  end
+
+  defp denorm_failure(json_schema, reason, stacktrace, description) do
+    """
+    Failed to denormalize schema: #{description}
+
+    SCHEMA
+    #{inspect(json_schema, pretty: true)}
+
+    ERROR
+    #{if Exception.exception?(reason),
+      do: Exception.format(:error, reason, stacktrace),
+      else: inspect(reason, pretty: true)}
+    """
   end
 
   defp validation_test(test_case, unit_test) do
-    %{"schema" => json_schema} = test_case
+    %{"schema" => json_schema, "description" => case_descr} = test_case
     %{"data" => data, "valid" => expected_valid, "description" => test_descr} = unit_test
 
-    schema = denorm_schema(json_schema)
+    schema = denorm_schema(json_schema, case_descr)
 
     {valid?, errors} =
       case Moonwalk.Schema.validate(data, schema) do
