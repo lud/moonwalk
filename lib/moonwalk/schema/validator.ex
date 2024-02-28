@@ -208,9 +208,9 @@ defmodule Moonwalk.Schema.Validator do
       {[], _} ->
         {:error, Error.of(:one_of, data, validated_schemas: [])}
 
-        # {[_ | _] = too_much, _} ->
-        #   validated_schemas = Enum.map(too_much, &elem(&1, 0))
-        #   {:error, Error.of(:one_of, data, validated_schemas: validated_schemas)}
+      {[_ | _] = too_much, _} ->
+        validated_schemas = Enum.map(too_much, &elem(&1, 0))
+        {:error, Error.of(:one_of, data, validated_schemas: validated_schemas)}
     end
   end
 

@@ -13,6 +13,7 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"boolean_schema.json", []},
     # {"items.json", []},
     {"anyOf.json", []},
+    {"oneOf.json", []},
     {"allOf.json", []},
     {"const.json", []},
     {"properties.json", []},
