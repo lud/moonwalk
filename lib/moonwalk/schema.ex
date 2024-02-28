@@ -122,7 +122,8 @@ defmodule Moonwalk.Schema do
     content_encoding: "contentEncoding",
     content_media_type: "contentMediaType",
     content_schema: "contentSchema",
-    required: "required"
+    required: "required",
+    enum: "enum"
   ]
   |> Enum.each(fn {internal, external} ->
     defp denorm({unquote(external), value}, s) do
@@ -164,6 +165,7 @@ defmodule Moonwalk.Schema do
       :one_of,
       :boolean_schema,
       :const,
+      :enum,
       :content_encoding,
       :content_media_type,
       :content_schema,

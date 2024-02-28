@@ -103,6 +103,13 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  def validate(data, {:enum, enum}) do
+    case enum_member?(enum, data) do
+      true -> {:ok, data}
+      false -> {:error, Error.of(:enum, data, enum: enum)}
+    end
+  end
+
   def validate(data, {:items, subschema}) when is_list(data) do
     data
     |> Enum.with_index()
@@ -347,4 +354,29 @@ defmodule Moonwalk.Schema.Validator do
   defp validate_prefix_items(vt, [], _, validated, []) do
     {:ok, :lists.reverse(validated, vt)}
   end
+
+  # special case when the data itself is an enum
+  defp enum_member?(enum, data) when is_list(data) do
+    Enum.find(enum, &match_enum_list(&1, data)) != nil
+  end
+
+  defp enum_member?(enum, n) when is_number(n) do
+    Enum.member?(enum, n) ||
+      case fractional_is_zero?(n) do
+        true -> Enum.member?(enum, trunc(n))
+        false -> false
+      end
+  end
+
+  defp enum_member?(enum, item), do: Enum.member?(enum, item)
+
+  # match the data list with a member of an enum that should also be a nested
+  # list.
+  defp match_enum_list([same | candidate], [same | data]), do: match_enum_list(candidate, data)
+  # handle integer/float matching with `==`
+  defp match_enum_list([ch | candidate], [dh | data]) when ch == dh,
+    do: match_enum_list(candidate, data)
+
+  defp match_enum_list([], []), do: true
+  defp match_enum_list(_, _), do: false
 end
