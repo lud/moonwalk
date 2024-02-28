@@ -33,6 +33,21 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  # split the list of schemas, the first list is a list of {schema, data} tuples
+  # for schemas that validate the data, the second list is the {schema, errors}
+  # tuples for schemas that did not validate.
+  defp validate_split(data, schemas) do
+    {valids, invalids} =
+      Enum.reduce(schemas, {[], []}, fn schema, {valids, invalids} ->
+        case validate(data, schema) do
+          {:ok, data} -> {[{schema, data} | valids], invalids}
+          {:error, reason} -> {valids, [{schema, reason} | invalids]}
+        end
+      end)
+
+    {:lists.reverse(valids), :lists.reverse(invalids)}
+  end
+
   def validate(data, %Schema{} = schema) do
     Enum.reduce_while(schema.layers, {:ok, data}, fn layer, {:ok, data} ->
       case validate_layer(data, layer) do
@@ -134,6 +149,13 @@ defmodule Moonwalk.Schema.Validator do
     {:ok, data}
   end
 
+  def validate(data, {:multiple_of, n}) when is_integer(data) do
+    case rem(data, n) do
+      0 -> {:ok, data}
+      _ -> {:error, Error.of(:multiple_of, data, multiple_of: n)}
+    end
+  end
+
   def validate(data, {:max_items, max}) when is_list(data) do
     len = length(data)
 
@@ -152,6 +174,29 @@ defmodule Moonwalk.Schema.Validator do
 
   def validate(data, {:all_of, schemas}) do
     validate_multi(data, schemas)
+  end
+
+  def validate(data, {:one_of, schemas}) do
+    case validate_split(data, schemas) do
+      {[{_, data}], _} ->
+        {:ok, data}
+
+      {[], _} ->
+        {:error, Error.of(:one_of, data, validated_schemas: [])}
+
+        # {[_ | _] = too_much, _} ->
+        #   validated_schemas = Enum.map(too_much, &elem(&1, 0))
+        #   {:error, Error.of(:one_of, data, validated_schemas: validated_schemas)}
+    end
+  end
+
+  def validate(data, {:any_of, schemas}) do
+    case validate_split(data, schemas) do
+      # If multiple schemas validate the data, we take the casted value of the
+      # first one, arbitrarily.
+      {[{_, data} | _], _} -> {:ok, data}
+      {[], _} -> {:error, Error.of(:any_of, data, validated_schemas: [])}
+    end
   end
 
   def validate(data, {:boolean_schema, valid?}) do

@@ -79,6 +79,16 @@ defmodule Moonwalk.Schema do
     put_checker(s, layer_of(:all_of), {:all_of, subschemas})
   end
 
+  defp denorm({"oneOf", schemas}, s) do
+    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
+    put_checker(s, layer_of(:one_of), {:one_of, subschemas})
+  end
+
+  defp denorm({"anyOf", schemas}, s) do
+    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
+    put_checker(s, layer_of(:any_of), {:any_of, subschemas})
+  end
+
   defp denorm({"additionalProperties", schema}, s) do
     subschema = denormalize!(schema, s.meta)
     put_checker(s, layer_of(:additional_properties), {:additional_properties, subschema})
@@ -112,15 +122,33 @@ defmodule Moonwalk.Schema do
     content_encoding: "contentEncoding",
     content_media_type: "contentMediaType",
     content_schema: "contentSchema",
-    minimum: "minimum",
-    maximum: "maximum",
-    required: "required",
+    required: "required"
+  ]
+  |> Enum.each(fn {internal, external} ->
+    defp denorm({unquote(external), value}, s) do
+      put_checker(s, layer_of(unquote(internal)), {unquote(internal), value})
+    end
+  end)
+
+  [
+    # Passthrough schema properties that only accept integers
     multiple_of: "multipleOf",
     min_items: "minItems",
     max_items: "maxItems"
   ]
   |> Enum.each(fn {internal, external} ->
-    defp denorm({unquote(external), value}, s) do
+    defp denorm({unquote(external), value}, s) when is_integer(value) do
+      put_checker(s, layer_of(unquote(internal)), {unquote(internal), value})
+    end
+  end)
+
+  [
+    # Passthrough schema properties that only accept numbers
+    minimum: "minimum",
+    maximum: "maximum"
+  ]
+  |> Enum.each(fn {internal, external} ->
+    defp denorm({unquote(external), value}, s) when is_number(value) do
       put_checker(s, layer_of(unquote(internal)), {unquote(internal), value})
     end
   end)
@@ -130,6 +158,8 @@ defmodule Moonwalk.Schema do
   layers = [
     [
       :all_of,
+      :any_of,
+      :one_of,
       :boolean_schema,
       :const,
       :content_encoding,
