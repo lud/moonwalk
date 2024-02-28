@@ -81,10 +81,6 @@ defmodule Moonwalk.Schema.Validator do
     {:ok, data}
   end
 
-  defp validate_properties(data, nil, errors, seen) do
-    {data, errors, seen}
-  end
-
   def validate(data, {:const, expected}) do
     case data == expected do
       true -> {:ok, data}
@@ -178,6 +174,10 @@ defmodule Moonwalk.Schema.Validator do
   # TODO this will not work with large numbers
   defp fractional_is_zero?(n) do
     n - trunc(n) === 0.0
+  end
+
+  defp validate_properties(data, nil, errors, seen) do
+    {data, errors, seen}
   end
 
   defp validate_properties(data, schema_map, errors, seen) do

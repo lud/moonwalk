@@ -71,7 +71,7 @@ defmodule Moonwalk.SchemaValidationTest do
     #{inspect(json_schema, pretty: true)}
 
     ERROR
-    #{if Exception.exception?(reason),
+    #{if is_exception(reason),
       do: Exception.format(:error, reason, stacktrace),
       else: inspect(reason, pretty: true)}
     """
