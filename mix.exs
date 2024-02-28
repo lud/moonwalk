@@ -5,7 +5,7 @@ defmodule Moonwalk.MixProject do
     [
       app: :moonwalk,
       description: "A tool to define API specifications adhering to the Moonwalk specification.",
-      version: "0.1.0",
+      version: "0.0.1",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
