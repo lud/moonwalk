@@ -1,16 +1,28 @@
 defmodule Moonwalk.Schema do
   defstruct [:meta, :layers]
 
-  def denormalize(%{"$schema" => vsn} = json_schema) do
-    denormalize(json_schema, %{vsn: vsn})
+  def denormalize(schema) do
+    {:ok, denormalize!(schema)}
   end
 
-  def denormalize(bool) when is_boolean(bool) do
-    denormalize([{:boolean_schema, bool}], %{})
+  def denormalize!(%{"$schema" => vsn} = json_schema) do
+    denormalize!(json_schema, %{vsn: vsn})
+  end
+
+  def denormalize!(json_schema) do
+    denormalize!(json_schema, %{})
   end
 
   def denormalize(json_schema, meta) do
-    {:ok, Enum.reduce(json_schema, %__MODULE__{meta: meta, layers: []}, &denorm/2)}
+    {:ok, denormalize!(json_schema, meta)}
+  end
+
+  def denormalize!(bool, meta) when is_boolean(bool) do
+    denormalize!([{:boolean_schema, bool}], meta)
+  end
+
+  def denormalize!(json_schema, meta) do
+    Enum.reduce(json_schema, %__MODULE__{meta: meta, layers: []}, &denorm/2)
   end
 
   defp denorm({"$schema", vsn}, %{meta: meta} = s) do
@@ -26,17 +38,33 @@ defmodule Moonwalk.Schema do
     put_checker(s, layer_of(:const), {:const, value})
   end
 
+  defp denorm({"items", items_schema}, s) do
+    subschema = denormalize!(items_schema, s.meta)
+    put_checker(s, layer_of(:items), {:items, subschema})
+  end
+
+  defp denorm({"prefixItems", [_ | _] = schemas}, s) do
+    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
+    put_checker(s, layer_of(:prefix_items), {:prefix_items, subschemas})
+  end
+
+  defp denorm({"allOf", schemas}, s) do
+    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
+    put_checker(s, layer_of(:all_of), {:all_of, subschemas})
+  end
+
   defp denorm({:boolean_schema, _} = ck, s) do
     put_checker(s, layer_of(:boolean_schema), ck)
   end
 
-  # Passthrough schema properties – we do not use them but we must accept them
-  # as they are part of the defined properties of a schema.
-
   [
+    # Passthrough schema properties – we do not use them but we must accept them
+    # as they are part of the defined properties of a schema.
     content_encoding: "contentEncoding",
     content_media_type: "contentMediaType",
-    content_schema: "contentSchema"
+    content_schema: "contentSchema",
+    minimum: "minimum",
+    maximum: "maximum"
   ]
   |> Enum.each(fn {internal, external} ->
     defp denorm({unquote(external), value}, s) do
@@ -48,7 +76,8 @@ defmodule Moonwalk.Schema do
   # when deciding the layer
   layers = [
     [:type, :boolean_schema],
-    [:const],
+    [:const, :items, :prefix_items, :minimum, :maximum],
+    [:all_of],
     [:content_encoding],
     [:content_media_type],
     [:content_schema]

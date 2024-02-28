@@ -10,10 +10,12 @@ defmodule Moonwalk.SchemaValidationTest do
   {:ok, loader} = JsonSchemaTestSuite.load_dir("draft2020-12")
 
   suites = [
-    {"content.json", validate: false},
-    {"const.json", []},
     {"boolean_schema.json", []},
-    {"type.json", []}
+    {"const.json", []},
+    {"minimum.json", []},
+    {"maximum.json", []},
+    {"type.json", []},
+    {"content.json", validate: false}
   ]
 
   Enum.each(suites, fn {filename, opts} ->
@@ -23,7 +25,7 @@ defmodule Moonwalk.SchemaValidationTest do
     for test_case <- suite do
       %{"description" => case_descr, "schema" => json_schema, "tests" => tests} = test_case
 
-      describe case_descr do
+      describe filename <> " - " <> case_descr do
         setup do
           {:ok, %{test_case: unquote(Macro.escape(test_case))}}
         end

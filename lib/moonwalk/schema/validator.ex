@@ -19,7 +19,11 @@ defmodule Moonwalk.Schema.Validator do
   alias Moonwalk.Schema.Validator.Error
 
   defp validate_layer(data, validators) do
-    validators
+    validate_multi(data, validators)
+  end
+
+  defp validate_multi(data, schemas) do
+    schemas
     |> Enum.map(&validate(data, &1))
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
     |> Enum.into(%{error: []})
@@ -66,6 +70,56 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  def validate(data, {:items, subschema}) when is_list(data) do
+    data
+    |> Enum.with_index()
+    |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
+      item |> IO.inspect(label: ~S/item/)
+      index |> IO.inspect(label: ~S/index/)
+      subschema |> IO.inspect(label: ~S/subschema/)
+
+      case validate(item, subschema) |> dbg() do
+        {:ok, casted} ->
+          {[casted | items], errors}
+
+        {:error, reason} ->
+          {items, [Error.of(:item_error, item, index: index, reason: reason) | errors]}
+      end
+    end)
+    |> case do
+      {items, []} -> {:ok, :lists.reverse(items)}
+      {_, errors} -> {:error, Error.group(errors)}
+    end
+  end
+
+  def validate(data, {:prefix_items, schemas}) when is_list(data) do
+    validate_prefix_items(data, schemas)
+  end
+
+  def validate(data, {:minimum, min}) when is_number(data) do
+    if data >= min,
+      do: {:ok, data},
+      else: {:error, Error.of(:minimum, data, minimum: min)}
+  end
+
+  def validate(data, {:minimum, _}) do
+    {:ok, data}
+  end
+
+  def validate(data, {:maximum, max}) when is_number(data) do
+    if data <= max,
+      do: {:ok, data},
+      else: {:error, Error.of(:maximum, data, maximum: max)}
+  end
+
+  def validate(data, {:maximum, _}) do
+    {:ok, data}
+  end
+
+  def validate(data, {:all_of, schemas}) do
+    validate_multi(data, schemas)
+  end
+
   def validate(data, {:boolean_schema, valid?}) do
     if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
   end
@@ -86,5 +140,25 @@ defmodule Moonwalk.Schema.Validator do
   # TODO this will not work with large numbers
   defp fractional_is_zero?(n) do
     n - trunc(n) === 0.0
+  end
+
+  defp validate_prefix_items(values, schemas) do
+    validate_prefix_items(values, schemas, 0, [], [])
+  end
+
+  defp validate_prefix_items([vh | vt], [sh | st], index, validated, errors) do
+    case validate(vh, sh) do
+      {:ok, data} ->
+        validate_prefix_items(vt, st, index + 1, [data | validated], errors)
+
+      {:error, reason} ->
+        validate_prefix_items(vt, st, index + 1, validated, [
+          Error.of(:item_error, vh, index: index, reason: reason, prefix: true) | errors
+        ])
+    end
+  end
+
+  defp validate_prefix_items(vt, [], _, validated, []) do
+    {:ok, :lists.reverse(validated, vt)}
   end
 end
