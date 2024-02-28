@@ -20,7 +20,6 @@ defmodule Moonwalk.SchemaValidationTest do
       describe case_descr do
         setup do
           json_schema = unquote(Macro.escape(json_schema))
-          json_schema |> IO.inspect(label: ~S/json_schema/)
           {:ok, %{json_schema: json_schema}}
         end
 

@@ -6,7 +6,7 @@ defmodule Moonwalk.Schema.Validator.Error do
   end
 
   def type_error(data, type) do
-    of(:type, data, type: type |> dbg())
+    of(:type, data, type: type)
   end
 
   def group(errors) do
@@ -30,20 +30,17 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   def validate(data, %Schema{} = schema) do
-    schema |> IO.inspect(label: ~S/schema/)
-
     Enum.reduce_while(schema.layers, {:ok, data}, fn layer, {:ok, data} ->
       case validate_layer(data, layer) do
         {:ok, data} -> {:cont, {:ok, data}}
         {:error, reason} -> {:halt, {:error, reason}}
       end
     end)
-    |> dbg()
   end
 
   def validate(data, {:type, list}) when is_list(list) do
     Enum.find_value(list, fn type ->
-      case validate(data, {:type, type}) |> dbg() do
+      case validate(data, {:type, type}) do
         {:ok, data} -> {:ok, data}
         {:error, _} -> nil
       end

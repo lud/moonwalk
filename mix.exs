@@ -29,7 +29,10 @@ defmodule Moonwalk.MixProject do
        tag: "bf0360f4b7c51b8f968aabe7f3f49e12b120fc85",
        only: [:test],
        compile: false,
-       app: false}
+       app: false},
+
+      # Dev
+      {:credo, "~> 1.7"}
     ]
   end
 end

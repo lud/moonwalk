@@ -22,7 +22,6 @@ defmodule Moonwalk.Schema do
   defp layer_of(:type), do: 0
 
   defp put_checker(%__MODULE__{layers: layers} = s, layer, checker) do
-    binding() |> IO.inspect(label: ~S/binding()/)
     layers = put_in_layer(layers, layer, checker)
     %__MODULE__{s | layers: layers}
   end
