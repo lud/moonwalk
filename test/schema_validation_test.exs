@@ -8,6 +8,7 @@ defmodule Moonwalk.SchemaValidationTest do
   # and an array of "unit tests".
 
   {:ok, agent} = JsonSchemaTestSuite.load_dir("draft2020-12")
+  # {:ok, agent} = JsonSchemaTestSuite.load_dir("latest")
 
   ignored = [
     "anchor.json",
@@ -18,9 +19,10 @@ defmodule Moonwalk.SchemaValidationTest do
   Enum.each(ignored, fn filename -> JsonSchemaTestSuite.checkout_suite(agent, filename) end)
 
   suites = [
-    # {"items.json", []},
     # {"id.json", []},
     # {"infinite-loop-detection.json", []},
+    # {"defs.json", []},
+    # {"items.json", []},
     {"exclusiveMaximum.json", []},
     {"exclusiveMinimum.json", []},
     {"boolean_schema.json", []},
@@ -100,8 +102,13 @@ defmodule Moonwalk.SchemaValidationTest do
 
     {valid?, errors} =
       case Moonwalk.Schema.validate(data, schema) do
-        {:ok, _} -> {true, nil}
-        {:error, errors} -> {false, errors}
+        {:ok, casted} ->
+          # This may fail if we have casting during the validation.
+          assert data == casted
+          {true, nil}
+
+        {:error, errors} ->
+          {false, errors}
       end
 
     # assert the expected result

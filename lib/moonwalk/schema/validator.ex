@@ -110,15 +110,22 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate(data, {:items, subschema}) when is_list(data) do
-    data
-    |> Enum.with_index()
+  def validate(data, {:all_items, {item_schema, prefix_items_schemas}}) when is_list(data) do
+    with {:ok, casted_prefix, offset} <- validate_prefix_items(data, prefix_items_schemas),
+         items = data |> Enum.drop(offset) |> Enum.with_index(offset) |> dbg(),
+         {:ok, casted_items} <- validate_items(items, item_schema) do
+      {:ok, casted_prefix ++ casted_items} |> dbg()
+    end
+  end
+
+  defp validate_items(items_with_index, items_chema) do
+    items_with_index
     |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
       item |> IO.inspect(label: ~S/item/)
       index |> IO.inspect(label: ~S/index/)
-      subschema |> IO.inspect(label: ~S/subschema/)
+      items_chema |> IO.inspect(label: ~S/items_chema/)
 
-      case validate(item, subschema) |> dbg() do
+      case validate(item, items_chema) |> dbg() do
         {:ok, casted} ->
           {[casted | items], errors}
 
@@ -130,10 +137,6 @@ defmodule Moonwalk.Schema.Validator do
       {items, []} -> {:ok, :lists.reverse(items)}
       {_, errors} -> {:error, Error.group(errors)}
     end
-  end
-
-  def validate(data, {:prefix_items, schemas}) when is_list(data) do
-    validate_prefix_items(data, schemas)
   end
 
   def validate(data, {:maximum, max}) when is_number(data) do
@@ -365,15 +368,15 @@ defmodule Moonwalk.Schema.Validator do
         validate_prefix_items(vt, st, index + 1, [data | validated], errors)
 
       {:error, reason} ->
-        # squigly yellow: we didn't implement the base case with errors yet
         validate_prefix_items(vt, st, index + 1, validated, [
           Error.of(:item_error, vh, index: index, reason: reason, prefix: true) | errors
         ])
     end
   end
 
-  defp validate_prefix_items(vt, [], _, validated, []) do
-    {:ok, :lists.reverse(validated, vt)}
+  defp validate_prefix_items(_vt, [], offset, validated, []) do
+    # we do not return the tail
+    {:ok, :lists.reverse(validated), offset}
   end
 
   # special case when the data itself is an enum

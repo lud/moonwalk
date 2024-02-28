@@ -37,9 +37,15 @@ defmodule Moonwalk.Schema do
         when k in [:properties, :pattern_properties, :additional_properties] ->
           merge_properties_layer(layer)
 
+        [{k, _} | _] = layer
+        when k in [:items, :prefix_items] ->
+          merge_items_layer(layer)
+
         other ->
           other
       end)
+
+    refs = pull_refs(layers, []) |> dbg()
 
     %{schema | layers: layers}
   end
@@ -50,6 +56,17 @@ defmodule Moonwalk.Schema do
     additional_properties = Keyword.get(layer, :additional_properties, nil)
     [{:all_properties, {properties, pattern_properties, additional_properties}}]
   end
+
+  defp merge_items_layer(layer) do
+    items = Keyword.get(layer, :items, nil)
+    prefix_items = Keyword.get(layer, :prefix_items, nil)
+
+    [{:all_items, {items, prefix_items}}]
+  end
+
+  defp pull_refs(list, acc) when is_list(list), do: Enum.reduce(list, acc, &pull_refs/2)
+  defp pull_refs({:"$ref", ref}, acc), do: [ref | acc]
+  defp pull_refs({_, _}, acc), do: acc
 
   defp denorm({"$schema", vsn}, %{meta: meta} = s) do
     %__MODULE__{s | meta: Map.put(meta, :vsn, vsn)}
@@ -123,7 +140,8 @@ defmodule Moonwalk.Schema do
     content_media_type: "contentMediaType",
     content_schema: "contentSchema",
     required: "required",
-    enum: "enum"
+    enum: "enum",
+    "$ref": "$ref"
   ]
   |> Enum.each(fn {internal, external} ->
     defp denorm({unquote(external), value}, s) do
@@ -162,6 +180,8 @@ defmodule Moonwalk.Schema do
   # when deciding the layer
   layers = [
     [
+      :"$ref",
+      :"$defs",
       :all_of,
       :any_of,
       :one_of,
@@ -171,7 +191,6 @@ defmodule Moonwalk.Schema do
       :content_encoding,
       :content_media_type,
       :content_schema,
-      :items,
       :maximum,
       :minimum,
       :exclusive_maximum,
@@ -179,12 +198,12 @@ defmodule Moonwalk.Schema do
       :min_items,
       :max_items,
       :multiple_of,
-      :prefix_items,
       :type,
       :max_length,
       :min_length,
       :required
     ],
+    [:items, :prefix_items],
     [
       :additional_properties,
       :properties,
