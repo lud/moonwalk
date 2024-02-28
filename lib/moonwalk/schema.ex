@@ -15,8 +15,11 @@ defmodule Moonwalk.Schema do
 
   defp denorm({"type", type}, s) do
     type = valid_type!(type)
-    layer = layer_of(:type)
-    put_checker(s, layer, {:type, type})
+    put_checker(s, layer_of(:type), {:type, type})
+  end
+
+  defp denorm({"const", value}, s) do
+    put_checker(s, layer_of(:const), {:const, value})
   end
 
   # Passthrough schema properties – we do not use them but we must accept them
@@ -33,8 +36,11 @@ defmodule Moonwalk.Schema do
     end
   end)
 
+  # TODO @optimize make layer_of/1 a macro so we compile to literal integers
+  # when deciding the layer
   layers = [
     [:type],
+    [:const],
     [:content_encoding],
     [:content_media_type],
     [:content_schema]

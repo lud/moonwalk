@@ -59,6 +59,13 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
+  def validate(data, {:const, expected}) do
+    case data == expected do
+      true -> {:ok, data}
+      false -> {:error, Error.of(:const, data, expected: expected)}
+    end
+  end
+
   defp validate_type(data, :array), do: is_list(data)
   defp validate_type(data, :object), do: is_map(data)
   defp validate_type(data, :null), do: data === nil

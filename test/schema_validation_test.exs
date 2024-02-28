@@ -11,6 +11,7 @@ defmodule Moonwalk.SchemaValidationTest do
 
   suites = [
     {"content.json", validate: false},
+    {"const.json", []},
     {"type.json", []}
   ]
 
