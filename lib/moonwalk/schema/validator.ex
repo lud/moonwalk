@@ -69,7 +69,11 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   def validate(data, %BooleanSchema{value: valid?}) do
-    if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
+    if valid? do
+      {:ok, data}
+    else
+      {:error, Error.of(:boolean_schema, data, [])}
+    end
   end
 
   defp descend(a, b) do
@@ -170,9 +174,11 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp descend(data, {:maximum, max}, ctx) when is_number(data) do
-    if data <= max,
-      do: {:ok, data},
-      else: {:error, Error.of(:maximum, data, maximum: max)}
+    if data <= max do
+      {:ok, data}
+    else
+      {:error, Error.of(:maximum, data, maximum: max)}
+    end
   end
 
   defp descend(data, {:maximum, _}, ctx) do
@@ -180,9 +186,11 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp descend(data, {:exclusive_maximum, max}, ctx) when is_number(data) do
-    if data < max,
-      do: {:ok, data},
-      else: {:error, Error.of(:exclusive_maximum, data, exclusive_maximum: max)}
+    if data < max do
+      {:ok, data}
+    else
+      {:error, Error.of(:exclusive_maximum, data, exclusive_maximum: max)}
+    end
   end
 
   defp descend(data, {:exclusive_maximum, _}, ctx) do
@@ -190,9 +198,11 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp descend(data, {:minimum, min}, ctx) when is_number(data) do
-    if data >= min,
-      do: {:ok, data},
-      else: {:error, Error.of(:minimum, data, minimum: min)}
+    if data >= min do
+      {:ok, data}
+    else
+      {:error, Error.of(:minimum, data, minimum: min)}
+    end
   end
 
   defp descend(data, {:minimum, _}, ctx) do
@@ -200,9 +210,11 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp descend(data, {:exclusive_minimum, min}, ctx) when is_number(data) do
-    if data > min,
-      do: {:ok, data},
-      else: {:error, Error.of(:exclusive_minimum, data, exclusive_minimum: min)}
+    if data > min do
+      {:ok, data}
+    else
+      {:error, Error.of(:exclusive_minimum, data, exclusive_minimum: min)}
+    end
   end
 
   defp descend(data, {:exclusive_minimum, _}, ctx) do
@@ -219,25 +231,31 @@ defmodule Moonwalk.Schema.Validator do
   defp descend(data, {:max_items, max}, ctx) when is_list(data) do
     len = length(data)
 
-    if len <= max,
-      do: {:ok, data},
-      else: {:error, Error.of(:max_items, data, max_items: max, len: len)}
+    if len <= max do
+      {:ok, data}
+    else
+      {:error, Error.of(:max_items, data, max_items: max, len: len)}
+    end
   end
 
   defp descend(data, {:min_items, min}, ctx) when is_list(data) do
     len = length(data)
 
-    if len >= min,
-      do: {:ok, data},
-      else: {:error, Error.of(:min_items, data, min_items: min, len: len)}
+    if len >= min do
+      {:ok, data}
+    else
+      {:error, Error.of(:min_items, data, min_items: min, len: len)}
+    end
   end
 
   defp descend(data, {:max_length, max}, ctx) when is_binary(data) do
     len = String.length(data)
 
-    if len <= max,
-      do: {:ok, data},
-      else: {:error, Error.of(:max_length, data, max_items: max, len: len)}
+    if len <= max do
+      {:ok, data}
+    else
+      {:error, Error.of(:max_length, data, max_items: max, len: len)}
+    end
   end
 
   defp descend(data, {:max_length, _}, ctx) do
@@ -247,9 +265,11 @@ defmodule Moonwalk.Schema.Validator do
   defp descend(data, {:min_length, min}, ctx) when is_binary(data) do
     len = String.length(data)
 
-    if len >= min,
-      do: {:ok, data},
-      else: {:error, Error.of(:min_length, data, min_items: min, len: len)}
+    if len >= min do
+      {:ok, data}
+    else
+      {:error, Error.of(:min_length, data, min_items: min, len: len)}
+    end
   end
 
   defp descend(data, {:min_length, _}, ctx) do
@@ -291,21 +311,44 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp descend(data, %BooleanSchema{value: valid?}, _) do
-    if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
+    if valid? do
+      {:ok, data}
+    else
+      {:error, Error.of(:boolean_schema, data, [])}
+    end
   end
 
-  defp validate_type(data, :array), do: is_list(data)
-  defp validate_type(data, :object), do: is_map(data)
-  defp validate_type(data, :null), do: data === nil
-  defp validate_type(data, :boolean), do: is_boolean(data)
-  defp validate_type(data, :string), do: is_binary(data)
+  defp validate_type(data, :array) do
+    is_list(data)
+  end
+
+  defp validate_type(data, :object) do
+    is_map(data)
+  end
+
+  defp validate_type(data, :null) do
+    data === nil
+  end
+
+  defp validate_type(data, :boolean) do
+    is_boolean(data)
+  end
+
+  defp validate_type(data, :string) do
+    is_binary(data)
+  end
 
   defp validate_type(data, :integer) when is_float(data) do
     fractional_is_zero?(data) && {:swap, trunc(data)}
   end
 
-  defp validate_type(data, :integer), do: is_integer(data)
-  defp validate_type(data, :number), do: is_number(data)
+  defp validate_type(data, :integer) do
+    is_integer(data)
+  end
+
+  defp validate_type(data, :number) do
+    is_number(data)
+  end
 
   # TODO this will not work with large numbers
   defp fractional_is_zero?(n) do
@@ -431,15 +474,26 @@ defmodule Moonwalk.Schema.Validator do
       end
   end
 
-  defp enum_member?(enum, item), do: Enum.member?(enum, item)
+  defp enum_member?(enum, item) do
+    Enum.member?(enum, item)
+  end
 
   # match the data list with a member of an enum that should also be a nested
   # list.
-  defp match_enum_list([same | candidate], [same | data]), do: match_enum_list(candidate, data)
-  # handle integer/float matching with `==`
-  defp match_enum_list([ch | candidate], [dh | data]) when ch == dh,
-    do: match_enum_list(candidate, data)
+  defp match_enum_list([same | candidate], [same | data]) do
+    match_enum_list(candidate, data)
+  end
 
-  defp match_enum_list([], []), do: true
-  defp match_enum_list(_, _), do: false
+  # handle integer/float matching with `==`
+  defp match_enum_list([ch | candidate], [dh | data]) when ch == dh do
+    match_enum_list(candidate, data)
+  end
+
+  defp match_enum_list([], []) do
+    true
+  end
+
+  defp match_enum_list(_, _) do
+    false
+  end
 end

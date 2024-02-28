@@ -1,5 +1,5 @@
 defmodule Moonwalk.Schema do
-  defstruct [:meta, :layers, :schema, :defs]
+  defstruct [:meta, :layers, :raw, :refs, :defs, :resolve_context]
 
   defmodule BooleanSchema do
     defstruct [:value]
@@ -10,65 +10,65 @@ defmodule Moonwalk.Schema do
   end
 
   def denormalize!(%{"$schema" => vsn} = json_schema) do
-    denormalize!(json_schema, %{vsn: vsn})
+    denormalize!(json_schema, %{vsn: vsn}, :root)
   end
 
   def denormalize!(json_schema) do
-    denormalize!(json_schema, %{})
+    denormalize!(json_schema, %{}, :root)
   end
 
-  def denormalize(json_schema, meta) do
-    {:ok, denormalize!(json_schema, meta)}
+  def denormalize!(bool, _meta, _rctx) when is_boolean(bool) do
+    %BooleanSchema{value: bool}
   end
 
-  def denormalize!(bool, _meta) when is_boolean(bool) do
-    %BooleanSchema{value: bool} |> dbg()
+  def denormalize!(json_schema, meta, resolve_context \\ :sub) do
+    schema =
+      %__MODULE__{
+        meta: meta,
+        layers: [],
+        raw: json_schema,
+        refs: [],
+        defs: %{},
+        resolve_context: resolve_context
+      }
+
+    # :resolve_context tells whether we are in the top schema, a sub schema of
+    # the same json schema document, or an external or external+sub imported via
+    # $ref.
+    %{layers: layers} = schema = Enum.reduce(json_schema, schema, &denorm/2)
+
+    {layers, refs} = pull_refs(layers, [])
+    layers = merge_layers(layers)
+
+    # Collect refs and store it on the schema. So they can be stolen by a parent
+    # schema if there is one, otherwise our resolve_context is :root and we will
+    # extract the defs from the refs and denormalize them as well.
+    schema = %{schema | layers: layers, refs: refs}
+
+    case resolve_context do
+      :root -> resolve_refs(schema)
+      :sub -> schema
+    end
   end
 
-  def denormalize!(json_schema, meta) do
-    resolve_context =
-      case meta do
-        %{resolved: res} -> res
-        _ -> :root
-      end
+  defp merge_layers(layers) do
+    layers
+    |> Enum.filter(fn
+      [] -> false
+      _ -> true
+    end)
+    |> Enum.map(fn
+      [{k, _} | _] = layer
+      when k in [:properties, :pattern_properties, :additional_properties] ->
+        merge_properties_layer(layer)
 
-    # :resolved tells whether we are in the parent schema or an imported
-    # schema. Unrelated to the nesting level, it is about the documents.
-    meta = Map.put_new(meta, :resolved, :root)
+      [{k, _} | _] = layer
+      when k in [:items, :prefix_items] ->
+        merge_items_layer(layer)
 
-    json_schema
-    |> Enum.reduce(%__MODULE__{meta: meta, layers: [], schema: json_schema}, &denorm/2)
-    |> reduce_layers()
-  end
-
-  defp reduce_layers(schema) do
-    layers =
-      schema.layers
-      |> Enum.filter(fn
-        [] -> false
-        _ -> true
-      end)
-      |> Enum.map(fn
-        [{k, _} | _] = layer
-        when k in [:properties, :pattern_properties, :additional_properties] ->
-          merge_properties_layer(layer)
-
-        [{k, _} | _] = layer
-        when k in [:items, :prefix_items] ->
-          merge_items_layer(layer)
-
-        other ->
-          other
-      end)
-
-    {layers, refs} =
-      traverse_layers(layers, [], fn el, acc ->
-        el |> dbg()
-        {el, acc}
-      end)
-
-    refs |> dbg()
-    %{schema | layers: layers}
+      other ->
+        other
+    end)
   end
 
   defp merge_properties_layer(layer) do
@@ -85,6 +85,91 @@ defmodule Moonwalk.Schema do
     [{:all_items, {items, prefix_items}}]
   end
 
+  defp pull_refs(list, acc) when is_list(list) do
+    Enum.map_reduce(list, acc, fn item, acc -> pull_refs(item, acc) end)
+  end
+
+  defp pull_refs({:"$ref", ref}, acc) when is_binary(ref) do
+    {{:"$ref", ref}, [ref | acc]}
+  end
+
+  # defp pull_refs({:all_items, {items, prefix_items}}, acc) do
+  #   {items, acc} = pull_refs(items, acc)
+  #   {prefix_items, acc} = pull_refs(prefix_items, acc)
+  #   {{:all_items, {items, prefix_items}}, acc}
+  # end
+
+  # defp pull_refs({:all_properties, {properties, pattern_properties, additional_properties}}, acc) do
+  #   {properties, acc} = pull_refs(properties, acc)
+  #   {pattern_properties, acc} = pull_refs(pattern_properties, acc)
+  #   {additional_properties, acc} = pull_refs(additional_properties, acc)
+  #   {{:all_properties, {properties, pattern_properties, additional_properties}}, acc}
+  # end
+
+  defp pull_refs({k, v}, acc) when is_atom(k) do
+    {v, acc} = pull_refs(v, acc)
+    {{k, v}, acc}
+  end
+
+  defp pull_refs(scalar, acc)
+       when is_binary(scalar)
+       when is_atom(scalar)
+       when is_number(scalar) do
+    {scalar, acc}
+  end
+
+  defp pull_refs(%BooleanSchema{} = s, acc) do
+    {s, acc}
+  end
+
+  defp pull_refs(%__MODULE__{} = s, acc) do
+    {s, refs} = steal_refs(s)
+    {s, refs ++ acc}
+  end
+
+  defp steal_refs(%{refs: refs} = schema) do
+    {%{schema | refs: []}, refs}
+  end
+
+  defp resolve_refs(schema) do
+    resolve_refs(schema.refs, schema, %{})
+  end
+
+  defp resolve_refs([h | t], schema, seen) when is_map_key(seen, h) do
+    resolve_refs(t, schema, seen)
+  end
+
+  defp resolve_refs([ref | tail], schema, seen) do
+    %{raw: json_schema, meta: meta, defs: defs} = schema
+    raw_sub = resolve_ref(json_schema, parse_ref(ref))
+    subschema = denormalize!(raw_sub, meta)
+    {subschema, tail} = pull_refs(subschema, tail)
+
+    schema = %__MODULE__{schema | defs: Map.put(defs, ref, subschema)}
+    seen = Map.put(seen, ref, true)
+
+    resolve_refs(tail, schema, seen)
+  end
+
+  defp resolve_refs([], schema, seen) do
+    # once resolved, refs aren't used anymore, but for the sake of clarity we
+    # want people to see all what was pulled.
+    %{schema | refs: Map.keys(seen)} |> dbg()
+  end
+
+  defp parse_ref(ref) do
+    _uri = URI.parse(ref)
+  end
+
+  defp resolve_ref(raw_schema, %{host: nil, path: nil, fragment: "/" <> path}) do
+    segments = String.split(path, "/")
+
+    case get_in(raw_schema, segments) do
+      nil -> raise "Could not resolve ref: #{inspect(path)}"
+      schema -> schema
+    end
+  end
+
   defp traverse_layers(list, acc, fun) when is_list(list) do
     {mapped, acc} =
       Enum.reduce(list, {[], acc}, fn el, {mapped, acc} ->
@@ -96,8 +181,12 @@ defmodule Moonwalk.Schema do
     {new_list, acc}
   end
 
-  defp traverse_layers(%__MODULE__{}, acc, fun) do
-    raise "todo!"
+  defp traverse_layers(%__MODULE__{layers: layers} = s, acc, fun) do
+    traverse_layers(layers, acc, fun)
+  end
+
+  defp traverse_layers(%BooleanSchema{} = s, acc, fun) do
+    fun.(s, acc)
   end
 
   defp traverse_layers(map, acc, fun) when is_map(map) do
@@ -111,9 +200,13 @@ defmodule Moonwalk.Schema do
     {new_list, acc} |> dbg()
   end
 
-  defp traverse_layers({k, v}, acc, fun) do
-    {new_v, acc} = traverse_layers(v, acc, fun)
-    fun.({k, new_v}, acc)
+  defp traverse_layers(tuple, acc, fun) when is_tuple(tuple) do
+    {list, acc} =
+      tuple
+      |> Tuple.to_list()
+      |> traverse_layers(acc, fun)
+
+    fun.(List.to_tuple(list), acc)
   end
 
   defp traverse_layers(el, acc, _fun) when is_binary(el) when is_atom(el) when is_number(el) do
@@ -187,6 +280,11 @@ defmodule Moonwalk.Schema do
     put_checker(s, layer_of(:required), {:required, keys})
   end
 
+  defp denorm({"$ref", ref}, s) when is_binary(ref) do
+    s = collect_ref(s, ref)
+    put_checker(s, layer_of(:"$ref"), {:"$ref", ref})
+  end
+
   defp denorm({:boolean_schema, _} = ck, s) do
     put_checker(s, layer_of(:boolean_schema), ck)
   end
@@ -198,8 +296,7 @@ defmodule Moonwalk.Schema do
     content_media_type: "contentMediaType",
     content_schema: "contentSchema",
     required: "required",
-    enum: "enum",
-    "$ref": "$ref"
+    enum: "enum"
   ]
   |> Enum.each(fn {internal, external} ->
     defp denorm({unquote(external), value}, s) do
@@ -270,7 +367,9 @@ defmodule Moonwalk.Schema do
   ]
 
   for {checkers, n} <- Enum.with_index(layers), c <- checkers do
-    def layer_of(unquote(c)), do: unquote(n)
+    def layer_of(unquote(c)) do
+      unquote(n)
+    end
   end
 
   defp put_checker(%__MODULE__{layers: layers} = s, layer, checker) do
@@ -278,19 +377,57 @@ defmodule Moonwalk.Schema do
     %__MODULE__{s | layers: layers}
   end
 
-  defp put_in_layer([h | t], 0, checker), do: [[checker | h] | t]
-  defp put_in_layer([h | t], n, checker), do: [h | put_in_layer(t, n - 1, checker)]
-  defp put_in_layer([], 0, checker), do: [[checker]]
-  defp put_in_layer([], n, checker), do: [[] | put_in_layer([], n - 1, checker)]
+  defp collect_ref(%__MODULE__{refs: refs} = s, ref) do
+    %__MODULE__{s | refs: [ref | refs]}
+  end
 
-  defp valid_type!(list) when is_list(list), do: Enum.map(list, &valid_type!/1)
-  defp valid_type!("array"), do: :array
-  defp valid_type!("object"), do: :object
-  defp valid_type!("null"), do: :null
-  defp valid_type!("boolean"), do: :boolean
-  defp valid_type!("string"), do: :string
-  defp valid_type!("integer"), do: :integer
-  defp valid_type!("number"), do: :number
+  defp put_in_layer([h | t], 0, checker) do
+    [[checker | h] | t]
+  end
+
+  defp put_in_layer([h | t], n, checker) do
+    [h | put_in_layer(t, n - 1, checker)]
+  end
+
+  defp put_in_layer([], 0, checker) do
+    [[checker]]
+  end
+
+  defp put_in_layer([], n, checker) do
+    [[] | put_in_layer([], n - 1, checker)]
+  end
+
+  defp valid_type!(list) when is_list(list) do
+    Enum.map(list, &valid_type!/1)
+  end
+
+  defp valid_type!("array") do
+    :array
+  end
+
+  defp valid_type!("object") do
+    :object
+  end
+
+  defp valid_type!("null") do
+    :null
+  end
+
+  defp valid_type!("boolean") do
+    :boolean
+  end
+
+  defp valid_type!("string") do
+    :string
+  end
+
+  defp valid_type!("integer") do
+    :integer
+  end
+
+  defp valid_type!("number") do
+    :number
+  end
 
   defdelegate validate(data, schema), to: Moonwalk.Schema.Validator
 end

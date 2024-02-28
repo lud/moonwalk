@@ -89,9 +89,11 @@ defmodule Moonwalk.SchemaValidationTest do
     #{inspect(json_schema, pretty: true)}
 
     ERROR
-    #{if is_exception(reason),
-      do: Exception.format(:error, reason, stacktrace),
-      else: inspect(reason, pretty: true)}
+    #{if is_exception(reason) do
+      Exception.format(:error, reason, stacktrace)
+    else
+      inspect(reason, pretty: true)
+    end}
     """
   end
 
@@ -120,7 +122,11 @@ defmodule Moonwalk.SchemaValidationTest do
 
       other ->
         flunk("""
-        #{if expected_valid, do: "Expected valid, got errors", else: "Expected errors, got valid"}
+        #{if expected_valid do
+          "Expected valid, got errors"
+        else
+          "Expected errors, got valid"
+        end}
 
         CASE
         #{test_descr}

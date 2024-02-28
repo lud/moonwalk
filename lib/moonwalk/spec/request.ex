@@ -28,8 +28,11 @@ defmodule Moonwalk.Spec.Request do
     end)
   end
 
-  defp normalize({:method, method}, raw), do: Map.put(raw, "method", method)
+  defp normalize({:method, method}, raw) do
+    Map.put(raw, "method", method)
+  end
 
-  defp normalize({:content_type, content_type}, raw),
-    do: Map.put(raw, "contentType", content_type)
+  defp normalize({:content_type, content_type}, raw) do
+    Map.put(raw, "contentType", content_type)
+  end
 end
