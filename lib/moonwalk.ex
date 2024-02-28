@@ -1,8 +1,13 @@
 defmodule Moonwalk do
+  alias Moonwalk.Spec.Request
   alias Moonwalk.Spec.Api
 
   def normalize_spec(%Api{} = api) do
     Api.normalize_spec(api)
+  end
+
+  def normalize_spec(%Request{} = api) do
+    Request.normalize_spec(api)
   end
 
   def json_serializable?(term) when is_binary(term) when is_atom(term) when is_number(term),

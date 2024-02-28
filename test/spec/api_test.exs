@@ -1,7 +1,6 @@
-defmodule Moonwalk.SpecTest do
-  use ExUnit.Case, async: true
-
+defmodule Moonwalk.Spec.ApiTest do
   alias Moonwalk.Spec.Api
+  use ExUnit.Case, async: true
 
   test "define an empty API" do
     api = Api.define([])
