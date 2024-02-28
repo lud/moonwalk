@@ -22,10 +22,20 @@ defmodule Moonwalk.Schema do
   end
 
   def denormalize!(bool, _meta) when is_boolean(bool) do
-    %BooleanSchema{value: bool}
+    %BooleanSchema{value: bool} |> dbg()
   end
 
   def denormalize!(json_schema, meta) do
+    resolve_context =
+      case meta do
+        %{resolved: res} -> res
+        _ -> :root
+      end
+
+    # :resolved tells whether we are in the parent schema or an imported
+    # schema. Unrelated to the nesting level, it is about the documents.
+    meta = Map.put_new(meta, :resolved, :root)
+
     json_schema
     |> Enum.reduce(%__MODULE__{meta: meta, layers: [], schema: json_schema}, &denorm/2)
     |> reduce_layers()
@@ -51,8 +61,13 @@ defmodule Moonwalk.Schema do
           other
       end)
 
-    refs = pull_refs(layers, []) |> dbg()
+    {layers, refs} =
+      traverse_layers(layers, [], fn el, acc ->
+        el |> dbg()
+        {el, acc}
+      end)
 
+    refs |> dbg()
     %{schema | layers: layers}
   end
 
@@ -70,9 +85,40 @@ defmodule Moonwalk.Schema do
     [{:all_items, {items, prefix_items}}]
   end
 
-  defp pull_refs(list, acc) when is_list(list), do: Enum.reduce(list, acc, &pull_refs/2)
-  defp pull_refs({:"$ref", ref}, acc), do: [ref | acc]
-  defp pull_refs({_, _}, acc), do: acc
+  defp traverse_layers(list, acc, fun) when is_list(list) do
+    {mapped, acc} =
+      Enum.reduce(list, {[], acc}, fn el, {mapped, acc} ->
+        {new_el, acc} = traverse_layers(el, acc, fun)
+        {[new_el | mapped], acc}
+      end)
+
+    {new_list, acc} = fun.(:lists.reverse(mapped), acc)
+    {new_list, acc}
+  end
+
+  defp traverse_layers(%__MODULE__{}, acc, fun) do
+    raise "todo!"
+  end
+
+  defp traverse_layers(map, acc, fun) when is_map(map) do
+    {mapped, acc} =
+      Enum.reduce(map, {[], acc}, fn {k, v}, {mapped, acc} ->
+        {new_v, acc} = traverse_layers(v, acc, fun)
+        {[{k, new_v} | mapped], acc}
+      end)
+
+    {new_list, acc} = fun.(Map.new(mapped), acc)
+    {new_list, acc} |> dbg()
+  end
+
+  defp traverse_layers({k, v}, acc, fun) do
+    {new_v, acc} = traverse_layers(v, acc, fun)
+    fun.({k, new_v}, acc)
+  end
+
+  defp traverse_layers(el, acc, _fun) when is_binary(el) when is_atom(el) when is_number(el) do
+    {el, acc}
+  end
 
   defp denorm({"$schema", vsn}, %{meta: meta} = s) do
     %__MODULE__{s | meta: Map.put(meta, :vsn, vsn)}
@@ -110,6 +156,12 @@ defmodule Moonwalk.Schema do
   defp denorm({"anyOf", schemas}, s) do
     subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
     put_checker(s, layer_of(:any_of), {:any_of, subschemas})
+  end
+
+  defp denorm({"$defs", defs_map}, s) when is_map(defs_map) do
+    s
+    # subschemas_map = Map.new(defs_map, fn {k, raw} -> {k, denormalize!(raw, s.meta)} end)
+    # %{s | defs: subschemas_map}
   end
 
   defp denorm({"additionalProperties", schema}, s) do

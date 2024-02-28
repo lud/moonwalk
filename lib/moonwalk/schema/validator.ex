@@ -14,18 +14,33 @@ defmodule Moonwalk.Schema.Validator.Error do
   end
 end
 
+defmodule Moonwalk.Schema.Validator.Context do
+  defstruct [:root]
+
+  def new(root_schema) do
+    %__MODULE__{root: root_schema}
+  end
+
+  defimpl Inspect do
+    def inspect(%{root: root}, opts) do
+      "#Context<>"
+    end
+  end
+end
+
 defmodule Moonwalk.Schema.Validator do
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema
   alias Moonwalk.Schema.Validator.Error
+  alias Moonwalk.Schema.Validator.Context
 
-  defp validate_layer(data, validators) do
-    validate_multi(data, validators)
+  defp validate_layer(data, validators, ctx) do
+    validate_multi(data, validators, ctx)
   end
 
-  defp validate_multi(data, schemas) do
+  defp validate_multi(data, schemas, ctx) do
     schemas
-    |> Enum.map(&validate(data, &1))
+    |> Enum.map(&descend(data, &1, ctx))
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
     |> Enum.into(%{error: []})
     |> case do
@@ -37,10 +52,10 @@ defmodule Moonwalk.Schema.Validator do
   # split the list of schemas, the first list is a list of {schema, data} tuples
   # for schemas that validate the data, the second list is the {schema, errors}
   # tuples for schemas that did not validate.
-  defp validate_split(data, schemas) do
+  defp validate_split(data, schemas, ctx) do
     {valids, invalids} =
       Enum.reduce(schemas, {[], []}, fn schema, {valids, invalids} ->
-        case validate(data, schema) do
+        case descend(data, schema, ctx) do
           {:ok, data} -> {[{schema, data} | valids], invalids}
           {:error, reason} -> {valids, [{schema, reason} | invalids]}
         end
@@ -50,21 +65,29 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   def validate(data, %Schema{} = schema) do
-    Enum.reduce_while(schema.layers, {:ok, data}, fn layer, {:ok, data} ->
-      case validate_layer(data, layer) do
-        {:ok, data} -> {:cont, {:ok, data}}
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
+    descend(data, schema, Context.new(schema))
   end
 
   def validate(data, %BooleanSchema{value: valid?}) do
     if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
   end
 
-  def validate(data, {:type, list}) when is_list(list) do
+  defp descend(a, b) do
+    raise "called descend without context"
+  end
+
+  defp descend(data, %Schema{} = schema, ctx) do
+    Enum.reduce_while(schema.layers, {:ok, data}, fn layer, {:ok, data} ->
+      case validate_layer(data, layer, ctx) do
+        {:ok, data} -> {:cont, {:ok, data}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp descend(data, {:type, list}, ctx) when is_list(list) do
     Enum.find_value(list, fn type ->
-      case validate(data, {:type, type}) do
+      case descend(data, {:type, type}, ctx) do
         {:ok, data} -> {:ok, data}
         {:error, _} -> nil
       end
@@ -75,7 +98,7 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate(data, {:type, t}) do
+  defp descend(data, {:type, t}, ctx) do
     case validate_type(data, t) do
       true -> {:ok, data}
       false -> {:error, Error.type_error(data, t)}
@@ -83,13 +106,14 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate(data, {:all_properties, {properties, patterns, additional}}) when is_map(data) do
+  defp descend(data, {:all_properties, {properties, patterns, additional}}, ctx)
+       when is_map(data) do
     errors = []
     seen = MapSet.new()
 
-    {data, errors, seen} = validate_properties(data, properties, errors, seen)
-    {data, errors, seen} = validate_pattern_properties(data, patterns, errors, seen)
-    {data, errors} = validate_additional_properties(data, additional, errors, seen)
+    {data, errors, seen} = validate_properties(data, properties, ctx, errors, seen)
+    {data, errors, seen} = validate_pattern_properties(data, patterns, ctx, errors, seen)
+    {data, errors} = validate_additional_properties(data, additional, ctx, errors, seen)
 
     case errors do
       [] -> {:ok, data}
@@ -97,40 +121,41 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate(data, {:all_properties, _}) do
+  defp descend(data, {:all_properties, _}, ctx) do
     {:ok, data}
   end
 
-  def validate(data, {:const, expected}) do
+  defp descend(data, {:const, expected}, ctx) do
     case data == expected do
       true -> {:ok, data}
       false -> {:error, Error.of(:const, data, expected: expected)}
     end
   end
 
-  def validate(data, {:enum, enum}) do
+  defp descend(data, {:enum, enum}, ctx) do
     case enum_member?(enum, data) do
       true -> {:ok, data}
       false -> {:error, Error.of(:enum, data, enum: enum)}
     end
   end
 
-  def validate(data, {:all_items, {item_schema, prefix_items_schemas}}) when is_list(data) do
-    with {:ok, casted_prefix, offset} <- validate_prefix_items(data, prefix_items_schemas),
+  defp descend(data, {:all_items, {item_schema, prefix_items_schemas}}, ctx)
+       when is_list(data) do
+    with {:ok, casted_prefix, offset} <- validate_prefix_items(data, prefix_items_schemas, ctx),
          items = data |> Enum.drop(offset) |> Enum.with_index(offset) |> dbg(),
-         {:ok, casted_items} <- validate_items(items, item_schema) do
+         {:ok, casted_items} <- validate_items(items, item_schema, ctx) do
       {:ok, casted_prefix ++ casted_items} |> dbg()
     end
   end
 
-  defp validate_items(items_with_index, items_chema) do
+  defp validate_items(items_with_index, items_chema, ctx) do
     items_with_index
     |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
       item |> IO.inspect(label: ~S/item/)
       index |> IO.inspect(label: ~S/index/)
       items_chema |> IO.inspect(label: ~S/items_chema/)
 
-      case validate(item, items_chema) |> dbg() do
+      case descend(item, items_chema, ctx) |> dbg() do
         {:ok, casted} ->
           {[casted | items], errors}
 
@@ -144,54 +169,54 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate(data, {:maximum, max}) when is_number(data) do
+  defp descend(data, {:maximum, max}, ctx) when is_number(data) do
     if data <= max,
       do: {:ok, data},
       else: {:error, Error.of(:maximum, data, maximum: max)}
   end
 
-  def validate(data, {:maximum, _}) do
+  defp descend(data, {:maximum, _}, ctx) do
     {:ok, data}
   end
 
-  def validate(data, {:exclusive_maximum, max}) when is_number(data) do
+  defp descend(data, {:exclusive_maximum, max}, ctx) when is_number(data) do
     if data < max,
       do: {:ok, data},
       else: {:error, Error.of(:exclusive_maximum, data, exclusive_maximum: max)}
   end
 
-  def validate(data, {:exclusive_maximum, _}) do
+  defp descend(data, {:exclusive_maximum, _}, ctx) do
     {:ok, data}
   end
 
-  def validate(data, {:minimum, min}) when is_number(data) do
+  defp descend(data, {:minimum, min}, ctx) when is_number(data) do
     if data >= min,
       do: {:ok, data},
       else: {:error, Error.of(:minimum, data, minimum: min)}
   end
 
-  def validate(data, {:minimum, _}) do
+  defp descend(data, {:minimum, _}, ctx) do
     {:ok, data}
   end
 
-  def validate(data, {:exclusive_minimum, min}) when is_number(data) do
+  defp descend(data, {:exclusive_minimum, min}, ctx) when is_number(data) do
     if data > min,
       do: {:ok, data},
       else: {:error, Error.of(:exclusive_minimum, data, exclusive_minimum: min)}
   end
 
-  def validate(data, {:exclusive_minimum, _}) do
+  defp descend(data, {:exclusive_minimum, _}, ctx) do
     {:ok, data}
   end
 
-  def validate(data, {:multiple_of, n}) when is_integer(data) do
+  defp descend(data, {:multiple_of, n}, ctx) when is_integer(data) do
     case rem(data, n) do
       0 -> {:ok, data}
       _ -> {:error, Error.of(:multiple_of, data, multiple_of: n)}
     end
   end
 
-  def validate(data, {:max_items, max}) when is_list(data) do
+  defp descend(data, {:max_items, max}, ctx) when is_list(data) do
     len = length(data)
 
     if len <= max,
@@ -199,7 +224,7 @@ defmodule Moonwalk.Schema.Validator do
       else: {:error, Error.of(:max_items, data, max_items: max, len: len)}
   end
 
-  def validate(data, {:min_items, min}) when is_list(data) do
+  defp descend(data, {:min_items, min}, ctx) when is_list(data) do
     len = length(data)
 
     if len >= min,
@@ -207,7 +232,7 @@ defmodule Moonwalk.Schema.Validator do
       else: {:error, Error.of(:min_items, data, min_items: min, len: len)}
   end
 
-  def validate(data, {:max_length, max}) when is_binary(data) do
+  defp descend(data, {:max_length, max}, ctx) when is_binary(data) do
     len = String.length(data)
 
     if len <= max,
@@ -215,11 +240,11 @@ defmodule Moonwalk.Schema.Validator do
       else: {:error, Error.of(:max_length, data, max_items: max, len: len)}
   end
 
-  def validate(data, {:max_length, _}) do
+  defp descend(data, {:max_length, _}, ctx) do
     {:ok, data}
   end
 
-  def validate(data, {:min_length, min}) when is_binary(data) do
+  defp descend(data, {:min_length, min}, ctx) when is_binary(data) do
     len = String.length(data)
 
     if len >= min,
@@ -227,16 +252,16 @@ defmodule Moonwalk.Schema.Validator do
       else: {:error, Error.of(:min_length, data, min_items: min, len: len)}
   end
 
-  def validate(data, {:min_length, _}) do
+  defp descend(data, {:min_length, _}, ctx) do
     {:ok, data}
   end
 
-  def validate(data, {:all_of, schemas}) do
-    validate_multi(data, schemas)
+  defp descend(data, {:all_of, schemas}, ctx) do
+    validate_multi(data, schemas, ctx)
   end
 
-  def validate(data, {:one_of, schemas}) do
-    case validate_split(data, schemas) do
+  defp descend(data, {:one_of, schemas}, ctx) do
+    case validate_split(data, schemas, ctx) do
       {[{_, data}], _} ->
         {:ok, data}
 
@@ -249,8 +274,8 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate(data, {:any_of, schemas}) do
-    case validate_split(data, schemas) do
+  defp descend(data, {:any_of, schemas}, ctx) do
+    case validate_split(data, schemas, ctx) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
       {[{_, data} | _], _} -> {:ok, data}
@@ -258,11 +283,15 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate(data, {:required, keys}) when is_map(data) do
+  defp descend(data, {:required, keys}, ctx) when is_map(data) do
     case Enum.reject(keys, &Map.has_key?(data, &1)) do
       [] -> {:ok, data}
       missing -> {:error, Error.of(:required, data, missing: missing)}
     end
+  end
+
+  defp descend(data, %BooleanSchema{value: valid?}, _) do
+    if valid?, do: {:ok, data}, else: {:error, Error.of(:boolean_schema, data, [])}
   end
 
   defp validate_type(data, :array), do: is_list(data)
@@ -283,11 +312,11 @@ defmodule Moonwalk.Schema.Validator do
     n - trunc(n) === 0.0
   end
 
-  defp validate_properties(data, nil, errors, seen) do
+  defp validate_properties(data, nil, _ctx, errors, seen) do
     {data, errors, seen}
   end
 
-  defp validate_properties(data, schema_map, errors, seen) do
+  defp validate_properties(data, schema_map, ctx, errors, seen) do
     Enum.reduce(schema_map, {data, errors, seen}, fn {key, subschema}, {data, errors, seen} ->
       case Map.fetch(data, key) do
         :error ->
@@ -296,7 +325,7 @@ defmodule Moonwalk.Schema.Validator do
         {:ok, value} ->
           seen = MapSet.put(seen, key)
 
-          case validate(value, subschema) do
+          case descend(value, subschema, ctx) do
             {:ok, casted} ->
               {Map.put(data, key, casted), errors, seen}
 
@@ -307,11 +336,11 @@ defmodule Moonwalk.Schema.Validator do
     end)
   end
 
-  defp validate_pattern_properties(data, nil, errors, seen) do
+  defp validate_pattern_properties(data, nil, _ctx, errors, seen) do
     {data, errors, seen}
   end
 
-  defp validate_pattern_properties(data, schema_map, errors, seen) do
+  defp validate_pattern_properties(data, schema_map, ctx, errors, seen) do
     for {{pattern, regex}, subschema} <- schema_map,
         {key, value} <- data,
         Regex.match?(regex, key),
@@ -319,7 +348,7 @@ defmodule Moonwalk.Schema.Validator do
       {data, errors, seen} ->
         seen = MapSet.put(seen, key)
 
-        case validate(value, subschema) do
+        case descend(value, subschema, ctx) do
           {:ok, casted} ->
             {Map.put(data, key, casted), errors, seen}
 
@@ -336,14 +365,14 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp validate_additional_properties(data, nil, errors, _seen) do
+  defp validate_additional_properties(data, nil, _ctx, errors, _seen) do
     {data, errors}
   end
 
-  defp validate_additional_properties(data, subschema, errors, seen) do
+  defp validate_additional_properties(data, subschema, ctx, errors, seen) do
     for {key, value} <- data, not MapSet.member?(seen, key), reduce: {data, errors} do
       {data, errors} ->
-        case validate(value, subschema) do
+        case descend(value, subschema, ctx) do
           {:ok, casted} ->
             {Map.put(data, key, casted), errors}
 
@@ -359,32 +388,32 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp validate_prefix_items(_values, nil = _prefix_schemas) do
+  defp validate_prefix_items(_values, nil = _prefix_schemas, _ctx) do
     {:ok, [], 0}
   end
 
-  defp validate_prefix_items(values, schemas) do
-    validate_prefix_items(values, schemas, 0, [], [])
+  defp validate_prefix_items(values, schemas, ctx) do
+    validate_prefix_items(values, schemas, ctx, 0, [], [])
   end
 
-  defp validate_prefix_items([vh | vt], [sh | st], index, validated, errors) do
-    case validate(vh, sh) do
+  defp validate_prefix_items([vh | vt], [sh | st], ctx, index, validated, errors) do
+    case descend(vh, sh, ctx) do
       {:ok, data} ->
-        validate_prefix_items(vt, st, index + 1, [data | validated], errors)
+        validate_prefix_items(vt, st, ctx, index + 1, [data | validated], errors)
 
       {:error, reason} ->
-        validate_prefix_items(vt, st, index + 1, validated, [
+        validate_prefix_items(vt, st, ctx, index + 1, validated, [
           Error.of(:item_error, vh, index: index, reason: reason, prefix: true) | errors
         ])
     end
   end
 
-  defp validate_prefix_items(_vt, [], offset, validated, []) do
+  defp validate_prefix_items(_vt, [], _ctx, offset, validated, []) do
     # we do not return the tail
     {:ok, :lists.reverse(validated), offset}
   end
 
-  defp validate_prefix_items([], [_schema | _], offset, validated, []) do
+  defp validate_prefix_items([], [_schema | _], _ctx, offset, validated, []) do
     # fewer items than prefix is valid
     {:ok, :lists.reverse(validated), offset}
   end
