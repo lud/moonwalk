@@ -4,11 +4,13 @@ defmodule Moonwalk.MixProject do
   def project do
     [
       app: :moonwalk,
+      description: "A tool to define API specifications adhering to the Moonwalk specification.",
       version: "0.1.0",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
@@ -34,5 +36,9 @@ defmodule Moonwalk.MixProject do
       # Dev
       {:credo, "~> 1.7"}
     ]
+  end
+
+  defp package do
+    [licenses: "MIT", links: %{"Github" => "https://github.com/lud/moonwalk"}]
   end
 end
