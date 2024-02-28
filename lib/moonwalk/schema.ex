@@ -148,7 +148,9 @@ defmodule Moonwalk.Schema do
   [
     # Passthrough schema properties that only accept numbers
     minimum: "minimum",
-    maximum: "maximum"
+    maximum: "maximum",
+    exclusive_minimum: "exclusiveMinimum",
+    exclusive_maximum: "exclusiveMaximum"
   ]
   |> Enum.each(fn {internal, external} ->
     defp denorm({unquote(external), value}, s) when is_number(value) do
@@ -171,9 +173,11 @@ defmodule Moonwalk.Schema do
       :content_schema,
       :items,
       :maximum,
+      :minimum,
+      :exclusive_maximum,
+      :exclusive_minimum,
       :min_items,
       :max_items,
-      :minimum,
       :multiple_of,
       :prefix_items,
       :type,

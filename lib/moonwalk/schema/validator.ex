@@ -136,6 +136,26 @@ defmodule Moonwalk.Schema.Validator do
     validate_prefix_items(data, schemas)
   end
 
+  def validate(data, {:maximum, max}) when is_number(data) do
+    if data <= max,
+      do: {:ok, data},
+      else: {:error, Error.of(:maximum, data, maximum: max)}
+  end
+
+  def validate(data, {:maximum, _}) do
+    {:ok, data}
+  end
+
+  def validate(data, {:exclusive_maximum, max}) when is_number(data) do
+    if data < max,
+      do: {:ok, data},
+      else: {:error, Error.of(:exclusive_maximum, data, exclusive_maximum: max)}
+  end
+
+  def validate(data, {:exclusive_maximum, _}) do
+    {:ok, data}
+  end
+
   def validate(data, {:minimum, min}) when is_number(data) do
     if data >= min,
       do: {:ok, data},
@@ -146,13 +166,13 @@ defmodule Moonwalk.Schema.Validator do
     {:ok, data}
   end
 
-  def validate(data, {:maximum, max}) when is_number(data) do
-    if data <= max,
+  def validate(data, {:exclusive_minimum, min}) when is_number(data) do
+    if data > min,
       do: {:ok, data},
-      else: {:error, Error.of(:maximum, data, maximum: max)}
+      else: {:error, Error.of(:exclusive_minimum, data, exclusive_minimum: min)}
   end
 
-  def validate(data, {:maximum, _}) do
+  def validate(data, {:exclusive_minimum, _}) do
     {:ok, data}
   end
 
@@ -345,6 +365,7 @@ defmodule Moonwalk.Schema.Validator do
         validate_prefix_items(vt, st, index + 1, [data | validated], errors)
 
       {:error, reason} ->
+        # squigly yellow: we didn't implement the base case with errors yet
         validate_prefix_items(vt, st, index + 1, validated, [
           Error.of(:item_error, vh, index: index, reason: reason, prefix: true) | errors
         ])

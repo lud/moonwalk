@@ -9,9 +9,18 @@ defmodule Moonwalk.SchemaValidationTest do
 
   {:ok, loader} = JsonSchemaTestSuite.load_dir("draft2020-12")
 
+  ignored = [
+    "anchor.json",
+    "contains.json"
+  ]
+
+  Enum.each(ignored, fn filename -> JsonSchemaTestSuite.checkout_suite(loader, filename) end)
+
   suites = [
-    # {"boolean_schema.json", []},
     # {"items.json", []},
+    {"exclusiveMaximum.json", []},
+    {"exclusiveMinimum.json", []},
+    {"boolean_schema.json", []},
     {"enum.json", []},
     {"anyOf.json", []},
     {"oneOf.json", []},
