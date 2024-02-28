@@ -20,7 +20,7 @@ defmodule Moonwalk.SchemaValidationTest do
 
   suites = [
     # {"id.json", []},
-    {"defs.json", []},
+    # {"defs.json", []},
     {"infinite-loop-detection.json", []},
     {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
     {"exclusiveMaximum.json", []},

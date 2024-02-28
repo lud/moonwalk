@@ -1,102 +1,311 @@
+defmodule Moonwalk.Schema.Context do
+  @moduledoc false
+  defstruct [
+    :uri,
+    :vsn
+  ]
+end
+
 defmodule Moonwalk.Schema do
-  defstruct [:meta, :layers, :raw, :refs, :defs, :resolve_context]
+  alias Moonwalk.Schema.Context
+
+  defstruct [
+    # Non-validating informations
+    :meta,
+    # Lists of validators
+    :layers,
+    # Raw JSON schema
+    :raw,
+    # Refs found during denormalization of the schema, not used once refs are
+    # resolved and put into defs.
+    :refs,
+    # Schemas that are referenced by $ref in the schema.
+    :defs
+  ]
 
   defmodule BooleanSchema do
     defstruct [:value]
   end
 
-  raise """
-  TODO denormalize with remote refs
+  # raise """
+  # TODO denormalize with remote refs
 
-  1. do not rely on :root/:sub to know if we need to resolve.
-     Just call resolve_refs in denormalize/1
-  2. store {:root, ref} or {"http://....", ref} in layers. Split the remote url
-     and fragment to ref is always local to the left part of the tuple.
-  3. in the defs (and so in the context), organize the schemas with the same
-     keys: {:root, ref}.
-  4. when denormalizing a remote schema, pass the opts but do not pass meta, so
-     a new context is createt BUT still steal the refs/defs!
-  5. use a remote resolver to target priv/schemas/draft-2020-12.schema.json
-  """
+  # 1. do not rely on :root/:sub to know if we need to resolve.
+  #    Just call resolve_refs in denormalize/1
+  # 2. store {:root, ref} or {"http://....", ref} in layers. Split the remote url
+  #    and fragment to ref is always local to the left part of the tuple.
+  # 3. in the defs (and so in the context), organize the schemas with the same
+  #    keys: {:root, ref}.
+  # 4. when denormalizing a remote schema, pass the opts but do not pass meta, so
+  #    a new context is createt BUT still steal the refs/defs!
+  # 5. use a remote resolver to target priv/schemas/draft-2020-12.schema.json
+  # """
 
-  def denormalize(schema) do
-    {:ok, denormalize!(schema)}
+  def denormalize(schema, opts \\ []) do
+    {:ok, denormalize!(schema, opts)}
+    # TODO rescue
   end
 
-  def denormalize!(%{"$schema" => vsn} = json_schema) do
-    denormalize!(json_schema, %{vsn: vsn}, :root)
+  def denormalize!(json_schema, opts \\ [])
+
+  def denormalize!(json_schema, opts) when is_map(json_schema) do
+    # pulling the vsn in the top schema, we cannot support having a different
+    # version nested somewhere.
+    vsn = Map.get(json_schema, "$schema", nil)
+    ctx = %Context{uri: :root, vsn: vsn}
+    schema = child!(json_schema, ctx)
+    schema = resolve_refs(schema, ctx)
+    schema
   end
 
-  def denormalize!(json_schema) do
-    denormalize!(json_schema, %{}, :root)
-  end
-
-  def denormalize!(bool, _meta, _rctx) when is_boolean(bool) do
+  def denormalize!(bool, _opts) when is_boolean(bool) do
     %BooleanSchema{value: bool}
   end
 
-  def denormalize!(json_schema, meta, resolve_context \\ :sub) do
+  def child!(bool, _ctx) when is_boolean(bool) do
+    %BooleanSchema{value: bool}
+  end
+
+  def child!(json_schema, ctx) when is_map(json_schema) do
     schema =
       %__MODULE__{
-        meta: meta,
+        meta: %{vsn: ctx.vsn},
         layers: [],
         raw: json_schema,
         refs: [],
-        defs: %{},
-        resolve_context: resolve_context
+        defs: %{}
       }
 
-    # :resolve_context tells whether we are in the top schema, a sub schema of
-    # the same json schema document, or an external or external+sub imported via
-    # $ref.
-    %{layers: layers} = schema = Enum.reduce(json_schema, schema, &denorm/2)
+    validators =
+      json_schema
+      |> Stream.map(fn kv -> cast_pair(kv, ctx) end)
+      |> Enum.reject(&(&1 == :ignore))
 
-    {layers, refs} = pull_refs(layers, [])
-    layers = merge_layers(layers)
+    {validators, refs} = pull_refs(validators, [])
+
+    layers = assemble_layers(validators)
 
     # Collect refs and store it on the schema. So they can be stolen by a parent
     # schema if there is one, otherwise our resolve_context is :root and we will
     # extract the defs from the refs and denormalize them as well.
-    schema = %{schema | layers: layers, refs: refs}
+    %{schema | layers: layers, refs: refs}
+  end
 
-    case resolve_context do
-      :root -> resolve_refs(schema)
-      :sub -> schema
+  defp cast_pair({"type", type}, ctx) do
+    type = valid_type!(type)
+    {:type, type}
+  end
+
+  defp cast_pair({"const", value}, ctx) do
+    {:const, value}
+  end
+
+  defp cast_pair({"items", items_schema}, ctx) do
+    subschema = child!(items_schema, ctx)
+    {:items, subschema}
+  end
+
+  defp cast_pair({"prefixItems", [_ | _] = schemas}, ctx) do
+    subschemas = Enum.map(schemas, &child!(&1, ctx))
+    {:prefix_items, subschemas}
+  end
+
+  defp cast_pair({"allOf", schemas}, ctx) do
+    subschemas = Enum.map(schemas, &child!(&1, ctx))
+    {:all_of, subschemas}
+  end
+
+  defp cast_pair({"oneOf", schemas}, ctx) do
+    subschemas = Enum.map(schemas, &child!(&1, ctx))
+    {:one_of, subschemas}
+  end
+
+  defp cast_pair({"anyOf", schemas}, ctx) do
+    subschemas = Enum.map(schemas, &child!(&1, ctx))
+    {:any_of, subschemas}
+  end
+
+  defp cast_pair({"additionalProperties", schema}, ctx) do
+    subschema = child!(schema, ctx)
+    {:additional_properties, subschema}
+  end
+
+  defp cast_pair({"patternProperties", props}, ctx) when is_map(props) do
+    subschemas =
+      Map.new(props, fn {k, v} when is_binary(k) ->
+        {{k, Regex.compile!(k)}, child!(v, ctx)}
+      end)
+
+    {:pattern_properties, subschemas}
+  end
+
+  defp cast_pair({"properties", props}, ctx) when is_map(props) do
+    subschemas = Map.new(props, fn {k, v} -> {k, child!(v, ctx)} end)
+    {:properties, subschemas}
+  end
+
+  defp cast_pair({"required", keys}, ctx) when is_list(keys) do
+    {:required, keys}
+  end
+
+  defp cast_pair({"$ref", ref}, ctx) when is_binary(ref) do
+    {:"$ref", ref}
+  end
+
+  [
+    # Passthrough schema properties – we do not use them but we must accept them
+    # as they are part of the defined properties of a schema.
+    content_encoding: "contentEncoding",
+    content_media_type: "contentMediaType",
+    content_schema: "contentSchema",
+    required: "required",
+    enum: "enum"
+  ]
+  |> Enum.each(fn {internal, external} ->
+    defp cast_pair({unquote(external), value}, _ctx) do
+      {unquote(internal), value}
+    end
+  end)
+
+  [
+    # Passthrough schema properties that only accept integers
+    multiple_of: "multipleOf",
+    min_items: "minItems",
+    max_items: "maxItems",
+    max_length: "maxLength",
+    min_length: "minLength"
+  ]
+  |> Enum.each(fn {internal, external} ->
+    defp cast_pair({unquote(external), value}, _ctx) when is_integer(value) do
+      {unquote(internal), value}
+    end
+  end)
+
+  [
+    # Passthrough schema properties that only accept numbers
+    minimum: "minimum",
+    maximum: "maximum",
+    exclusive_minimum: "exclusiveMinimum",
+    exclusive_maximum: "exclusiveMaximum"
+  ]
+  |> Enum.each(fn {internal, external} ->
+    defp cast_pair({unquote(external), value}, _ctx) when is_number(value) do
+      {unquote(internal), value}
+    end
+  end)
+
+  [
+    # Ignore these properties
+    "$schema",
+    "$defs"
+  ]
+  |> Enum.each(fn external ->
+    defp cast_pair({unquote(external), _}, _ctx) do
+      :ignore
+    end
+  end)
+
+  # TODO @optimize make layer_of/1 a macro so we compile to literal integers
+  # when deciding the layer
+  layers = [
+    [
+      :"$ref",
+      :"$defs",
+      :all_of,
+      :any_of,
+      :one_of,
+      :const,
+      :enum,
+      :content_encoding,
+      :content_media_type,
+      :content_schema,
+      :maximum,
+      :minimum,
+      :exclusive_maximum,
+      :exclusive_minimum,
+      :min_items,
+      :max_items,
+      :multiple_of,
+      :type,
+      :max_length,
+      :min_length,
+      :required
+    ],
+    [:items, :prefix_items],
+    [
+      :additional_properties,
+      :properties,
+      :pattern_properties
+    ]
+  ]
+
+  for {checkers, n} <- Enum.with_index(layers), c <- checkers do
+    def layer_of(unquote(c)) do
+      unquote(n)
     end
   end
 
-  defp merge_layers(layers) do
-    layers
-    |> Enum.filter(fn
-      [] -> false
-      _ -> true
-    end)
-    |> Enum.map(fn
-      [{k, _} | _] = layer
-      when k in [:properties, :pattern_properties, :additional_properties] ->
-        merge_properties_layer(layer)
-
-      [{k, _} | _] = layer
-      when k in [:items, :prefix_items] ->
-        merge_items_layer(layer)
-
-      other ->
-        other
-    end)
+  defp assemble_layers(validators) do
+    Enum.reduce(validators, [], fn {k, v}, layers -> put_in_layer(layers, layer_of(k), {k, v}) end)
   end
 
-  defp merge_properties_layer(layer) do
-    properties = Keyword.get(layer, :properties, nil)
-    pattern_properties = Keyword.get(layer, :pattern_properties, nil)
-    additional_properties = Keyword.get(layer, :additional_properties, nil)
-    [{:all_properties, {properties, pattern_properties, additional_properties}}]
+  # Layers is a list of lists, so when putting in layer at index, we "cons" the
+  # item in the list that is at index N of the top list, or we merge it if it is
+  # a compound layer (properties+patternProperties+additionalProperties or
+  # items+prefixItems)
+
+  defp put_in_layer([layer | layers], 0, checker) do
+    [merge_layer(layer, checker) | layers]
   end
 
-  defp merge_items_layer(layer) do
-    items = Keyword.get(layer, :items, nil)
-    prefix_items = Keyword.get(layer, :prefix_items, nil)
+  defp put_in_layer([], 0, checker) do
+    # inner list does not exist yet
+    [merge_layer([], checker)]
+  end
 
-    [{:all_items, {items, prefix_items}}]
+  defp put_in_layer([h | t], n, checker) do
+    [h | put_in_layer(t, n - 1, checker)]
+  end
+
+  defp put_in_layer([], n, checker) do
+    [[] | put_in_layer([], n - 1, checker)]
+  end
+
+  defp merge_layer([], {k, _} = tuple)
+       when k in [:properties, :pattern_properties, :additional_properties] do
+    # merged layer does not exist yet
+    merge_layer([{:all_properties, {nil, nil, nil}}], tuple)
+  end
+
+  defp merge_layer([], {k, _} = tuple) when k in [:items, :prefix_items] do
+    # merged layer does not exist yet
+    merge_layer([{:all_items, {nil, nil}}], tuple)
+  end
+
+  defp merge_layer([{:all_properties, {ps, pts, _}}], {:additional_properties, schema}) do
+    [{:all_properties, {ps, pts, schema}}]
+  end
+
+  defp merge_layer([{:all_properties, {p, _, ap}}], {:pattern_properties, schema}) do
+    [{:all_properties, {p, schema, ap}}]
+  end
+
+  defp merge_layer([{:all_properties, {_, pts, ap}}], {:properties, schema}) do
+    [{:all_properties, {schema, pts, ap}}]
+  end
+
+  # same with items and prefix items
+  defp merge_layer([{:all_items, {_, pi}}], {:items, schema}) do
+    [{:all_items, {schema, pi}}]
+  end
+
+  defp merge_layer([{:all_items, {i, _}}], {:prefix_items, schema}) do
+    [{:all_items, {i, schema}}]
+  end
+
+  # for all other validators we just cons' them in the layer
+  defp merge_layer(list, tuple) do
+    [tuple | list]
   end
 
   defp pull_refs(term, acc)
@@ -134,7 +343,7 @@ defmodule Moonwalk.Schema do
     {s, acc}
   end
 
-  defp pull_refs(map, acc) when is_map(map) do
+  defp pull_refs(map, acc) when is_map(map) and not is_struct(map) do
     {as_list, acc} =
       Enum.map_reduce(map, acc, fn {k, v}, acc ->
         {v2, acc} = pull_refs(v, acc)
@@ -149,30 +358,29 @@ defmodule Moonwalk.Schema do
     {%{schema | refs: []}, refs}
   end
 
-  defp resolve_refs(schema) do
-    resolve_refs(schema.refs, schema, %{})
+  defp resolve_refs(schema, ctx) do
+    resolve_refs(schema.refs, schema, %{}, ctx)
   end
 
-  defp resolve_refs([h | t], schema, seen) when is_map_key(seen, h) do
-    resolve_refs(t, schema, seen)
+  defp resolve_refs([h | t], schema, seen, ctx) when is_map_key(seen, h) do
+    h |> dbg()
+    resolve_refs(t, schema, seen, ctx)
   end
 
-  defp resolve_refs([ref | tail], schema, seen) do
+  defp resolve_refs([ref | tail], schema, seen, ctx) do
     %{raw: json_schema, meta: meta, defs: defs} = schema
     raw_sub = resolve_ref(json_schema, parse_ref(ref))
-    subschema = denormalize!(raw_sub, meta)
+    subschema = child!(raw_sub, meta)
     {subschema, tail} = pull_refs(subschema, tail)
 
     schema = %__MODULE__{schema | defs: Map.put(defs, ref, subschema)}
     seen = Map.put(seen, ref, true)
 
-    resolve_refs(tail, schema, seen)
+    resolve_refs(tail, schema, seen, ctx)
   end
 
-  defp resolve_refs([], schema, seen) do
-    # once resolved, refs aren't used anymore, but for the sake of clarity we
-    # want people to see all what was pulled.
-    %{schema | refs: Map.keys(seen)}
+  defp resolve_refs([], schema, _seen, _ctx) do
+    schema
   end
 
   defp parse_ref(ref) do
@@ -228,190 +436,6 @@ defmodule Moonwalk.Schema do
 
   defp traverse_layers(el, acc, _fun) when is_binary(el) when is_atom(el) when is_number(el) do
     {el, acc}
-  end
-
-  defp denorm({"$schema", vsn}, %{meta: meta} = s) do
-    %__MODULE__{s | meta: Map.put(meta, :vsn, vsn)}
-  end
-
-  defp denorm({"type", type}, s) do
-    type = valid_type!(type)
-    put_checker(s, layer_of(:type), {:type, type})
-  end
-
-  defp denorm({"const", value}, s) do
-    put_checker(s, layer_of(:const), {:const, value})
-  end
-
-  defp denorm({"items", items_schema}, s) do
-    subschema = denormalize!(items_schema, s.meta)
-    put_checker(s, layer_of(:items), {:items, subschema})
-  end
-
-  defp denorm({"prefixItems", [_ | _] = schemas}, s) do
-    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
-    put_checker(s, layer_of(:prefix_items), {:prefix_items, subschemas})
-  end
-
-  defp denorm({"allOf", schemas}, s) do
-    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
-    put_checker(s, layer_of(:all_of), {:all_of, subschemas})
-  end
-
-  defp denorm({"oneOf", schemas}, s) do
-    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
-    put_checker(s, layer_of(:one_of), {:one_of, subschemas})
-  end
-
-  defp denorm({"anyOf", schemas}, s) do
-    subschemas = Enum.map(schemas, &denormalize!(&1, s.meta))
-    put_checker(s, layer_of(:any_of), {:any_of, subschemas})
-  end
-
-  defp denorm({"$defs", defs_map}, s) when is_map(defs_map) do
-    s
-    # subschemas_map = Map.new(defs_map, fn {k, raw} -> {k, denormalize!(raw, s.meta)} end)
-    # %{s | defs: subschemas_map}
-  end
-
-  defp denorm({"additionalProperties", schema}, s) do
-    subschema = denormalize!(schema, s.meta)
-    put_checker(s, layer_of(:additional_properties), {:additional_properties, subschema})
-  end
-
-  defp denorm({"patternProperties", props}, s) when is_map(props) do
-    subschemas =
-      Map.new(props, fn {k, v} when is_binary(k) ->
-        {{k, Regex.compile!(k)}, denormalize!(v, s.meta)}
-      end)
-
-    put_checker(s, layer_of(:pattern_properties), {:pattern_properties, subschemas})
-  end
-
-  defp denorm({"properties", props}, s) when is_map(props) do
-    subschemas = Map.new(props, fn {k, v} -> {k, denormalize!(v, s.meta)} end)
-    put_checker(s, layer_of(:properties), {:properties, subschemas})
-  end
-
-  defp denorm({"required", keys}, s) when is_list(keys) do
-    put_checker(s, layer_of(:required), {:required, keys})
-  end
-
-  defp denorm({"$ref", ref}, s) when is_binary(ref) do
-    s = collect_ref(s, ref)
-    put_checker(s, layer_of(:"$ref"), {:"$ref", ref})
-  end
-
-  defp denorm({:boolean_schema, _} = ck, s) do
-    put_checker(s, layer_of(:boolean_schema), ck)
-  end
-
-  [
-    # Passthrough schema properties – we do not use them but we must accept them
-    # as they are part of the defined properties of a schema.
-    content_encoding: "contentEncoding",
-    content_media_type: "contentMediaType",
-    content_schema: "contentSchema",
-    required: "required",
-    enum: "enum"
-  ]
-  |> Enum.each(fn {internal, external} ->
-    defp denorm({unquote(external), value}, s) do
-      put_checker(s, layer_of(unquote(internal)), {unquote(internal), value})
-    end
-  end)
-
-  [
-    # Passthrough schema properties that only accept integers
-    multiple_of: "multipleOf",
-    min_items: "minItems",
-    max_items: "maxItems",
-    max_length: "maxLength",
-    min_length: "minLength"
-  ]
-  |> Enum.each(fn {internal, external} ->
-    defp denorm({unquote(external), value}, s) when is_integer(value) do
-      put_checker(s, layer_of(unquote(internal)), {unquote(internal), value})
-    end
-  end)
-
-  [
-    # Passthrough schema properties that only accept numbers
-    minimum: "minimum",
-    maximum: "maximum",
-    exclusive_minimum: "exclusiveMinimum",
-    exclusive_maximum: "exclusiveMaximum"
-  ]
-  |> Enum.each(fn {internal, external} ->
-    defp denorm({unquote(external), value}, s) when is_number(value) do
-      put_checker(s, layer_of(unquote(internal)), {unquote(internal), value})
-    end
-  end)
-
-  # TODO @optimize make layer_of/1 a macro so we compile to literal integers
-  # when deciding the layer
-  layers = [
-    [
-      :"$ref",
-      :"$defs",
-      :all_of,
-      :any_of,
-      :one_of,
-      :boolean_schema,
-      :const,
-      :enum,
-      :content_encoding,
-      :content_media_type,
-      :content_schema,
-      :maximum,
-      :minimum,
-      :exclusive_maximum,
-      :exclusive_minimum,
-      :min_items,
-      :max_items,
-      :multiple_of,
-      :type,
-      :max_length,
-      :min_length,
-      :required
-    ],
-    [:items, :prefix_items],
-    [
-      :additional_properties,
-      :properties,
-      :pattern_properties
-    ]
-  ]
-
-  for {checkers, n} <- Enum.with_index(layers), c <- checkers do
-    def layer_of(unquote(c)) do
-      unquote(n)
-    end
-  end
-
-  defp put_checker(%__MODULE__{layers: layers} = s, layer, checker) do
-    layers = put_in_layer(layers, layer, checker)
-    %__MODULE__{s | layers: layers}
-  end
-
-  defp collect_ref(%__MODULE__{refs: refs} = s, ref) do
-    %__MODULE__{s | refs: [ref | refs]}
-  end
-
-  defp put_in_layer([h | t], 0, checker) do
-    [[checker | h] | t]
-  end
-
-  defp put_in_layer([h | t], n, checker) do
-    [h | put_in_layer(t, n - 1, checker)]
-  end
-
-  defp put_in_layer([], 0, checker) do
-    [[checker]]
-  end
-
-  defp put_in_layer([], n, checker) do
-    [[] | put_in_layer([], n - 1, checker)]
   end
 
   defp valid_type!(list) when is_list(list) do
