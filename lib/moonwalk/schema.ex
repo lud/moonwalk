@@ -37,6 +37,8 @@ defmodule Moonwalk.Schema do
     defstruct [
       # :root or the binary URI the schema was fetched from
       :ns,
+      # The type of ref: path, anchor, etc.
+      :type,
       # The path segments to the referenced schema, derived from the fragment
       :docpath,
       # The binary fragment of the URI, as defined in the schema
@@ -440,26 +442,34 @@ defmodule Moonwalk.Schema do
   defp parse_ref(ref, ctx) do
     case URI.parse(ref) do
       %{host: nil, path: nil, fragment: frag} when is_binary(frag) ->
-        %Ref{ns: ctx.ns, fragment: frag, docpath: parse_fragment(frag), raw: ref}
+        {ref_type, docpath} = parse_fragment(frag)
+        %Ref{ns: ctx.ns, type: ref_type, fragment: frag, docpath: docpath, raw: ref}
 
       %{fragment: frag} = uri ->
         url = URI.to_string(%URI{uri | fragment: nil})
-        %Ref{ns: url, fragment: frag, docpath: parse_fragment(frag), raw: ref}
+        {ref_type, docpath} = parse_fragment(frag)
+        %Ref{ns: url, type: ref_type, fragment: frag, docpath: docpath, raw: ref}
     end
   end
 
-  defp fetch_ref!(%{ns: ns, raw: raw_schema}, %{ns: ns} = ref) do
+  defp fetch_ref!(%{ns: ns, raw: raw_schema}, %{ns: ns, type: :path} = ref) do
     case get_in_root(raw_schema, ref.docpath) do
       nil -> raise "Could not resolve ref: #{inspect(ref.raw)}"
       schema -> schema
     end
   end
 
-  defp fetch_ref!(%{defs: defs}, %{ns: ns} = ref) when is_map_key(defs, {:ns, ns}) do
+  defp fetch_ref!(%{defs: defs}, %{ns: ns, type: :path} = ref) when is_map_key(defs, {:ns, ns}) do
+    Map.keys(defs) |> dbg()
+
     case get_in_root(Map.fetch!(defs, {:ns, ns}) |> dbg(), ref.docpath) do
       nil -> raise "Could not resolve ref: #{inspect(ref.raw)}"
       schema -> schema
     end
+  end
+
+  defp fetch_ref!(%{defs: defs}, %{ns: ns, type: :root} = ref) when is_map_key(defs, {:ns, ns}) do
+    Map.fetch!(defs, {:ns, ns})
   end
 
   defp get_in_root(schema, []) do
@@ -480,7 +490,7 @@ defmodule Moonwalk.Schema do
   end
 
   defp parse_fragment(nil) do
-    :root
+    {:root, []}
   end
 
   defp valid_type!(list) when is_list(list) do
