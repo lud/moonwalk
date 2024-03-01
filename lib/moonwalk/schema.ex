@@ -48,6 +48,10 @@ defmodule Moonwalk.Schema do
 
   defmodule DenormalizationError do
     defexception [:reason]
+
+    def message(%{reason: reason}) do
+      "denormalization error: #{inspect(reason)}"
+    end
   end
 
   def denormalize(schema, opts \\ []) do
@@ -103,12 +107,12 @@ defmodule Moonwalk.Schema do
     %{schema | layers: layers, refs: refs}
   end
 
-  defp cast_pair({"type", type}, ctx) do
+  defp cast_pair({"type", type}, _ctx) do
     type = valid_type!(type)
     {:type, type}
   end
 
-  defp cast_pair({"const", value}, ctx) do
+  defp cast_pair({"const", value}, _ctx) do
     {:const, value}
   end
 
@@ -156,7 +160,7 @@ defmodule Moonwalk.Schema do
     {:properties, subschemas}
   end
 
-  defp cast_pair({"required", keys}, ctx) when is_list(keys) do
+  defp cast_pair({"required", keys}, _ctx) when is_list(keys) do
     {:required, keys}
   end
 
@@ -417,7 +421,7 @@ defmodule Moonwalk.Schema do
     schema
   end
 
-  defp resolve_ns(schema, v, %{resolver: nil}) do
+  defp resolve_ns(_schema, v, %{resolver: nil}) do
     raise "Cannot resolve schema #{inspect(v)}, no :resolver option given to #{inspect(__MODULE__)}.denormalize/2"
   end
 
@@ -467,11 +471,16 @@ defmodule Moonwalk.Schema do
   end
 
   defp parse_fragment("/" <> path) do
-    String.split(path, "/")
+    {:path, String.split(path, "/")}
+  end
+
+  defp parse_fragment(path) when is_binary(path) do
+    raise "todo lift anchors in the schema, steal them from parents"
+    {:anchor, String.split(path, "/")}
   end
 
   defp parse_fragment(nil) do
-    []
+    :root
   end
 
   defp valid_type!(list) when is_list(list) do

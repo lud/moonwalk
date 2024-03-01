@@ -22,7 +22,7 @@ defmodule Moonwalk.Schema.Validator.Context do
   end
 
   defimpl Inspect do
-    def inspect(%{root: root}, opts) do
+    def inspect(%{root: _root}, _opts) do
       "#Context<>"
     end
   end
@@ -76,10 +76,6 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(a, b) do
-    raise "called descend without context"
-  end
-
   defp descend(data, %Schema{} = schema, ctx) do
     Enum.reduce_while(schema.layers, {:ok, data}, fn layer, {:ok, data} ->
       case validate_layer(data, layer, ctx) do
@@ -102,7 +98,7 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:type, t}, ctx) do
+  defp descend(data, {:type, t}, _ctx) do
     case validate_type(data, t) do
       true -> {:ok, data}
       false -> {:error, Error.type_error(data, t)}
@@ -125,18 +121,18 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:all_properties, _}, ctx) do
+  defp descend(data, {:all_properties, _}, _ctx) do
     {:ok, data}
   end
 
-  defp descend(data, {:const, expected}, ctx) do
+  defp descend(data, {:const, expected}, _ctx) do
     case data == expected do
       true -> {:ok, data}
       false -> {:error, Error.of(:const, data, expected: expected)}
     end
   end
 
-  defp descend(data, {:enum, enum}, ctx) do
+  defp descend(data, {:enum, enum}, _ctx) do
     case enum_member?(enum, data) do
       true -> {:ok, data}
       false -> {:error, Error.of(:enum, data, enum: enum)}
@@ -157,7 +153,7 @@ defmodule Moonwalk.Schema.Validator do
     {:ok, data}
   end
 
-  defp descend(data, {:maximum, max}, ctx) when is_number(data) do
+  defp descend(data, {:maximum, max}, _ctx) when is_number(data) do
     if data <= max do
       {:ok, data}
     else
@@ -165,11 +161,11 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:maximum, _}, ctx) do
+  defp descend(data, {:maximum, _}, _ctx) do
     {:ok, data}
   end
 
-  defp descend(data, {:exclusive_maximum, max}, ctx) when is_number(data) do
+  defp descend(data, {:exclusive_maximum, max}, _ctx) when is_number(data) do
     if data < max do
       {:ok, data}
     else
@@ -177,11 +173,11 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:exclusive_maximum, _}, ctx) do
+  defp descend(data, {:exclusive_maximum, _}, _ctx) do
     {:ok, data}
   end
 
-  defp descend(data, {:minimum, min}, ctx) when is_number(data) do
+  defp descend(data, {:minimum, min}, _ctx) when is_number(data) do
     if data >= min do
       {:ok, data}
     else
@@ -189,11 +185,11 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:minimum, _}, ctx) do
+  defp descend(data, {:minimum, _}, _ctx) do
     {:ok, data}
   end
 
-  defp descend(data, {:exclusive_minimum, min}, ctx) when is_number(data) do
+  defp descend(data, {:exclusive_minimum, min}, _ctx) when is_number(data) do
     if data > min do
       {:ok, data}
     else
@@ -201,18 +197,18 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:exclusive_minimum, _}, ctx) do
+  defp descend(data, {:exclusive_minimum, _}, _ctx) do
     {:ok, data}
   end
 
-  defp descend(data, {:multiple_of, n}, ctx) when is_integer(data) do
+  defp descend(data, {:multiple_of, n}, _ctx) when is_integer(data) do
     case rem(data, n) do
       0 -> {:ok, data}
       _ -> {:error, Error.of(:multiple_of, data, multiple_of: n)}
     end
   end
 
-  defp descend(data, {:max_items, max}, ctx) when is_list(data) do
+  defp descend(data, {:max_items, max}, _ctx) when is_list(data) do
     len = length(data)
 
     if len <= max do
@@ -222,7 +218,7 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:min_items, min}, ctx) when is_list(data) do
+  defp descend(data, {:min_items, min}, _ctx) when is_list(data) do
     len = length(data)
 
     if len >= min do
@@ -232,7 +228,7 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:max_length, max}, ctx) when is_binary(data) do
+  defp descend(data, {:max_length, max}, _ctx) when is_binary(data) do
     len = String.length(data)
 
     if len <= max do
@@ -242,11 +238,11 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:max_length, _}, ctx) do
+  defp descend(data, {:max_length, _}, _ctx) do
     {:ok, data}
   end
 
-  defp descend(data, {:min_length, min}, ctx) when is_binary(data) do
+  defp descend(data, {:min_length, min}, _ctx) when is_binary(data) do
     len = String.length(data)
 
     if len >= min do
@@ -256,7 +252,7 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:min_length, _}, ctx) do
+  defp descend(data, {:min_length, _}, _ctx) do
     {:ok, data}
   end
 
@@ -287,7 +283,7 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  defp descend(data, {:required, keys}, ctx) when is_map(data) do
+  defp descend(data, {:required, keys}, _ctx) when is_map(data) do
     case Enum.reject(keys, &Map.has_key?(data, &1)) do
       [] -> {:ok, data}
       missing -> {:error, Error.of(:required, data, missing: missing)}

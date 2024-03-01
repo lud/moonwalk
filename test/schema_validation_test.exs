@@ -19,6 +19,7 @@ defmodule Moonwalk.SchemaValidationTest do
 
   suites = [
     # {"id.json", []},
+    # {"anchor.json", []},
     # {"defs.json", []},
     {"infinite-loop-detection.json", []},
     {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
@@ -43,7 +44,7 @@ defmodule Moonwalk.SchemaValidationTest do
     ignored = Keyword.get(opts, :ignore, [])
 
     for test_case <- suite do
-      %{"description" => case_descr, "schema" => json_schema, "tests" => tests} = test_case
+      %{"description" => case_descr, "tests" => tests} = test_case
 
       describe filename <> " - " <> case_descr <> " - " do
         setup do
@@ -130,7 +131,7 @@ defmodule Moonwalk.SchemaValidationTest do
       ^expected_valid ->
         :ok
 
-      other ->
+      _ ->
         flunk("""
         #{if expected_valid do
           "Expected valid, got errors"
