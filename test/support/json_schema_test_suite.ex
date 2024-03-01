@@ -59,6 +59,7 @@ defmodule Moonwalk.Test.JsonSchemaTestSuite do
 
       print_list =
         unchecked
+        |> Enum.sort()
         |> Enum.take(maxprint)
         |> Enum.map_intersperse(?\n, fn {filename, _, false} ->
           "- #{filename}"

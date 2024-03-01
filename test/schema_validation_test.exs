@@ -11,8 +11,7 @@ defmodule Moonwalk.SchemaValidationTest do
   # {:ok, agent} = JsonSchemaTestSuite.load_dir("latest")
 
   ignored = [
-    "anchor.json",
-    "contains.json",
+    # "contains.json",
     "format.json"
   ]
 
@@ -70,8 +69,19 @@ defmodule Moonwalk.SchemaValidationTest do
     end
   end)
 
+  def resolve_well_known(url) do
+    file =
+      case url do
+        "https://json-schema.org/draft/2020-12/schema" -> "draft-2020-12.schema.json"
+      end
+
+    path = Path.join([:code.priv_dir(:moonwalk), "schemas", file])
+    json = File.read!(path)
+    Jason.decode(json)
+  end
+
   defp denorm_schema(json_schema, description) do
-    case Moonwalk.Schema.denormalize(json_schema) do
+    case Moonwalk.Schema.denormalize(json_schema, resolver: {__MODULE__, :resolve_well_known, []}) do
       {:ok, schema} -> schema
       {:error, reason} -> flunk(denorm_failure(json_schema, reason, [], description))
     end

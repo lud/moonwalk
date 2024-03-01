@@ -1,9 +1,12 @@
 defmodule Moonwalk.Schema.Context do
   @moduledoc false
   defstruct [
-    # The namespace of a schema using the context, either :root or a binary URI
+    # The namespace of a schema using the context, either :root or a binary URI.
     :ns,
-    :vsn
+    # The version of the top schema, that is the meta schema set as $schema.
+    :vsn,
+    # A resolver {module, function, args} that is given an url to retrieve.
+    :resolver
   ]
 end
 
@@ -43,6 +46,10 @@ defmodule Moonwalk.Schema do
     ]
   end
 
+  defmodule DenormalizationError do
+    defexception [:reason]
+  end
+
   def denormalize(schema, opts \\ []) do
     {:ok, denormalize!(schema, opts)}
     # TODO rescue
@@ -54,7 +61,7 @@ defmodule Moonwalk.Schema do
     # pulling the vsn in the top schema, we cannot support having a different
     # version nested somewhere.
     vsn = Map.get(json_schema, "$schema", nil)
-    ctx = %Context{ns: :root, vsn: vsn}
+    ctx = %Context{ns: :root, vsn: vsn, resolver: Keyword.get(opts, :resolver, nil)}
     schema = child!(json_schema, ctx)
     schema = resolve_refs(schema, ctx)
     # TODO cleanup:
@@ -202,7 +209,8 @@ defmodule Moonwalk.Schema do
   [
     # Ignore these properties
     "$schema",
-    "$defs"
+    "$defs",
+    "$comment"
   ]
   |> Enum.each(fn external ->
     defp cast_pair({unquote(external), _}, _ctx) do
@@ -397,6 +405,10 @@ defmodule Moonwalk.Schema do
     schema
   end
 
+  defp raise_error(reason) do
+    raise DenormalizationError, reason: reason
+  end
+
   # If multiple refs target the same remote document (local path or web URL) we
   # want to fetch that document only once.
   #
@@ -405,22 +417,61 @@ defmodule Moonwalk.Schema do
     schema
   end
 
+  defp resolve_ns(schema, v, %{resolver: nil}) do
+    raise "Cannot resolve schema #{inspect(v)}, no :resolver option given to #{inspect(__MODULE__)}.denormalize/2"
+  end
+
+  defp resolve_ns(%{defs: defs} = schema, "http" <> _ = url, _)
+       when is_map_key(defs, {:ns, url}) do
+    schema
+  end
+
+  defp resolve_ns(%{defs: defs} = schema, "http" <> _ = url, %{resolver: {m, f, a}}) do
+    case apply(m, f, [url | a]) do
+      {:ok, resolved} -> %__MODULE__{schema | defs: Map.put(defs, {:ns, url}, resolved)}
+      {:error, reason} -> raise_error(reason)
+    end
+  end
+
   defp parse_ref(ref, ctx) do
     case URI.parse(ref) do
       %{host: nil, path: nil, fragment: frag} when is_binary(frag) ->
         %Ref{ns: ctx.ns, fragment: frag, docpath: parse_fragment(frag), raw: ref}
+
+      %{fragment: frag} = uri ->
+        url = URI.to_string(%URI{uri | fragment: nil})
+        %Ref{ns: url, fragment: frag, docpath: parse_fragment(frag), raw: ref}
     end
   end
 
-  defp fetch_ref!(%{ns: ns, raw: raw_schema} = schema, %{ns: ns} = ref) do
-    case get_in(raw_schema, ref.docpath) do
+  defp fetch_ref!(%{ns: ns, raw: raw_schema}, %{ns: ns} = ref) do
+    case get_in_root(raw_schema, ref.docpath) do
       nil -> raise "Could not resolve ref: #{inspect(ref.raw)}"
       schema -> schema
     end
   end
 
+  defp fetch_ref!(%{defs: defs}, %{ns: ns} = ref) when is_map_key(defs, {:ns, ns}) do
+    case get_in_root(Map.fetch!(defs, {:ns, ns}) |> dbg(), ref.docpath) do
+      nil -> raise "Could not resolve ref: #{inspect(ref.raw)}"
+      schema -> schema
+    end
+  end
+
+  defp get_in_root(schema, []) do
+    schema
+  end
+
+  defp get_in_root(schema, path) do
+    get_in(schema, path)
+  end
+
   defp parse_fragment("/" <> path) do
     String.split(path, "/")
+  end
+
+  defp parse_fragment(nil) do
+    []
   end
 
   defp valid_type!(list) when is_list(list) do
