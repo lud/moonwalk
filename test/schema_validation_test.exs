@@ -12,15 +12,20 @@ defmodule Moonwalk.SchemaValidationTest do
 
   ignored = [
     # "contains.json",
-    "format.json"
+    "format.json",
+    {"vocabulary.json", []}
   ]
 
-  Enum.each(ignored, fn filename -> JsonSchemaTestSuite.checkout_suite(agent, filename) end)
+  Enum.each(ignored, fn
+    {filename, _} -> JsonSchemaTestSuite.checkout_suite(agent, filename)
+    filename -> JsonSchemaTestSuite.checkout_suite(agent, filename)
+  end)
 
   suites = [
     # {"id.json", []},
-    # {"anchor.json", []},
+    {"anchor.json", []},
     # {"defs.json", []},
+    # {"ref.json", []},
     {"infinite-loop-detection.json", []},
     {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
     {"exclusiveMaximum.json", []},
@@ -158,11 +163,4 @@ defmodule Moonwalk.SchemaValidationTest do
   end
 
   JsonSchemaTestSuite.stop_warn_unchecked(agent)
-
-  test "same layers" do
-    assert Moonwalk.Schema.layer_of(:properties) ==
-             Moonwalk.Schema.layer_of(:additional_properties)
-
-    assert Moonwalk.Schema.layer_of(:properties) == Moonwalk.Schema.layer_of(:pattern_properties)
-  end
 end

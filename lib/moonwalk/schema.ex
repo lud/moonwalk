@@ -3,10 +3,15 @@ defmodule Moonwalk.Schema.Context do
   defstruct [
     # The namespace of a schema using the context, either :root or a binary URI.
     :ns,
+
     # The version of the top schema, that is the meta schema set as $schema.
     :vsn,
+
     # A resolver {module, function, args} that is given an url to retrieve.
-    :resolver
+    :resolver,
+
+    # A flag that tells if the schema is a draft-4 schema.
+    :draft4?
   ]
 end
 
@@ -14,19 +19,32 @@ defmodule Moonwalk.Schema do
   alias Moonwalk.Schema.Context
 
   defstruct [
+    # The declared $id of the schema if any.
+    :id,
+
     # The namespace of a schema using the context, either :root or a binary URI
     :ns,
+
     # Non-validating informations
     :meta,
+
     # Lists of validators
-    :layers,
+    :validators,
+
     # Raw JSON schema
     :raw,
+
     # Refs found during denormalization of the schema, not used once refs are
     # resolved and put into defs.
     :refs,
-    # Schemas that are referenced by $ref in the schema.
-    :defs
+
+    # Schemas that are referenced by $ref in the schema. Generally from $defs
+    # but this is not constrained. For instance it also contains anchored
+    # schemas.
+    :defs,
+
+    # Other schemas resolved by the resolver function.
+    :resolved
   ]
 
   defmodule BooleanSchema do
@@ -67,7 +85,27 @@ defmodule Moonwalk.Schema do
     # pulling the vsn in the top schema, we cannot support having a different
     # version nested somewhere.
     vsn = Map.get(json_schema, "$schema", nil)
-    ctx = %Context{ns: :root, vsn: vsn, resolver: Keyword.get(opts, :resolver, nil)}
+
+    draft4? =
+      case vsn do
+        "http://json-schema.org/draft-04/schema" <> _ -> true
+        "https://json-schema.org/draft-04/schema" <> _ -> true
+        _ -> false
+      end
+
+    ns =
+      case fetch_id!(json_schema, %{draft4?: draft4?}) do
+        nil -> :root
+        id -> id
+      end
+
+    ctx = %Context{
+      ns: ns,
+      vsn: vsn,
+      resolver: Keyword.get(opts, :resolver, nil),
+      draft4?: draft4?
+    }
+
     schema = child!(json_schema, ctx)
     schema = resolve_refs(schema, ctx)
     # TODO cleanup:
@@ -89,24 +127,43 @@ defmodule Moonwalk.Schema do
       %__MODULE__{
         ns: ctx.ns,
         meta: %{vsn: ctx.vsn},
-        layers: [],
+        validators: %{},
         raw: json_schema,
         refs: [],
-        defs: %{}
+        defs: %{},
+        resolved: %{}
       }
 
-    validators =
+    {setvals, validators} =
       json_schema
       |> Stream.map(fn kv -> cast_pair(kv, ctx) end)
       |> Enum.reject(&(&1 == :ignore))
+      |> Enum.split_with(fn
+        {:set, key, value} -> true
+        {key, value} -> false
+      end)
+
+    setvals |> dbg()
 
     {validators, refs} = pull_refs(validators, [])
 
-    layers = assemble_layers(validators)
+    validators = assemble_layers(Map.new(validators))
 
     # Finally store the layers in the schema but also put the refs where they
     # can be taken by a parent schema.
-    %{schema | layers: layers, refs: refs}
+    %{schema | validators: validators, refs: refs}
+  end
+
+  defp fetch_id!(raw_schema, ctx) do
+    Map.get(raw_schema, id_prop(ctx), nil)
+  end
+
+  defp id_prop(%{draft4?: true}) do
+    "id"
+  end
+
+  defp id_prop(_) do
+    "$id"
   end
 
   defp cast_pair({"type", type}, _ctx) do
@@ -167,7 +224,19 @@ defmodule Moonwalk.Schema do
   end
 
   defp cast_pair({"$ref", ref}, ctx) when is_binary(ref) do
-    {:"$ref", parse_ref(ref, ctx)}
+    {:"$ref", parse_ref(ref, ctx, :static)}
+  end
+
+  defp cast_pair({"$dynamicRef", ref}, ctx) when is_binary(ref) do
+    {:"$ref", parse_ref(ref, ctx, :dynamic)}
+  end
+
+  defp cast_pair({"$dynamicAnchor", name}, ctx) when is_binary(name) do
+    {:set, :dyn_anchor, name}
+  end
+
+  defp cast_pair({"$id", id}, %{draft4?: false}) do
+    {:set, :id, id}
   end
 
   [
@@ -216,7 +285,9 @@ defmodule Moonwalk.Schema do
     # Ignore these properties
     "$schema",
     "$defs",
-    "$comment"
+    "$comment",
+    "$vocabulary",
+    "deprecated"
   ]
   |> Enum.each(fn external ->
     defp cast_pair({unquote(external), _}, _ctx) do
@@ -224,107 +295,44 @@ defmodule Moonwalk.Schema do
     end
   end)
 
-  # TODO @optimize make layer_of/1 a macro so we compile to literal integers
-  # when deciding the layer
-  layers = [
-    [
-      :"$ref",
-      :"$defs",
-      :all_of,
-      :any_of,
-      :one_of,
-      :const,
-      :enum,
-      :content_encoding,
-      :content_media_type,
-      :content_schema,
-      :maximum,
-      :minimum,
-      :exclusive_maximum,
-      :exclusive_minimum,
-      :min_items,
-      :max_items,
-      :multiple_of,
-      :type,
-      :max_length,
-      :min_length,
-      :required
-    ],
-    [:items, :prefix_items],
-    [
-      :additional_properties,
-      :properties,
-      :pattern_properties
-    ]
-  ]
-
-  for {checkers, n} <- Enum.with_index(layers), c <- checkers do
-    def layer_of(unquote(c)) do
-      unquote(n)
-    end
-  end
-
   defp assemble_layers(validators) do
-    Enum.reduce(validators, [], fn {k, v}, layers -> put_in_layer(layers, layer_of(k), {k, v}) end)
-  end
+    # Group properties checks
 
-  # Layers is a list of lists, so when putting in layer at index, we "cons" the
-  # item in the list that is at index N of the top list, or we merge it if it is
-  # a compound layer (properties+patternProperties+additionalProperties or
-  # items+prefixItems)
+    uses_props? =
+      Map.has_key?(validators, :properties) ||
+        Map.has_key?(validators, :pattern_properties) ||
+        Map.has_key?(validators, :additional_properties)
 
-  defp put_in_layer([layer | layers], 0, checker) do
-    [merge_layer(layer, checker) | layers]
-  end
+    validators =
+      if uses_props? do
+        {properties, validators} = Map.pop(validators, :properties, nil)
+        {pattern_properties, validators} = Map.pop(validators, :pattern_properties, nil)
+        {additional_properties, validators} = Map.pop(validators, :additional_properties, nil)
 
-  defp put_in_layer([], 0, checker) do
-    # inner list does not exist yet
-    [merge_layer([], checker)]
-  end
+        Map.put(
+          validators,
+          :all_properties,
+          {properties, pattern_properties, additional_properties}
+        )
+      else
+        validators
+      end
 
-  defp put_in_layer([h | t], n, checker) do
-    [h | put_in_layer(t, n - 1, checker)]
-  end
+    # Group item checks
 
-  defp put_in_layer([], n, checker) do
-    [[] | put_in_layer([], n - 1, checker)]
-  end
+    uses_items? = Map.has_key?(validators, :items) || Map.has_key?(validators, :prefix_items)
 
-  defp merge_layer([], {k, _} = tuple)
-       when k in [:properties, :pattern_properties, :additional_properties] do
-    # merged layer does not exist yet
-    merge_layer([{:all_properties, {nil, nil, nil}}], tuple)
-  end
+    validators =
+      if uses_items? do
+        {items, validators} = Map.pop(validators, :items, nil)
+        {prefix_items, validators} = Map.pop(validators, :prefix_items, nil)
 
-  defp merge_layer([], {k, _} = tuple) when k in [:items, :prefix_items] do
-    # merged layer does not exist yet
-    merge_layer([{:all_items, {nil, nil}}], tuple)
-  end
+        Map.put(validators, :all_items, {items, prefix_items})
+      else
+        validators
+      end
 
-  defp merge_layer([{:all_properties, {ps, pts, _}}], {:additional_properties, schema}) do
-    [{:all_properties, {ps, pts, schema}}]
-  end
-
-  defp merge_layer([{:all_properties, {p, _, ap}}], {:pattern_properties, schema}) do
-    [{:all_properties, {p, schema, ap}}]
-  end
-
-  defp merge_layer([{:all_properties, {_, pts, ap}}], {:properties, schema}) do
-    [{:all_properties, {schema, pts, ap}}]
-  end
-
-  # same with items and prefix items
-  defp merge_layer([{:all_items, {_, pi}}], {:items, schema}) do
-    [{:all_items, {schema, pi}}]
-  end
-
-  defp merge_layer([{:all_items, {i, _}}], {:prefix_items, schema}) do
-    [{:all_items, {i, schema}}]
-  end
-
-  # for all other validators we just cons' them in the layer
-  defp merge_layer(list, tuple) do
-    [tuple | list]
+    validators
   end
 
   defp pull_refs(term, acc)
@@ -334,7 +342,7 @@ defmodule Moonwalk.Schema do
   end
 
   defp pull_refs({:"$ref", %Ref{} = ref}, acc) do
-    {{:"$ref", ref}, collect_ref(ref, acc)}
+    {{:"$ref", ref}, cons_ref(ref, acc)}
   end
 
   defp pull_refs({:"$ref", other}, _acc) do
@@ -355,7 +363,7 @@ defmodule Moonwalk.Schema do
 
   defp pull_refs(%__MODULE__{} = s, acc) do
     {s, refs} = steal_refs(s)
-    {s, Enum.reduce(refs, acc, &collect_ref/2)}
+    {s, Enum.reduce(refs, acc, &cons_ref/2)}
   end
 
   defp pull_refs(%BooleanSchema{} = s, acc) do
@@ -377,7 +385,7 @@ defmodule Moonwalk.Schema do
     {%{schema | refs: []}, refs}
   end
 
-  defp collect_ref(ref, acc) do
+  defp cons_ref(ref, acc) do
     if ref in acc do
       acc
     else
@@ -419,7 +427,7 @@ defmodule Moonwalk.Schema do
   # want to fetch that document only once.
   #
   # the document is put in the defs, with :__fetched__ as the right tuple key
-  defp resolve_ns(schema, :root, _ctx) do
+  defp resolve_ns(%{ns: this_ns} = schema, this_ns, _ctx) do
     schema
   end
 
@@ -427,28 +435,28 @@ defmodule Moonwalk.Schema do
     raise "Cannot resolve schema #{inspect(v)}, no :resolver option given to #{inspect(__MODULE__)}.denormalize/2"
   end
 
-  defp resolve_ns(%{defs: defs} = schema, "http" <> _ = url, _)
-       when is_map_key(defs, {:ns, url}) do
+  defp resolve_ns(%{resolved: resolved} = schema, "http" <> _ = url, _)
+       when is_map_key(resolved, url) do
     schema
   end
 
-  defp resolve_ns(%{defs: defs} = schema, "http" <> _ = url, %{resolver: {m, f, a}}) do
+  defp resolve_ns(%{resolved: resolved} = schema, "http" <> _ = url, %{resolver: {m, f, a}}) do
     case apply(m, f, [url | a]) do
-      {:ok, resolved} -> %__MODULE__{schema | defs: Map.put(defs, {:ns, url}, resolved)}
+      {:ok, raw_schema} -> %__MODULE__{schema | resolved: Map.put(resolved, url, raw_schema)}
       {:error, reason} -> raise_error(reason)
     end
   end
 
-  defp parse_ref(ref, ctx) do
+  defp parse_ref(ref, ctx, kind) do
     case URI.parse(ref) do
       %{host: nil, path: nil, fragment: frag} when is_binary(frag) ->
         {ref_type, docpath} = parse_fragment(frag)
-        %Ref{ns: ctx.ns, type: ref_type, fragment: frag, docpath: docpath, raw: ref}
+        %Ref{ns: ctx.ns, type: ref_type, fragment: frag, docpath: docpath, kind: kind, raw: ref}
 
       %{fragment: frag} = uri ->
         url = URI.to_string(%URI{uri | fragment: nil})
         {ref_type, docpath} = parse_fragment(frag)
-        %Ref{ns: url, type: ref_type, fragment: frag, docpath: docpath, raw: ref}
+        %Ref{ns: url, type: ref_type, fragment: frag, docpath: docpath, kind: kind, raw: ref}
     end
   end
 
@@ -459,17 +467,17 @@ defmodule Moonwalk.Schema do
     end
   end
 
-  defp fetch_ref!(%{defs: defs}, %{ns: ns, type: :path} = ref) when is_map_key(defs, {:ns, ns}) do
-    Map.keys(defs) |> dbg()
-
-    case get_in_root(Map.fetch!(defs, {:ns, ns}) |> dbg(), ref.docpath) do
+  defp fetch_ref!(%{resolved: resolved} = s, %{ns: ns, type: :path} = ref)
+       when is_map_key(resolved, ns) do
+    case get_in_root(Map.fetch!(resolved, ns), ref.docpath) do
       nil -> raise "Could not resolve ref: #{inspect(ref.raw)}"
-      schema -> schema
+      raw_sub -> raw_sub
     end
   end
 
-  defp fetch_ref!(%{defs: defs}, %{ns: ns, type: :root} = ref) when is_map_key(defs, {:ns, ns}) do
-    Map.fetch!(defs, {:ns, ns})
+  defp fetch_ref!(%{resolved: resolved}, %{ns: ns, type: :root})
+       when is_map_key(resolved, ns) do
+    Map.fetch!(resolved, ns)
   end
 
   defp get_in_root(schema, []) do
@@ -485,12 +493,11 @@ defmodule Moonwalk.Schema do
   end
 
   defp parse_fragment(path) when is_binary(path) do
-    raise "todo lift anchors in the schema, steal them from parents"
     {:anchor, String.split(path, "/")}
   end
 
   defp parse_fragment(nil) do
-    {:root, []}
+    {:path, []}
   end
 
   defp valid_type!(list) when is_list(list) do

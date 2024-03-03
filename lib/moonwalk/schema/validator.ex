@@ -77,8 +77,8 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp descend(data, %Schema{} = schema, ctx) do
-    Enum.reduce_while(schema.layers, {:ok, data}, fn layer, {:ok, data} ->
-      case validate_layer(data, layer, ctx) do
+    Enum.reduce_while(schema.validators, {:ok, data}, fn vd, {:ok, data} ->
+      case descend(data, vd, ctx) do
         {:ok, data} -> {:cont, {:ok, data}}
         {:error, reason} -> {:halt, {:error, reason}}
       end
