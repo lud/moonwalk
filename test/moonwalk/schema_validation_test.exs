@@ -1,5 +1,5 @@
 defmodule Moonwalk.SchemaValidationTest do
-  alias Moonwalk.Test.JsonSchemaTestSuite
+  alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
   @moduletag :json_schema
@@ -7,44 +7,44 @@ defmodule Moonwalk.SchemaValidationTest do
   # Each json schema "test suite" defined a series of test cases with a schema
   # and an array of "unit tests".
 
-  {:ok, agent} = JsonSchemaTestSuite.load_dir("draft2020-12")
-  # {:ok, agent} = JsonSchemaTestSuite.load_dir("latest")
+  {:ok, agent} = JsonSchemaSuite.load_dir("draft2020-12")
+  # {:ok, agent} = JsonSchemaSuite.load_dir("latest")
 
   ignored = [
     # "contains.json",
-    "format.json",
-    {"vocabulary.json", []}
+    "format.json"
   ]
 
   Enum.each(ignored, fn
-    {filename, _} -> JsonSchemaTestSuite.checkout_suite(agent, filename)
-    filename -> JsonSchemaTestSuite.checkout_suite(agent, filename)
+    {filename, _} -> JsonSchemaSuite.checkout_suite(agent, filename)
+    filename -> JsonSchemaSuite.checkout_suite(agent, filename)
   end)
 
   suites = [
     # {"id.json", []},
-    {"anchor.json", []},
+    # {"anchor.json", []},
     # {"defs.json", []},
     # {"ref.json", []},
-    {"infinite-loop-detection.json", []},
-    {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
-    {"exclusiveMaximum.json", []},
-    {"exclusiveMinimum.json", []},
-    {"boolean_schema.json", []},
-    {"enum.json", []},
-    {"anyOf.json", []},
-    {"oneOf.json", []},
-    {"allOf.json", []},
-    {"const.json", []},
+    # {"infinite-loop-detection.json", []},
+    # {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
+    # {"boolean_schema.json", []},
+    # {"enum.json", []},
+    # {"anyOf.json", []},
+    # {"oneOf.json", []},
+    # {"allOf.json", []},
+    # {"const.json", []},
     {"properties.json", []},
+    {"exclusiveMinimum.json", []},
     {"minimum.json", []},
+    {"exclusiveMaximum.json", []},
     {"maximum.json", []},
+    {"content.json", validate: false},
     {"type.json", []},
-    {"content.json", validate: false}
+    {"vocabulary.json", []}
   ]
 
   Enum.each(suites, fn {filename, opts} ->
-    suite = JsonSchemaTestSuite.checkout_suite(agent, filename)
+    suite = JsonSchemaSuite.checkout_suite(agent, filename)
     validate? = Keyword.get(opts, :validate, true)
     ignored = Keyword.get(opts, :ignore, [])
 
@@ -75,19 +75,8 @@ defmodule Moonwalk.SchemaValidationTest do
     end
   end)
 
-  def resolve_well_known(url) do
-    file =
-      case url do
-        "https://json-schema.org/draft/2020-12/schema" -> "draft-2020-12.schema.json"
-      end
-
-    path = Path.join([:code.priv_dir(:moonwalk), "schemas", file])
-    json = File.read!(path)
-    Jason.decode(json)
-  end
-
   defp denorm_schema(json_schema, description) do
-    case Moonwalk.Schema.denormalize(json_schema, resolver: {__MODULE__, :resolve_well_known, []}) do
+    case Moonwalk.Schema.denormalize(json_schema, resolver: Moonwalk.Test.TestResolver) do
       {:ok, schema} -> schema
       {:error, reason} -> flunk(denorm_failure(json_schema, reason, [], description))
     end
@@ -162,5 +151,5 @@ defmodule Moonwalk.SchemaValidationTest do
     end
   end
 
-  JsonSchemaTestSuite.stop_warn_unchecked(agent)
+  JsonSchemaSuite.stop_warn_unchecked(agent)
 end

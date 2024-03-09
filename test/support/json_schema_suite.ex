@@ -1,4 +1,4 @@
-defmodule Moonwalk.Test.JsonSchemaTestSuite do
+defmodule Moonwalk.Test.JsonSchemaSuite do
   use ExUnit.CaseTemplate
   @test_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
   require Logger

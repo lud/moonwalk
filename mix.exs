@@ -16,7 +16,7 @@ defmodule Moonwalk.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :public_key, :crypto]
     ]
   end
 
@@ -37,6 +37,9 @@ defmodule Moonwalk.MixProject do
        only: [:test],
        compile: false,
        app: false},
+
+      # Test or Prod ?
+      {:ex_ssl_options, "~> 0.1.0"},
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
