@@ -60,12 +60,14 @@ defmodule Moonwalk.SchemaValidationTest do
         # the schema can be manipulated by the library
 
         test "schema denormalization", %{test_case: test_case} do
+          # debug_infinite_loop()
           denorm_schema(Map.fetch!(test_case, "schema"), test_case["description"])
         end
 
         if validate? do
           for %{"description" => test_descr} = unit_test <- tests, test_descr not in ignored do
             test test_descr, %{test_case: test_case} do
+              # debug_infinite_loop()
               unit_test = unquote(Macro.escape(unit_test))
               validation_test(test_case, unit_test)
             end
@@ -152,4 +154,28 @@ defmodule Moonwalk.SchemaValidationTest do
   end
 
   JsonSchemaSuite.stop_warn_unchecked(agent)
+
+  defp debug_infinite_loop do
+    parent = self()
+
+    spawn_link(fn ->
+      ref = Process.monitor(parent)
+      debug_infinite_loop_loop(ref, parent, nil)
+    end)
+  end
+
+  defp debug_infinite_loop_loop(ref, parent, prev) do
+    {:current_function, cf} = Process.info(parent, :current_function)
+
+    if prev != cf do
+      IO.puts("current function: #{inspect(cf)}")
+    end
+
+    receive do
+      {:DOWN, ^ref, :process, _pid, reason} -> :ok
+    after
+      100 ->
+        debug_infinite_loop_loop(ref, parent, cf)
+    end
+  end
 end

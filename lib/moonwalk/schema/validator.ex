@@ -27,12 +27,6 @@ defmodule Moonwalk.Schema.Validator.Context do
     Map.fetch!(vds, Ref.to_key(ref))
   end
 
-  defimpl Inspect do
-    def inspect(%{path: path}, _opts) do
-      "#Context<#{inspect(:lists.reverse(path))}>"
-    end
-  end
-
   @deprecated "use make_error"
   def type_error(_ctx, data, type) do
     Error.new(:type, data, type: type)
@@ -55,13 +49,18 @@ defmodule Moonwalk.Schema.Validator.Context do
   def __make_error__(_ctx, kind, data, formatter, args) do
     Error.new(kind, data, formatter, args)
   end
+
+  # defimpl Inspect do
+  #   def inspect(%{path: path}, _opts) do
+  #     "#Context<#{inspect(:lists.reverse(path))}>"
+  #   end
+  # end
 end
 
 defmodule Moonwalk.Schema.Validator do
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema
-  alias Moonwalk.Schema.Validator.Error
   alias Moonwalk.Schema.Validator.Context
 
   def validate(data, %Schema{validators: validators}) do

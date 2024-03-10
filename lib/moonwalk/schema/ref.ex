@@ -28,23 +28,25 @@ defmodule Moonwalk.Schema.Ref do
       end
 
     {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, docpath: docpath}}
-  rescue
-    _ -> {:error, {:invalid_ref, url, current_ns}}
+    # rescue
+    #   e ->
+    #     IO.warn(Exception.format(:error, e, __STACKTRACE__))
+    #     {:error, {:invalid_ref, url, current_ns}}
   end
 
   defp parse_fragment(nil) do
     {:top, "#", []}
   end
 
-  defp parse_fragment("#") do
+  defp parse_fragment("") do
     {:top, "#", []}
   end
 
-  defp parse_fragment("#/") do
+  defp parse_fragment("/") do
     {:top, "#", []}
   end
 
-  defp parse_fragment("#/" <> path = fragment) do
+  defp parse_fragment("/" <> path = fragment) do
     {:docpath, fragment, parse_docpath(path)}
   end
 
@@ -61,7 +63,7 @@ defmodule Moonwalk.Schema.Ref do
 
   defimpl Inspect do
     def inspect(%Ref{ns: :root, fragment: frag}, _opts) do
-      "Ref<#{frag}>"
+      "Ref<:root|#{frag}>"
     end
 
     def inspect(%Ref{ns: ns, fragment: frag}, _opts) do

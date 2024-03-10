@@ -74,21 +74,6 @@ defmodule Moonwalk.Schema do
     end
   end
 
-  defp fetch_docpath(raw_schema, docpath) do
-    fetch_docpath(raw_schema, docpath, docpath)
-  end
-
-  defp fetch_docpath(raw_schema, [], _docpath) do
-    {:ok, raw_schema}
-  end
-
-  defp fetch_docpath(raw_schema, [h | t], docpath) do
-    case Map.fetch(raw_schema, h) do
-      {:ok, sub} -> fetch_docpath(sub, t)
-      :error -> {:error, {:invalid_docpath, docpath}}
-    end
-  end
-
   def build_validators(raw_schema, ctx) do
     # For each vocabulary module we build its validator map. On the first
     # iteration, raw_schema will be a map but then it will be a list of pairs,

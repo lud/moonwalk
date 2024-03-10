@@ -132,6 +132,10 @@ defmodule Moonwalk.Schema.BuildContext do
     end
   end
 
+  def ensure_resolved(ctx, %Ref{ns: :root}) do
+    {:ok, ctx}
+  end
+
   def ensure_resolved(ctx, %Ref{ns: ns}) do
     ensure_resolved(ctx, ns)
   end
@@ -142,6 +146,14 @@ defmodule Moonwalk.Schema.BuildContext do
 
   def stage_ref(%{staged_refs: staged} = ctx, ref) do
     %__MODULE__{ctx | staged_refs: put_unseen(staged, ref)}
+  end
+
+  defp put_unseen([ref | t], ref) do
+    [ref | t]
+  end
+
+  defp put_unseen([h | t], ref) do
+    [h | put_unseen(t, ref)]
   end
 
   defp put_unseen([], ref) do
@@ -158,30 +170,73 @@ defmodule Moonwalk.Schema.BuildContext do
 
   def as_root(ctx, fun) when is_function(fun, 2) do
     %{vocabularies: current_vocabs, ns: current_ns, root: root_ns} = ctx
-    sub_vocabs = fetch_vocabularies(ctx, root_ns)
-    subschema = fetch_raw(ctx, root_ns)
-    subctx = %__MODULE__{ctx | ns: root_ns, vocabularies: sub_vocabs}
 
-    case fun.(subschema, subctx) do
-      {:ok, result, new_ctx} -> {:ok, result, %__MODULE__{new_ctx | ns: current_ns, vocabularies: current_vocabs}}
+    with {:ok, sub_vocabs} <- fetch_vocabularies(ctx, root_ns),
+         {:ok, raw_schema} <- fetch_raw(ctx, root_ns),
+         subctx = %__MODULE__{ctx | ns: root_ns, vocabularies: sub_vocabs},
+         {:ok, result, new_ctx} <- fun.(raw_schema, subctx) do
+      {:ok, result, %__MODULE__{new_ctx | ns: current_ns, vocabularies: current_vocabs}}
+    else
+      {:error, _} = err -> err
+    end
+  end
+
+  def as_ref(ctx, %Ref{ns: ns} = ref, fun) when is_function(fun, 2) do
+    %{vocabularies: current_vocabs, ns: current_ns} = ctx
+
+    with {:ok, sub_vocabs} <- fetch_vocabularies(ctx, ns),
+         {:ok, raw_subschema} <- fetch_ref(ctx, ref),
+         subctx = %__MODULE__{ctx | ns: ns, vocabularies: sub_vocabs},
+         {:ok, result, new_ctx} <- fun.(raw_subschema, subctx) do
+      {:ok, result, %__MODULE__{new_ctx | ns: current_ns, vocabularies: current_vocabs}}
+    else
       {:error, _} = err -> err
     end
   end
 
   # The vocabularies are defined by the meta schema, so we do a double fetch
   defp fetch_vocabularies(ctx, ns) do
-    cached = fetch_cached(ctx, ns)
-    meta = fetch_cached(ctx, cached.meta)
-    meta.vocabularies
+    with {:ok, cached} <- fetch_cached(ctx, ns),
+         {:ok, meta} <- fetch_cached(ctx, cached.meta) do
+      {:ok, meta.vocabularies}
+    else
+      {:error, _} = err -> err
+    end
   end
 
   defp fetch_raw(ctx, ns) do
-    fetch_cached(ctx, ns).raw
+    case fetch_cached(ctx, ns) do
+      {:ok, %{raw: raw}} -> {:ok, raw}
+      {:error, _} = err -> err
+    end
+  end
+
+  defp fetch_ref(ctx, ref) do
+    %{ns: ns} = ref
+
+    with {:ok, cached} <- fetch_cached(ctx, ns) do
+      case ref do
+        %{kind: :docpath, docpath: docpath} -> fetch_docpath(cached.raw, docpath)
+      end
+    end
+  end
+
+  defp fetch_docpath(raw_schema, docpath) do
+    fetch_docpath(raw_schema, docpath, docpath)
+  end
+
+  defp fetch_docpath(raw_schema, [], _docpath) do
+    {:ok, raw_schema}
+  end
+
+  defp fetch_docpath(raw_schema, [h | t], docpath) do
+    case Map.fetch(raw_schema, h) do
+      {:ok, sub} -> fetch_docpath(sub, t)
+      :error -> {:error, {:invalid_docpath, docpath}}
+    end
   end
 
   defp fetch_cached(%{fetch_cache: cache}, ns) do
-    case Map.fetch!(cache, ns) do
-      %Cached{} = c -> c
-    end
+    Map.fetch(cache, ns)
   end
 end

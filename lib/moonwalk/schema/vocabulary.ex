@@ -50,6 +50,14 @@ defmodule Moonwalk.Schema.Vocabulary do
     end
   end
 
+  defmacro skip_keyword(kw) do
+    quote do
+      def take_keyword({unquote(kw), _}, acc, ctx) do
+        {:ok, acc, ctx}
+      end
+    end
+  end
+
   defmacro run_validators(data, validators, ctx, f) when is_atom(f) do
     quote do
       Helpers.reduce_while_ok(unquote(validators), unquote(data), fn {k, v}, data ->

@@ -9,12 +9,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
     title
     description
     default
-    deprecated
     readOnly
     writeOnly
     examples
   ))
 
+  skip_keyword("deprecated")
   ignore_any_keyword()
 
   def finalize_validators([]) do

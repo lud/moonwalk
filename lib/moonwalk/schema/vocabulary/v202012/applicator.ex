@@ -57,8 +57,16 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   def take_keyword({"allOf", all_of}, acc, ctx) do
-    subvalidators = Helpers.map_ok(all_of, fn subschema -> Schema.denormalize_sub(subschema, ctx) end)
-    {:ok, [{:all_of, subvalidators} | acc], ctx}
+    Helpers.reduce_while_ok(all_of, {ctx, []}, fn subschema, {ctx, subvalidators_acc} ->
+      case Schema.denormalize_sub(subschema, ctx) do
+        {:ok, subvalidators, ctx} -> {:ok, {ctx, [subvalidators | subvalidators_acc]}}
+        {:error, _} = err -> err
+      end
+    end)
+    |> case do
+      {:ok, {ctx, subvalidators}} -> {:ok, [{:all_of, :lists.reverse(subvalidators)} | acc], ctx}
+      {:error, _} = err -> err
+    end
   end
 
   ignore_any_keyword()
