@@ -224,9 +224,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   defp validate_keyword(data, {:const, const}, ctx) do
-    case data do
-      ^const -> {:ok, data}
-      _ -> {:error, Context.make_error(ctx, :const, data, const: const)}
+    # 1 == 1.0 should be true according to JSON Schema specs
+    if data == const do
+      {:ok, data}
+    else
+      {:error, Context.make_error(ctx, :const, data, const: const)}
     end
   end
 
