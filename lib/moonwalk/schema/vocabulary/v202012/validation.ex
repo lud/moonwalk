@@ -16,9 +16,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     minContains
     minLength
     minProperties
-    multipleOf
     pattern
-    required
     uniqueItems
   )
 
@@ -27,42 +25,54 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   def take_keyword({"maximum", maximum}, acc, ctx) do
-    with :ok <- check_number(maximum) do
-      {:ok, [{:maximum, maximum} | acc], ctx}
-    end
+    take_number(:maximum, maximum, acc, ctx)
   end
 
   def take_keyword({"exclusiveMaximum", exclusive_maximum}, acc, ctx) do
-    with :ok <- check_number(exclusive_maximum) do
-      {:ok, [{:exclusive_maximum, exclusive_maximum} | acc], ctx}
-    end
+    take_number(:exclusive_maximum, exclusive_maximum, acc, ctx)
   end
 
   def take_keyword({"minimum", minimum}, acc, ctx) do
-    with :ok <- check_number(minimum) do
-      {:ok, [{:minimum, minimum} | acc], ctx}
-    end
+    take_number(:minimum, minimum, acc, ctx)
   end
 
   def take_keyword({"exclusiveMinimum", exclusive_minimum}, acc, ctx) do
-    with :ok <- check_number(exclusive_minimum) do
-      {:ok, [{:exclusive_minimum, exclusive_minimum} | acc], ctx}
-    end
+    take_number(:exclusive_minimum, exclusive_minimum, acc, ctx)
   end
 
   def take_keyword({"minItems", min_items}, acc, ctx) do
-    with :ok <- check_number(min_items) do
-      {:ok, [{:min_items, min_items} | acc], ctx}
-    end
+    take_integer(:min_items, min_items, acc, ctx)
   end
 
   def take_keyword({"maxItems", max_items}, acc, ctx) do
-    with :ok <- check_number(max_items) do
-      {:ok, [{:max_items, max_items} | acc], ctx}
-    end
+    take_integer(:max_items, max_items, acc, ctx)
+  end
+
+  def take_keyword({"required", required}, acc, ctx) when is_list(required) do
+    {:ok, [{:required, required} | acc], ctx}
+  end
+
+  def take_keyword({"multipleOf", zero}, _acc, _ctx) when zero in [0, 0.0] do
+    {:error, "mutipleOf zero is not allowed"}
+  end
+
+  def take_keyword({"multipleOf", multiple_of}, acc, ctx) do
+    take_number(:multiple_of, multiple_of, acc, ctx)
   end
 
   ignore_any_keyword()
+
+  defp take_integer(key, n, acc, ctx) do
+    with :ok <- check_integer(n) do
+      {:ok, [{key, n} | acc], ctx}
+    end
+  end
+
+  defp take_number(key, n, acc, ctx) do
+    with :ok <- check_number(n) do
+      {:ok, [{key, n} | acc], ctx}
+    end
+  end
 
   defp check_number(n) when is_number(n) do
     :ok
@@ -70,6 +80,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   defp check_number(other) do
     {:error, "not a number: #{inspect(other)}"}
+  end
+
+  defp check_integer(n) when is_integer(n) do
+    :ok
+  end
+
+  defp check_integer(other) do
+    {:error, "not an integer: #{inspect(other)}"}
   end
 
   # ---------------------------------------------------------------------------
@@ -126,6 +144,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   pass validate_keyword(data, {:minimum, _}, _) when not is_number(data)
   pass validate_keyword(data, {:max_items, _}, _) when not is_list(data)
   pass validate_keyword(data, {:min_items, _}, _) when not is_list(data)
+  pass validate_keyword(data, {:required, _}, _) when not is_map(data)
 
   defp validate_keyword(data, {:type, ts}, ctx) when is_list(ts) do
     Enum.find_value(ts, fn t ->
@@ -201,6 +220,20 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  defp validate_keyword(data, {:multiple_of, n}, ctx) when is_number(data) do
+    case fractional_is_zero?(data / n) do
+      true -> {:ok, data}
+      false -> {:error, Context.make_error(ctx, :multiple_of, data, multiple_of: n)}
+    end
+  end
+
+  defp validate_keyword(data, {:required, keys}, ctx) when is_map(data) do
+    case keys -- Map.keys(data) do
+      [] -> {:ok, data}
+      missing -> {:error, Context.make_error(ctx, :requred, data, required: missing)}
+    end
+  end
+
   # ---------------------------------------------------------------------------
 
   defp validate_type(data, :array) do
@@ -236,11 +269,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   # TODO this will not work with large numbers
-  defp fractional_is_zero?(n) do
+  defp fractional_is_zero?(n) when is_float(n) do
     n - trunc(n) === 0.0
-  end
-
-  defp validate_properties(data, nil, _ctx, errors, seen) do
-    {data, errors, seen}
   end
 end

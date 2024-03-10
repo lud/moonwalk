@@ -11,13 +11,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   todo_take_keywords(~w(
     additionalItems
-    anyOf
     contains
     else
     if
     items
     not
-    oneOf
     propertyNames
     then
   ))
@@ -56,21 +54,45 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"allOf", all_of}, acc, ctx) do
-    Helpers.reduce_while_ok(all_of, {ctx, []}, fn subschema, {ctx, subvalidators_acc} ->
-      case Schema.denormalize_sub(subschema, ctx) do
-        {:ok, subvalidators, ctx} -> {:ok, {ctx, [subvalidators | subvalidators_acc]}}
-        {:error, _} = err -> err
-      end
-    end)
-    |> case do
-      {:ok, {ctx, subvalidators}} -> {:ok, [{:all_of, :lists.reverse(subvalidators)} | acc], ctx}
+  def take_keyword({"allOf", [_ | _] = all_of}, acc, ctx) do
+    case build_sub_list(all_of, ctx) do
+      {:ok, subvalidators, ctx} -> {:ok, [{:all_of, :lists.reverse(subvalidators)} | acc], ctx}
+      {:error, _} = err -> err
+    end
+  end
+
+  def take_keyword({"anyOf", [_ | _] = any_of}, acc, ctx) do
+    case build_sub_list(any_of, ctx) do
+      {:ok, subvalidators, ctx} -> {:ok, [{:any_of, :lists.reverse(subvalidators)} | acc], ctx}
+      {:error, _} = err -> err
+    end
+  end
+
+  def take_keyword({"oneOf", [_ | _] = one_of}, acc, ctx) do
+    case build_sub_list(one_of, ctx) do
+      {:ok, subvalidators, ctx} -> {:ok, [{:one_of, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
   ignore_any_keyword()
 
+  # ---------------------------------------------------------------------------
+
+  defp build_sub_list(subschemas, ctx) do
+    Helpers.reduce_while_ok(subschemas, {[], ctx}, fn subschema, {acc, ctx} ->
+      case Schema.denormalize_sub(subschema, ctx) do
+        {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | acc], ctx}}
+        {:error, _} = err -> err
+      end
+    end)
+    |> case do
+      {:ok, {subvalidators, ctx}} -> {:ok, :lists.reverse(subvalidators), ctx}
+      {:error, _} = err -> err
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   def finalize_validators([]) do
     :ignore
   end
@@ -80,12 +102,13 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     {pattern_properties, validators} = Keyword.pop(validators, :pattern_properties, nil)
     {additional_properties, validators} = Keyword.pop(validators, :additional_properties, nil)
 
-    Keyword.put(
-      validators,
-      :all_properties,
-      {properties, pattern_properties, additional_properties}
-    )
+    case {properties, pattern_properties, additional_properties} do
+      {nil, nil, nil} -> validators
+      some -> Keyword.put(validators, :all_properties, some)
+    end
   end
+
+  # ---------------------------------------------------------------------------
 
   def validate(data, vds, ctx) do
     run_validators(data, vds, ctx, :validate_keyword)
@@ -108,6 +131,54 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp validate_keyword(data, {:all_properties, _}, _ctx) do
     {:ok, data}
+  end
+
+  defp validate_keyword(data, {:one_of, subvalidators}, ctx) do
+    case validate_split(subvalidators, data, ctx) do
+      {[{_, data}], _} ->
+        {:ok, data}
+
+      {[], _} ->
+        {:error, Context.make_error(ctx, :one_of, data, validated_schemas: [])}
+
+      {[_ | _] = too_much, _} ->
+        validated_schemas = Enum.map(too_much, &elem(&1, 0))
+        {:error, Context.make_error(ctx, :one_of, data, validated_schemas: validated_schemas)}
+    end
+  end
+
+  defp validate_keyword(data, {:any_of, subvalidators}, ctx) do
+    case validate_split(subvalidators, data, ctx) do
+      # If multiple schemas validate the data, we take the casted value of the
+      # first one, arbitrarily.
+      {[{_, data} | _], _} -> {:ok, data}
+      {[], _} -> {:error, Context.make_error(ctx, :any_of, data, validated_schemas: [])}
+    end
+  end
+
+  defp validate_keyword(data, {:all_of, subvalidators}, ctx) do
+    case validate_split(subvalidators, data, ctx) do
+      # If multiple schemas validate the data, we take the casted value of the
+      # first one, arbitrarily.
+      {[{_, data} | _], []} -> {:ok, data}
+      {_, [_ | _] = invalid} -> {:error, Context.make_error(ctx, :all_of, data, invalidated_schemas: invalid)}
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+
+  # inversed split: we split the validators between those that validate the data
+  # and those who don't.
+  defp validate_split(validators, data, ctx) do
+    {valids, invalids} =
+      Enum.reduce(validators, {[], []}, fn vd, {valids, invalids} ->
+        case Validator.validate_sub(data, vd, ctx) do
+          {:ok, data} -> {[{vd, data} | valids], invalids}
+          {:error, reason} -> {valids, [{vd, reason} | invalids]}
+        end
+      end)
+
+    {:lists.reverse(valids), :lists.reverse(invalids)}
   end
 
   defp validate_properties(data, nil, _ctx, errors, seen) do
