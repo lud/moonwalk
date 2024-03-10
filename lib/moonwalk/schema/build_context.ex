@@ -33,12 +33,62 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   def for_root(raw_schema, opts_map) when is_map(raw_schema) do
-    with {:ok, cached} <- raw_to_cached(raw_schema) do
-      root_ns = cached.id || :root
+    # Bootstrap of the recursive resolving of schemas, metaschemas and
+    # anchors/$ids. We just need to set the :root value in the context as the
+    # $id (or `:root` atom if not set) of the top schema.
 
-      ctx = %__MODULE__{root: root_ns, opts: opts_map}
-      ctx = set_cached(ctx, root_ns, cached)
-      ensure_resolved(ctx, cached.meta)
+    root_ns = Map.get(raw_schema, "$id", :root)
+    ctx = %__MODULE__{root: root_ns, opts: opts_map}
+    ensure_resolved(ctx, {:prefetched, root_ns, raw_schema})
+  end
+
+  def ensure_resolved(ctx, uri_or_ref_or_prefetch) do
+    resolve_loop(ctx, [uri_or_ref_or_prefetch])
+  end
+
+  defp resolve_loop(ctx, [h | t]) do
+    with {:ok, ext_id, resolved} <- resolve_one(ctx, h),
+         {:ok, cached} <- raw_to_cached(resolved) do
+      ctx = set_cached(ctx, ext_id, cached)
+      resolve_loop(ctx, [cached.meta | sub_ids_to_prefetched(cached.raw)] ++ t)
+    else
+      :already_resolved -> resolve_loop(ctx, t)
+      {:error, _} = err -> {:error, err}
+    end
+  end
+
+  defp resolve_loop(ctx, []) do
+    {:ok, ctx}
+  end
+
+  def resolve_one(ctx, url) when is_binary(url) and is_map_key(ctx.fetch_cache, url) do
+    :already_resolved
+  end
+
+  def resolve_one(ctx, url) when is_binary(url) do
+    call_resolver(ctx.opts.resolver, url)
+  end
+
+  def resolve_one(ctx, {:prefetched, id, _}) when is_binary(id) and is_map_key(ctx.fetch_cache, id) do
+    :already_resolved
+  end
+
+  def resolve_one(_ctx, {:prefetched, id, raw_schema}) do
+    {:ok, id, raw_schema}
+  end
+
+  def resolve_one(_ctx, %Ref{ns: :root}) do
+    :already_resolved
+  end
+
+  def resolve_one(ctx, %Ref{ns: ns}) do
+    resolve_one(ctx, ns)
+  end
+
+  defp call_resolver(resolver, url) do
+    case resolver.resolve(url) do
+      {:ok, resolved} -> {:ok, url, resolved}
+      {:error, _} = err -> err
     end
   end
 
@@ -52,8 +102,9 @@ defmodule Moonwalk.Schema.BuildContext do
         {nil, nil} -> raise "cannot register schema without neither an $id or an URL pointing to it"
         {nil, id} -> %{id => cached}
         {ext, nil} -> %{ext => cached}
+        # This never happens but it may?
+        # {ext, id} -> %{ext => cached, id => {:alias_of, ext}}
         {same, same} -> %{same => cached}
-        {ext, id} -> %{ext => cached, id => {:alias_of, ext}}
       end
 
     %{fetch_cache: cache} = ctx
@@ -94,26 +145,43 @@ defmodule Moonwalk.Schema.BuildContext do
     end
   end
 
-  defp find_anchors(raw_schema, acc \\ [])
-
-  defp find_anchors(%{"$anchor" => anchor} = map, acc) do
-    find_anchors_in_map(map, [{anchor, map} | acc])
+  defp find_anchors(raw_schema) do
+    Map.new(collect_with_attr(raw_schema, "$anchor"))
   end
 
-  defp find_anchors(map, acc) when is_map(map) do
-    find_anchors_in_map(map, acc)
+  defp sub_ids_to_prefetched(raw_schema) when is_map(raw_schema) do
+    subs = collect_with_attr(Map.delete(raw_schema, "$id"), "$id")
+    Enum.map(subs, fn {id, schema} -> {:prefetched, id, schema} end)
   end
 
-  defp find_anchors(scalar, acc) when is_binary(scalar) when is_number(scalar) when is_atom(scalar) do
+  # Returns a list of pairs with all schemas and subschemas that define the
+  # given key.  For instance if key is $anchor, then it returns a list of pairs
+  # where the left items are the anchors and the right items the corresponding
+  # schemas, possibly including the top schema, and with some subschemas nested
+  # in other subschemas
+  defp collect_with_attr(raw_schema, key) do
+    collect_with_attr(raw_schema, key, [])
+  end
+
+  defp collect_with_attr(map, key, acc) when is_map_key(map, key) do
+    acc = [{Map.fetch!(map, key), map} | acc]
+    collect_with_attr_map(map, key, acc)
+  end
+
+  defp collect_with_attr(map, key, acc) when is_map(map) do
+    collect_with_attr_map(map, key, acc)
+  end
+
+  defp collect_with_attr(list, key, acc) when is_list(list) do
+    Enum.reduce(list, acc, fn v, acc -> collect_with_attr(v, key, acc) end)
+  end
+
+  defp collect_with_attr(_scalar, _key, acc) do
     acc
   end
 
-  defp find_anchors(list, acc) when is_list(list) do
-    Enum.reduce(list, acc, fn v, acc -> find_anchors(v, acc) end)
-  end
-
-  defp find_anchors_in_map(map, acc) do
-    Enum.reduce(map, acc, fn {k, v}, acc -> find_anchors(v, acc) end)
+  defp collect_with_attr_map(map, key, acc) do
+    Enum.reduce(map, acc, fn {_k, v}, acc -> collect_with_attr(v, key, acc) end)
   end
 
   # This function is called for all schemas, but only metaschemas should define
@@ -137,35 +205,6 @@ defmodule Moonwalk.Schema.BuildContext do
     {:ok, known}
   catch
     {:unknown_vocabulary, uri} -> {:error, {:unknown_vocabulary, uri}}
-  end
-
-  def ensure_resolved(ctx, url) when is_binary(url) do
-    case ctx do
-      %__MODULE__{fetch_cache: %{^url => _resolved}} ->
-        {:ok, ctx}
-
-      %__MODULE__{opts: %{resolver: resolver}} ->
-        with {:ok, resolved} <- call_resolver(resolver, url),
-             {:ok, cached} <- raw_to_cached(resolved) do
-          ctx
-          |> set_cached(url, cached)
-          |> ensure_resolved(cached.meta)
-        else
-          {:error, _} = err -> err
-        end
-    end
-  end
-
-  def ensure_resolved(ctx, %Ref{ns: :root}) do
-    {:ok, ctx}
-  end
-
-  def ensure_resolved(ctx, %Ref{ns: ns}) do
-    ensure_resolved(ctx, ns)
-  end
-
-  defp call_resolver(resolver, url) do
-    resolver.resolve(url)
   end
 
   def stage_ref(%{staged_refs: staged} = ctx, ref) do

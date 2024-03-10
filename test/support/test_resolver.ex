@@ -12,6 +12,10 @@ defmodule Moonwalk.Test.TestResolver do
     end
   end
 
+  def resolve("http://example.com" <> _ = url) do
+    raise "should not resolve example.com for #{url}"
+  end
+
   def resolve("http" <> _ = url) do
     %{host: host, path: path, query: nil, fragment: nil} = URI.parse(url)
     path = [@root_dir, host | String.split(path, "/")] |> Path.join()
