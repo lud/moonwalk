@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary do
+  alias Moonwalk.Schema
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.BuildContext
@@ -74,5 +75,40 @@ defmodule Moonwalk.Schema.Vocabulary do
         {:ok, unquote(data_var)}
       end
     end
+  end
+
+  def take_sub(key, subraw, acc, ctx) when is_list(acc) do
+    case Schema.denormalize_sub(subraw, ctx) do
+      {:ok, subvalidators, ctx} -> {:ok, [{key, subvalidators} | acc], ctx}
+      {:error, _} = err -> err
+    end
+  end
+
+  def take_integer(key, n, acc, ctx) when is_list(acc) do
+    with :ok <- check_integer(n) do
+      {:ok, [{key, n} | acc], ctx}
+    end
+  end
+
+  def take_number(key, n, acc, ctx) when is_list(acc) do
+    with :ok <- check_number(n) do
+      {:ok, [{key, n} | acc], ctx}
+    end
+  end
+
+  defp check_number(n) when is_number(n) do
+    :ok
+  end
+
+  defp check_number(other) do
+    {:error, "not a number: #{inspect(other)}"}
+  end
+
+  defp check_integer(n) when is_integer(n) do
+    :ok
+  end
+
+  defp check_integer(other) do
+    {:error, "not an integer: #{inspect(other)}"}
   end
 end

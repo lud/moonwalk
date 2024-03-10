@@ -12,12 +12,9 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   todo_take_keywords(~w(
     additionalItems
     contains
-    else
-    if
     items
     not
     propertyNames
-    then
   ))
 
   def take_keyword({"properties", properties}, acc, ctx) do
@@ -35,9 +32,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   def take_keyword({"additionalProperties", additional_properties}, acc, ctx) do
-    with {:ok, subvalidators, ctx} <- Schema.denormalize_sub(additional_properties, ctx) do
-      {:ok, [{:additional_properties, subvalidators} | acc], ctx}
-    end
+    take_sub(:additional_properties, additional_properties, acc, ctx)
   end
 
   def take_keyword({"patternProperties", pattern_properties}, acc, ctx) do
@@ -75,6 +70,18 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
+  def take_keyword({"if", if_schema}, acc, ctx) do
+    take_sub(:if, if_schema, acc, ctx)
+  end
+
+  def take_keyword({"then", then}, acc, ctx) do
+    take_sub(:then, then, acc, ctx)
+  end
+
+  def take_keyword({"else", else_schema}, acc, ctx) do
+    take_sub(:else, else_schema, acc, ctx)
+  end
+
   ignore_any_keyword()
 
   # ---------------------------------------------------------------------------
@@ -98,6 +105,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   def finalize_validators(validators) do
+    validators = finalize_properties(validators)
+    validators = finalize_if_then_else(validators)
+    validators
+  end
+
+  defp finalize_properties(validators) do
     {properties, validators} = Keyword.pop(validators, :properties, nil)
     {pattern_properties, validators} = Keyword.pop(validators, :pattern_properties, nil)
     {additional_properties, validators} = Keyword.pop(validators, :additional_properties, nil)
@@ -105,6 +118,18 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     case {properties, pattern_properties, additional_properties} do
       {nil, nil, nil} -> validators
       some -> Keyword.put(validators, :all_properties, some)
+    end
+  end
+
+  defp finalize_if_then_else(validators) do
+    {if_vds, validators} = Keyword.pop(validators, :if, nil)
+    {then_vds, validators} = Keyword.pop(validators, :then, nil)
+    {else_vds, validators} = Keyword.pop(validators, :else, nil)
+
+    case {if_vds, then_vds, else_vds} do
+      {nil, _, _} -> validators
+      {_, nil, nil} -> validators
+      some -> Keyword.put(validators, :if_then_else, some)
     end
   end
 
@@ -162,6 +187,22 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
       # first one, arbitrarily.
       {[{_, data} | _], []} -> {:ok, data}
       {_, [_ | _] = invalid} -> {:error, Context.make_error(ctx, :all_of, data, invalidated_schemas: invalid)}
+    end
+  end
+
+  defp validate_keyword(data, {:if_then_else, {if_vds, then_vds, else_vds}}, ctx) do
+    case Validator.validate_sub(data, if_vds, ctx) do
+      {:ok, _} ->
+        case then_vds do
+          nil -> {:ok, data}
+          sub -> Validator.validate_sub(data, sub, ctx)
+        end
+
+      {:error, _} ->
+        case else_vds do
+          nil -> {:ok, data}
+          sub -> Validator.validate_sub(data, sub, ctx)
+        end
     end
   end
 

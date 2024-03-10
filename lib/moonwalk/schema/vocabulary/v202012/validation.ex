@@ -7,11 +7,9 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   todo_take_keywords ~w(
-    const
     dependentRequired
     enum
     maxContains
-    maxLength
     maxProperties
     minContains
     minLength
@@ -60,35 +58,15 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     take_number(:multiple_of, multiple_of, acc, ctx)
   end
 
+  def take_keyword({"const", const}, acc, ctx) do
+    {:ok, [{:const, const} | acc], ctx}
+  end
+
+  def take_keyword({"maxLength", max_length}, acc, ctx) do
+    take_integer(:max_length, max_length, acc, ctx)
+  end
+
   ignore_any_keyword()
-
-  defp take_integer(key, n, acc, ctx) do
-    with :ok <- check_integer(n) do
-      {:ok, [{key, n} | acc], ctx}
-    end
-  end
-
-  defp take_number(key, n, acc, ctx) do
-    with :ok <- check_number(n) do
-      {:ok, [{key, n} | acc], ctx}
-    end
-  end
-
-  defp check_number(n) when is_number(n) do
-    :ok
-  end
-
-  defp check_number(other) do
-    {:error, "not a number: #{inspect(other)}"}
-  end
-
-  defp check_integer(n) when is_integer(n) do
-    :ok
-  end
-
-  defp check_integer(other) do
-    {:error, "not an integer: #{inspect(other)}"}
-  end
 
   # ---------------------------------------------------------------------------
 
@@ -145,6 +123,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   pass validate_keyword(data, {:max_items, _}, _) when not is_list(data)
   pass validate_keyword(data, {:min_items, _}, _) when not is_list(data)
   pass validate_keyword(data, {:required, _}, _) when not is_map(data)
+  pass validate_keyword(data, {:max_length, _}, _) when not is_binary(data)
 
   defp validate_keyword(data, {:type, ts}, ctx) when is_list(ts) do
     Enum.find_value(ts, fn t ->
@@ -231,6 +210,23 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     case keys -- Map.keys(data) do
       [] -> {:ok, data}
       missing -> {:error, Context.make_error(ctx, :requred, data, required: missing)}
+    end
+  end
+
+  defp validate_keyword(data, {:max_length, max}, ctx) when is_binary(data) do
+    len = String.length(data)
+
+    if len <= max do
+      {:ok, data}
+    else
+      {:error, Context.make_error(ctx, :max_length, data, max_items: max, len: len)}
+    end
+  end
+
+  defp validate_keyword(data, {:const, const}, ctx) do
+    case data do
+      ^const -> {:ok, data}
+      _ -> {:error, Context.make_error(ctx, :const, data, const: const)}
     end
   end
 

@@ -25,6 +25,7 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"anchor.json", []},
     # {"defs.json", []},
     # {"ref.json", []},
+    {"if-then-else.json", []},
     # {"infinite-loop-detection.json", []},
     # {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
     # {"boolean_schema.json", []},
