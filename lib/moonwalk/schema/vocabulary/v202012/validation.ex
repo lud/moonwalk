@@ -12,7 +12,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     maxContains
     maxProperties
     minContains
-    minLength
     minProperties
     pattern
     uniqueItems
@@ -64,6 +63,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   def take_keyword({"maxLength", max_length}, acc, ctx) do
     take_integer(:max_length, max_length, acc, ctx)
+  end
+
+  def take_keyword({"minLength", min_length}, acc, ctx) do
+    take_integer(:min_length, min_length, acc, ctx)
   end
 
   ignore_any_keyword()
@@ -124,6 +127,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   pass validate_keyword(data, {:min_items, _}, _) when not is_list(data)
   pass validate_keyword(data, {:required, _}, _) when not is_map(data)
   pass validate_keyword(data, {:max_length, _}, _) when not is_binary(data)
+  pass validate_keyword(data, {:min_length, _}, _) when not is_binary(data)
 
   defp validate_keyword(data, {:type, ts}, ctx) when is_list(ts) do
     Enum.find_value(ts, fn t ->
@@ -220,6 +224,16 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
       {:ok, data}
     else
       {:error, Context.make_error(ctx, :max_length, data, max_items: max, len: len)}
+    end
+  end
+
+  defp validate_keyword(data, {:min_length, min}, ctx) when is_binary(data) do
+    len = String.length(data)
+
+    if len >= min do
+      {:ok, data}
+    else
+      {:error, Context.make_error(ctx, :min_length, data, min_items: min, len: len)}
     end
   end
 
