@@ -75,7 +75,7 @@ defmodule Moonwalk.Schema.Validator do
   # Otherwise see if a vocalbulary can know if another vocabulary is being used
   # and implement unevaluatedProperties in the applicator
   def do_validate(data, ctx) do
-    validate_sub(data, Map.fetch!(ctx.validators, ctx.validators._root), ctx)
+    validate_sub(data, ctx.validators.root, ctx)
   end
 
   def validate_sub(data, %BooleanSchema{value: valid?}, ctx) do
@@ -83,6 +83,10 @@ defmodule Moonwalk.Schema.Validator do
       true -> {:ok, data}
       false -> {:error, Context.boolean_schema_error(ctx)}
     end
+  end
+
+  def validate_sub(data, {:alias_of, ns}, ctx) do
+    validate_sub(data, Map.fetch!(ctx.validators, ns), ctx)
   end
 
   def validate_sub(data, schema_validators, ctx) do

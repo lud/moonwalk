@@ -57,14 +57,6 @@ defmodule Moonwalk.SchemaValidationTest do
           {:ok, %{test_case: unquote(Macro.escape(test_case))}}
         end
 
-        # If we are not testing the validation we must at least ensure that
-        # the schema can be manipulated by the library
-
-        test "schema denormalization", %{test_case: test_case} do
-          # debug_infinite_loop()
-          denorm_schema(Map.fetch!(test_case, "schema"), test_case["description"])
-        end
-
         if validate? do
           for %{"description" => test_descr} = unit_test <- tests, test_descr not in ignored do
             test test_descr, %{test_case: test_case} do
@@ -72,6 +64,13 @@ defmodule Moonwalk.SchemaValidationTest do
               unit_test = unquote(Macro.escape(unit_test))
               validation_test(test_case, unit_test)
             end
+          end
+        else
+          # If we are not testing the validation we must at least ensure that
+          # the schema can be manipulated by the library
+          test "schema denormalization", %{test_case: test_case} do
+            # debug_infinite_loop()
+            denorm_schema(Map.fetch!(test_case, "schema"), test_case["description"])
           end
         end
       end

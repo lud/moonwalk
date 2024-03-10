@@ -19,8 +19,14 @@ defmodule Moonwalk.Schema.Ref do
         # No host but another path, we need to merge the path on top of the
         # current namespace
         %URI{host: nil, path: path} = uri when is_not_blank(path) ->
-          merged = URI.merge(URI.parse(current_ns), %URI{uri | fragment: nil})
-          URI.to_string(merged)
+          case current_ns do
+            :root ->
+              :root
+
+            _ ->
+              merged = URI.merge(URI.parse(current_ns), %URI{uri | fragment: nil})
+              URI.to_string(merged)
+          end
 
         # Fragment only,
         %URI{host: nil, path: nil} ->
@@ -35,19 +41,23 @@ defmodule Moonwalk.Schema.Ref do
   end
 
   defp parse_fragment(nil) do
-    {:top, "#", []}
+    {:top, nil, []}
   end
 
   defp parse_fragment("") do
-    {:top, "#", []}
+    {:top, nil, []}
   end
 
   defp parse_fragment("/") do
-    {:top, "#", []}
+    {:top, nil, []}
   end
 
   defp parse_fragment("/" <> path = fragment) do
     {:docpath, fragment, parse_docpath(path)}
+  end
+
+  defp parse_fragment(anchor) do
+    {:anchor, "#" <> anchor, nil}
   end
 
   defp parse_docpath(raw_docpath) do
@@ -64,8 +74,14 @@ defmodule Moonwalk.Schema.Ref do
   @doc """
   Returns a key that identifies the associated validators in a context
   """
-  def to_key(%Ref{ns: ns, fragment: fragment}) do
-    {ns, fragment}
+  def to_key(ref) do
+    %Ref{kind: kind, ns: ns, fragment: fragment} = ref
+
+    case kind do
+      :top -> {ns, :top}
+      :docpath -> {ns, :pointer, fragment}
+      :anchor -> {ns, :anchor, fragment}
+    end
   end
 
   defimpl Inspect do

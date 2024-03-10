@@ -1,6 +1,6 @@
 defmodule Moonwalk.Schema.BuildContext.Cached do
   @moduledoc false
-  @enforce_keys [:id, :vocabularies, :meta, :raw]
+  @enforce_keys [:id, :vocabularies, :meta, :raw, :anchors]
   defstruct @enforce_keys
   @opaque t :: %__MODULE__{}
 end
@@ -72,10 +72,12 @@ defmodule Moonwalk.Schema.BuildContext do
 
     vocabulary = Map.get(raw_schema, "$vocabulary", nil)
 
+    anchors = Map.new(find_anchors(raw_schema))
+
     case load_vocabularies(vocabulary) do
       {:ok, vocabularies} ->
         meta = Map.get(raw_schema, "$schema", nil)
-        {:ok, %Cached{id: ns, vocabularies: vocabularies, meta: meta, raw: raw_schema}}
+        {:ok, %Cached{id: ns, vocabularies: vocabularies, meta: meta, raw: raw_schema, anchors: anchors}}
 
       {:error, _} = err ->
         err
@@ -90,6 +92,28 @@ defmodule Moonwalk.Schema.BuildContext do
       _ ->
         {:error, {:invalid_ns, ns}}
     end
+  end
+
+  defp find_anchors(raw_schema, acc \\ [])
+
+  defp find_anchors(%{"$anchor" => anchor} = map, acc) do
+    find_anchors_in_map(map, [{anchor, map} | acc])
+  end
+
+  defp find_anchors(map, acc) when is_map(map) do
+    find_anchors_in_map(map, acc)
+  end
+
+  defp find_anchors(scalar, acc) when is_binary(scalar) when is_number(scalar) when is_atom(scalar) do
+    acc
+  end
+
+  defp find_anchors(list, acc) when is_list(list) do
+    Enum.reduce(list, acc, fn v, acc -> find_anchors(v, acc) end)
+  end
+
+  defp find_anchors_in_map(map, acc) do
+    Enum.reduce(map, acc, fn {k, v}, acc -> find_anchors(v, acc) end)
   end
 
   # This function is called for all schemas, but only metaschemas should define

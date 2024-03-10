@@ -39,7 +39,13 @@ defmodule Moonwalk.Schema do
   defp build_root(ctx) do
     BuildContext.as_root(ctx, fn root_raw_schema, ctx ->
       with {:ok, schema_validators, ctx} <- build_validators(root_raw_schema, ctx) do
-        {:ok, %{{ctx.ns, "#"} => schema_validators, _root: {ctx.ns, "#"}}, ctx}
+        all_validators =
+          case ctx.ns do
+            :root -> %{root: schema_validators}
+            ns -> %{ns => schema_validators, root: {:alias_of, ns}}
+          end
+
+        {:ok, all_validators, ctx}
       end
     end)
   end
