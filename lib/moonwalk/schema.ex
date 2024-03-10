@@ -3,7 +3,7 @@ defmodule Moonwalk.Schema.BooleanSchema do
 end
 
 defmodule Moonwalk.Schema do
-  alias ElixirLS.LanguageServer.Build
+  alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Ref
   alias Moonwalk.Schema.BuildContext
   alias __MODULE__
@@ -13,13 +13,19 @@ defmodule Moonwalk.Schema do
 
   defdelegate validate(data, schema), to: Moonwalk.Schema.Validator
 
-  def denormalize(raw_schema, opts \\ []) do
+  def denormalize(raw_schema, opts \\ [])
+
+  def denormalize(raw_schema, opts) when is_map(raw_schema) do
     opts_map = opts |> Keyword.validate!(BuildContext.default_opts_list()) |> Map.new()
 
     with {:ok, ctx} <- BuildContext.for_root(raw_schema, opts_map),
-         {:ok, validators, _ctx} <- build_validators(ctx) do
+         {:ok, validators, _ctx} <- build_schema_validators(ctx) do
       {:ok, %Schema{validators: validators}}
     end
+  end
+
+  def denormalize(valid?, _opts) when is_boolean(valid?) do
+    {:ok, %Schema{validators: %{root: %BooleanSchema{value: valid?}}}}
   end
 
   def denormalize_sub(raw_sub, ctx) when is_map(raw_sub) do
@@ -30,7 +36,9 @@ defmodule Moonwalk.Schema do
     {:ok, %Moonwalk.Schema.BooleanSchema{value: bool}, ctx}
   end
 
-  def build_validators(ctx) do
+  # Schema validators are the collection of validators for each namespace. Here
+  # "schema" means the top document and all other referenced documents.
+  def build_schema_validators(ctx) do
     with {:ok, validators, ctx} <- build_root(ctx) do
       build_staged_recursive(validators, ctx)
     end
@@ -60,14 +68,15 @@ defmodule Moonwalk.Schema do
         {:ok, validators, ctx}
 
       {ref, ctx} ->
-        vds_key = Ref.to_key(ref)
+        refschema_key = Ref.to_key(ref)
 
-        with {:already_done?, false} <- {:already_done?, Map.has_key?(validators, vds_key)},
-             {:ok, schema_validators, ctx} <- build_ref(ref, ctx) do
-          validators = Map.put(validators, vds_key, schema_validators)
-          build_staged_recursive(validators, ctx)
-        else
-          {:already_done?, true} -> build_staged_recursive(validators, ctx)
+        case build_ref(ref, ctx) do
+          {:ok, schema_validators, ctx} ->
+            validators = Map.put(validators, refschema_key, schema_validators)
+            build_staged_recursive(validators, ctx)
+
+          {:error, _} = err ->
+            err
         end
     end
   end

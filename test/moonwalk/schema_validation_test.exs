@@ -26,7 +26,6 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"defs.json", []},
     # {"ref.json", []},
     # {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
-    # {"boolean_schema.json", []},
     # {"enum.json", []},
     {"anyOf.json", []},
     {"oneOf.json", []},
@@ -41,7 +40,8 @@ defmodule Moonwalk.SchemaValidationTest do
     {"maximum.json", []},
     {"content.json", validate: false},
     {"type.json", []},
-    {"vocabulary.json", []}
+    {"vocabulary.json", []},
+    {"boolean_schema.json", []}
   ]
 
   Enum.each(suites, fn {filename, opts} ->
