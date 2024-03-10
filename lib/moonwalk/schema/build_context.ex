@@ -222,17 +222,20 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp fetch_docpath(raw_schema, docpath) do
-    fetch_docpath(raw_schema, docpath, docpath)
+    case do_fetch_docpath(raw_schema, docpath) do
+      {:ok, v} -> {:ok, v}
+      {:error, :invalid_docpath} -> {:error, {:invalid_docpath, docpath, raw_schema}}
+    end
   end
 
-  defp fetch_docpath(raw_schema, [], _docpath) do
+  defp do_fetch_docpath(raw_schema, []) do
     {:ok, raw_schema}
   end
 
-  defp fetch_docpath(raw_schema, [h | t], docpath) do
+  defp do_fetch_docpath(raw_schema, [h | t]) do
     case Map.fetch(raw_schema, h) do
-      {:ok, sub} -> fetch_docpath(sub, t)
-      :error -> {:error, {:invalid_docpath, docpath}}
+      {:ok, sub} -> do_fetch_docpath(sub, t)
+      :error -> {:error, :invalid_docpath}
     end
   end
 

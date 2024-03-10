@@ -51,7 +51,14 @@ defmodule Moonwalk.Schema.Ref do
   end
 
   defp parse_docpath(raw_docpath) do
-    String.split(raw_docpath, "/")
+    raw_docpath |> String.split("/") |> Enum.map(&unescape_json_pointer/1)
+  end
+
+  defp unescape_json_pointer(str) do
+    str
+    |> String.replace("~1", "/")
+    |> String.replace("~0", "~")
+    |> URI.decode()
   end
 
   @doc """
