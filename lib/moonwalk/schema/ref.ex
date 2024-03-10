@@ -27,7 +27,9 @@ defmodule Moonwalk.Schema.Ref do
           current_ns
       end
 
-    {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, docpath: docpath}} |> dbg()
+    {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, docpath: docpath}}
+  rescue
+    _ -> {:error, {:invalid_ref, url, current_ns}}
   end
 
   defp parse_fragment(nil) do

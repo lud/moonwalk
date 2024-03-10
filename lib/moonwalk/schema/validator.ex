@@ -58,6 +58,7 @@ defmodule Moonwalk.Schema.Validator.Context do
 end
 
 defmodule Moonwalk.Schema.Validator do
+  alias Moonwalk.Helpers
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema
   alias Moonwalk.Schema.Validator.Error
@@ -86,11 +87,8 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   def validate_sub(data, schema_validators, ctx) do
-    Enum.reduce_while(schema_validators, {:ok, data}, fn {module, vds}, {:ok, data} ->
-      case module.validate(data, vds, ctx) do
-        {:ok, data} -> {:cont, {:ok, data}}
-        {:error, _} = err -> {:halt, err}
-      end
+    Helpers.reduce_while_ok(schema_validators, data, fn {module, vds}, data ->
+      module.validate(data, vds, ctx)
     end)
   end
 end

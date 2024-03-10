@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary do
+  alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.BuildContext
   alias Moonwalk.Schema.Validator.Error
@@ -51,11 +52,8 @@ defmodule Moonwalk.Schema.Vocabulary do
 
   defmacro run_validators(data, validators, ctx, f) when is_atom(f) do
     quote do
-      Enum.reduce_while(unquote(validators), {:ok, unquote(data)}, fn {k, v}, {:ok, data} ->
-        case unquote(f)(data, {k, v}, unquote(ctx)) do
-          {:ok, data} -> {:cont, {:ok, data}}
-          {:error, reason} -> {:halt, {:error, reason}}
-        end
+      Helpers.reduce_while_ok(unquote(validators), unquote(data), fn {k, v}, data ->
+        unquote(f)(data, {k, v}, unquote(ctx))
       end)
     end
   end

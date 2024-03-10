@@ -48,7 +48,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   defp validate_keyword(data, {:"$ref", ref}, ctx) do
-    subvds = Context.checkout_ref(ctx, ref)
-    Validator.validate_sub(data, subvds, ctx)
+    subvalidators = Context.checkout_ref(ctx, ref)
+    Validator.validate_sub(data, subvalidators, ctx)
   end
 end

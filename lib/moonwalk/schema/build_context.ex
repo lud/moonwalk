@@ -1,4 +1,12 @@
+defmodule Moonwalk.Schema.BuildContext.Cached do
+  @moduledoc false
+  @enforce_keys [:id, :vocabularies, :meta, :raw]
+  defstruct @enforce_keys
+  @opaque t :: %__MODULE__{}
+end
+
 defmodule Moonwalk.Schema.BuildContext do
+  alias Moonwalk.Schema.BuildContext.Cached
   alias Moonwalk.Schema.Ref
   alias Moonwalk.Schema.Vocabulary
 
@@ -15,8 +23,8 @@ defmodule Moonwalk.Schema.BuildContext do
     "https://json-schema.org/draft/2020-12/vocab/unevaluated" => Vocabulary.V202012.Unevaluated
   }
 
-  @enforce_keys [:ns]
-  defstruct [:ns, staged_refs: [], opts: @default_opts, resolved: %{}, vocabularies: %{}]
+  @enforce_keys [:root]
+  defstruct [:ns, :root, staged_refs: [], opts: @default_opts, fetch_cache: %{}, vocabularies: %{}]
 
   @opaque t :: %__MODULE__{}
 
@@ -24,39 +32,72 @@ defmodule Moonwalk.Schema.BuildContext do
     @default_opts_list
   end
 
-  def new_root(raw_schema, opts_map) when is_map(raw_schema) do
+  def for_root(raw_schema, opts_map) when is_map(raw_schema) do
+    with {:ok, cached} <- raw_to_cached(raw_schema) do
+      root_ns = cached.id || :root
+
+      ctx = %__MODULE__{root: root_ns, opts: opts_map}
+      ctx = set_cached(ctx, root_ns, cached)
+      ensure_resolved(ctx, cached.meta)
+    end
+  end
+
+  # external_id is the url pointing to that schema. For instance if we find a
+  # $ref: "http://example.com/schema.json" then the external_id is
+  # "http://example.com/schema.json", but that schema could also have an $id, in
+  # which case the $id will be declared as an alias.
+  defp set_cached(ctx, external_id, cached) do
+    cache_entries =
+      case {external_id, cached.id} do
+        {nil, nil} -> raise "cannot register schema without neither an $id or an URL pointing to it"
+        {nil, id} -> %{id => cached}
+        {ext, nil} -> %{ext => cached}
+        {same, same} -> %{same => cached}
+        {ext, id} -> %{ext => cached, id => {:alias_of, ext}}
+      end
+
+    %{fetch_cache: cache} = ctx
+    cache = Map.merge(cache, cache_entries)
+    %__MODULE__{ctx | fetch_cache: cache}
+  end
+
+  defp raw_to_cached(raw_schema) do
     ns =
       with {:ok, id} when is_binary(id) <- Map.fetch(raw_schema, "$id"),
            {:ok, ns} <- parse_ns(id) do
         ns
       else
-        _ -> :root
+        _ -> nil
       end
 
-    %__MODULE__{opts: opts_map, resolved: %{ns => raw_schema}, ns: ns}
+    vocabulary = Map.get(raw_schema, "$vocabulary", nil)
+
+    case load_vocabularies(vocabulary) do
+      {:ok, vocabularies} ->
+        meta = Map.get(raw_schema, "$schema", nil)
+        {:ok, %Cached{id: ns, vocabularies: vocabularies, meta: meta, raw: raw_schema}}
+
+      {:error, _} = err ->
+        err
+    end
   end
 
-  defp parse_ns(ns) do
+  defp parse_ns(ns) when is_binary(ns) do
     case URI.parse(ns) do
-      %URI{scheme: scheme, host: host, fragment: nil} when is_binary(scheme) and is_binary(host) -> {:ok, ns}
-      %URI{scheme: "file"} -> :file
-      _ -> :unknown
+      %URI{scheme: scheme, host: host, fragment: nil} when is_binary(scheme) and is_binary(host) ->
+        {:ok, ns}
+
+      _ ->
+        {:error, {:invalid_ns, ns}}
     end
   end
 
-  def load_vocabulary(ctx, meta_uri) do
-    with {:ok, raw_meta, ctx} <- ensure_resolved(ctx, meta_uri),
-         {:ok, vocabulary_map} <- fetch_vocabulary_map(raw_meta),
-         {:ok, vocabularies} <- load_vocabularies(vocabulary_map) do
-      {:ok, %__MODULE__{ctx | vocabularies: vocabularies}}
-    end
-  end
-
-  defp fetch_vocabulary_map(raw_meta) do
-    case raw_meta do
-      %{"$vocabulary" => vocabulary} -> {:ok, vocabulary}
-      _ -> {:error, :no_vocabulary}
-    end
+  # This function is called for all schemas, but only metaschemas should define
+  # vocabulary, so nil is a valid vocabulary map. It will not be looked up for
+  # normal schemas, and metaschemas without vocabulary should have a default
+  # vocabulary in the library.
+  defp load_vocabularies(nil) do
+    {:ok, nil}
   end
 
   defp load_vocabularies(map) when is_map(map) do
@@ -74,30 +115,25 @@ defmodule Moonwalk.Schema.BuildContext do
     {:unknown_vocabulary, uri} -> {:error, {:unknown_vocabulary, uri}}
   end
 
-  def ensure_resolved(ctx, uri) when is_binary(uri) do
-    url = to_doc_url(uri)
-
+  def ensure_resolved(ctx, url) when is_binary(url) do
     case ctx do
-      %{resolved: %{^url => resolved}} ->
-        {:ok, resolved, ctx}
+      %__MODULE__{fetch_cache: %{^url => _resolved}} ->
+        {:ok, ctx}
 
-      %{resolved: missing, opts: %{resolver: resolver}} ->
-        with {:ok, resolved} <- call_resolver(resolver, url) do
-          {:ok, resolved, %__MODULE__{ctx | resolved: Map.put(missing, url, resolved)}}
+      %__MODULE__{opts: %{resolver: resolver}} ->
+        with {:ok, resolved} <- call_resolver(resolver, url),
+             {:ok, cached} <- raw_to_cached(resolved) do
+          ctx
+          |> set_cached(url, cached)
+          |> ensure_resolved(cached.meta)
+        else
+          {:error, _} = err -> err
         end
     end
   end
 
   def ensure_resolved(ctx, %Ref{ns: ns}) do
     ensure_resolved(ctx, ns)
-  end
-
-  defp to_doc_url(%URI{} = uri) do
-    URI.to_string(%URI{uri | fragment: nil})
-  end
-
-  defp to_doc_url(uri) when is_binary(uri) do
-    uri |> URI.parse() |> to_doc_url()
   end
 
   defp call_resolver(resolver, url) do
@@ -118,5 +154,34 @@ defmodule Moonwalk.Schema.BuildContext do
 
   def take_staged(%{staged_refs: [h | t]} = ctx) do
     {h, %__MODULE__{ctx | staged_refs: t}}
+  end
+
+  def as_root(ctx, fun) when is_function(fun, 2) do
+    %{vocabularies: current_vocabs, ns: current_ns, root: root_ns} = ctx
+    sub_vocabs = fetch_vocabularies(ctx, root_ns)
+    subschema = fetch_raw(ctx, root_ns)
+    subctx = %__MODULE__{ctx | ns: root_ns, vocabularies: sub_vocabs}
+
+    case fun.(subschema, subctx) do
+      {:ok, result, new_ctx} -> {:ok, result, %__MODULE__{new_ctx | ns: current_ns, vocabularies: current_vocabs}}
+      {:error, _} = err -> err
+    end
+  end
+
+  # The vocabularies are defined by the meta schema, so we do a double fetch
+  defp fetch_vocabularies(ctx, ns) do
+    cached = fetch_cached(ctx, ns)
+    meta = fetch_cached(ctx, cached.meta)
+    meta.vocabularies
+  end
+
+  defp fetch_raw(ctx, ns) do
+    fetch_cached(ctx, ns).raw
+  end
+
+  defp fetch_cached(%{fetch_cache: cache}, ns) do
+    case Map.fetch!(cache, ns) do
+      %Cached{} = c -> c
+    end
   end
 end

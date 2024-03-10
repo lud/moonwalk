@@ -29,6 +29,7 @@ defmodule Moonwalk.Schema.OldValidator.Context do
 end
 
 defmodule Moonwalk.Schema.OldValidator do
+  alias Moonwalk.Helpers
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema
   alias Moonwalk.Schema.OldValidator.Error
@@ -77,12 +78,7 @@ defmodule Moonwalk.Schema.OldValidator do
   end
 
   defp validate_keyword(data, %Schema{} = schema, ctx) do
-    Enum.reduce_while(schema.validators, {:ok, data}, fn vd, {:ok, data} ->
-      case validate_keyword(data, vd, ctx) do
-        {:ok, data} -> {:cont, {:ok, data}}
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
-    end)
+    Helpers.reduce_while_ok(schema.validators, data, fn vd, data -> validate_keyword(data, vd, ctx) end)
   end
 
   defp validate_keyword(data, {:type, list}, ctx) when is_list(list) do

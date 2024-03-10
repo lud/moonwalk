@@ -3,24 +3,7 @@ defmodule Moonwalk.Schema.BooleanSchema do
 end
 
 defmodule Moonwalk.Schema do
-  # TODO remove french plan
-  @doc """
-  1. Le schema est représenté par une map, avec a minima une clé :root qui
-     contient les validateurs pour le schéma principal.
-  2. Le schéma est récursif/nested, "properties" ou "items" contient des
-     sous-maps.
-  3. Lors de la dénormalization on passe un contexte, et on retourne le
-     contexte, donc denormalize!/2 est basé sur denormalize/2.
-  4. Quand on trouve une $ref, on la résout dans le contexte, ce dernier
-     contient donc les versions raw de toutes les URLs demandées.
-  5. Le schéma pointé par la ref est parsé et on le transforme aussi en
-     validateurs. Le réslutat est ajouté au sous la clé {ns, fragment}.
-  6. Finalement le schema root est lui même ajouté au context sous la clé :root.
-  7. Le schéma final est donc simplement le contexte,
-  8. Les validateurs sont une map avec comme clé le vocabulary et en valeur le
-     résultat de son parsing.
-  9. À la fin on cleanup les resolved en remplaçant la map par :cleaned.
-  """
+  alias ElixirLS.LanguageServer.Build
   alias Moonwalk.Schema.Ref
   alias Moonwalk.Schema.BuildContext
   alias __MODULE__
@@ -33,21 +16,18 @@ defmodule Moonwalk.Schema do
   def denormalize(raw_schema, opts \\ []) do
     opts_map = opts |> Keyword.validate!(BuildContext.default_opts_list()) |> Map.new()
 
-    ctx = BuildContext.new_root(raw_schema, opts_map)
-    meta_uri = Map.fetch!(raw_schema, "$schema")
-
-    with {:ok, ctx} <- BuildContext.load_vocabulary(ctx, meta_uri),
+    with {:ok, ctx} <- BuildContext.for_root(raw_schema, opts_map),
          {:ok, validators, _ctx} <- build_validators(ctx) do
       {:ok, %Schema{validators: validators}}
     end
   end
 
-  def denormalize_sub(bool, ctx) when is_boolean(bool) do
-    {:ok, %Moonwalk.Schema.BooleanSchema{value: bool}, ctx}
+  def denormalize_sub(raw_sub, ctx) when is_map(raw_sub) do
+    build_validators(raw_sub, ctx)
   end
 
-  def denormalize_sub(raw_sub, ctx) do
-    build_validators(raw_sub, ctx)
+  def denormalize_sub(bool, ctx) when is_boolean(bool) do
+    {:ok, %Moonwalk.Schema.BooleanSchema{value: bool}, ctx}
   end
 
   def build_validators(ctx) do
@@ -57,12 +37,11 @@ defmodule Moonwalk.Schema do
   end
 
   defp build_root(ctx) do
-    root_ns = ctx.ns
-    root_raw_schema = Map.fetch!(ctx.resolved, root_ns)
-
-    with {:ok, schema_validators, ctx} <- build_validators(root_raw_schema, ctx) do
-      {:ok, %{{root_ns, "#"} => schema_validators, _root: {root_ns, "#"}}, ctx}
-    end
+    BuildContext.as_root(ctx, fn root_raw_schema, ctx ->
+      with {:ok, schema_validators, ctx} <- build_validators(root_raw_schema, ctx) do
+        {:ok, %{{ctx.ns, "#"} => schema_validators, _root: {ctx.ns, "#"}}, ctx}
+      end
+    end)
   end
 
   # For each staged ref in the context, we ensute that the schema top document
@@ -75,9 +54,9 @@ defmodule Moonwalk.Schema do
         {:ok, validators, ctx}
 
       {ref, ctx} ->
-        vds_key = Ref.to_key(ref) |> dbg()
+        vds_key = Ref.to_key(ref)
 
-        with {:already_done?, false} <- {:already_done?, Map.has_key?(validators, vds_key)} |> dbg(),
+        with {:already_done?, false} <- {:already_done?, Map.has_key?(validators, vds_key)},
              {:ok, schema_validators, ctx} <- build_ref(ref, ctx) do
           validators = Map.put(validators, vds_key, schema_validators)
           build_staged_recursive(validators, ctx)
@@ -88,9 +67,10 @@ defmodule Moonwalk.Schema do
   end
 
   defp build_ref(%Ref{} = ref, ctx) do
-    with {:ok, raw_schema, ctx} <- BuildContext.ensure_resolved(ctx, ref),
-         {:ok, raw_sub} <- fetch_docpath(raw_schema, ref.docpath) do
-      build_validators(raw_sub, ctx)
+    with {:ok, ctx} <- BuildContext.ensure_resolved(ctx, ref) do
+      BuildContext.as_ref(ctx, ref, fn raw_schema, ctx ->
+        build_validators(raw_schema, ctx)
+      end)
     end
   end
 
@@ -134,6 +114,8 @@ defmodule Moonwalk.Schema do
     end
 
     {:ok, validators, ctx}
+  catch
+    {:build_validator, _pair, reason} -> {:error, reason}
   end
 
   defp build_validators_for_module(raw_schema, module, ctx) do

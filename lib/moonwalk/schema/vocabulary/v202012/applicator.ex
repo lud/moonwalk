@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
+  alias Moonwalk.Helpers
   alias Moonwalk.Schema
   alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Validator.Context
@@ -10,7 +11,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   todo_take_keywords(~w(
     additionalItems
-    allOf
     anyOf
     contains
     else
@@ -24,38 +24,41 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   def take_keyword({"properties", properties}, acc, ctx) do
     properties
-    |> Enum.reduce_while({:ok, %{}, ctx}, fn {k, pschema}, {:ok, acc, ctx} ->
+    |> Helpers.reduce_while_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       case Schema.denormalize_sub(pschema, ctx) do
-        {:ok, subvalidators, ctx} -> {:cont, {:ok, Map.put(acc, k, subvalidators), ctx}}
-        {:error, _} = err -> {:halt, err}
+        {:ok, subvalidators, ctx} -> {:ok, {Map.put(acc, k, subvalidators), ctx}}
+        {:error, _} = err -> err
       end
     end)
     |> case do
-      {:ok, subvds, ctx} -> {:ok, [{:properties, subvds} | acc], ctx}
+      {:ok, {subvalidators, ctx}} -> {:ok, [{:properties, subvalidators} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
   def take_keyword({"additionalProperties", additional_properties}, acc, ctx) do
-    with {:ok, subvds, ctx} <- Schema.denormalize_sub(additional_properties, ctx) do
-      {:ok, [{:additional_properties, subvds} | acc], ctx}
+    with {:ok, subvalidators, ctx} <- Schema.denormalize_sub(additional_properties, ctx) do
+      {:ok, [{:additional_properties, subvalidators} | acc], ctx}
     end
   end
 
   def take_keyword({"patternProperties", pattern_properties}, acc, ctx) do
     pattern_properties
-    |> Enum.reduce_while({:ok, %{}, ctx}, fn {k, pschema}, {:ok, acc, ctx} ->
+    |> Helpers.reduce_while_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       with {:ok, re} <- Regex.compile(k),
            {:ok, subvalidators, ctx} <- Schema.denormalize_sub(pschema, ctx) do
-        {:cont, {:ok, Map.put(acc, {k, re}, subvalidators), ctx}}
-      else
-        {:error, _} = err -> {:halt, err}
+        {:ok, {Map.put(acc, {k, re}, subvalidators), ctx}}
       end
     end)
     |> case do
-      {:ok, subvds, ctx} -> {:ok, [{:pattern_properties, subvds} | acc], ctx}
+      {:ok, {subvalidators, ctx}} -> {:ok, [{:pattern_properties, subvalidators} | acc], ctx}
       {:error, _} = err -> err
     end
+  end
+
+  def take_keyword({"allOf", all_of}, acc, ctx) do
+    subvalidators = Helpers.map_ok(all_of, fn subschema -> Schema.denormalize_sub(subschema, ctx) end)
+    {:ok, [{:all_of, subvalidators} | acc], ctx}
   end
 
   ignore_any_keyword()
@@ -105,11 +108,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp validate_properties(data, schema_map, ctx, errors, seen) do
     Enum.reduce(schema_map, {data, errors, seen}, fn
-      {key, subvds}, {data, errors, seen} when is_map_key(data, key) ->
+      {key, subvalidators}, {data, errors, seen} when is_map_key(data, key) ->
         seen = MapSet.put(seen, key)
         value = Map.fetch!(data, key)
 
-        case Validator.validate_sub(value, subvds, ctx) do
+        case Validator.validate_sub(value, subvalidators, ctx) do
           {:ok, casted} ->
             {Map.put(data, key, casted), errors, seen}
 
@@ -127,14 +130,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   defp validate_pattern_properties(data, schema_map, ctx, errors, seen) do
-    for {{pattern, regex}, subvds} <- schema_map,
+    for {{pattern, regex}, subvalidators} <- schema_map,
         {key, value} <- data,
         Regex.match?(regex, key),
         reduce: {data, errors, seen} do
       {data, errors, seen} ->
         seen = MapSet.put(seen, key)
 
-        case Validator.validate_sub(value, subvds, ctx) do
+        case Validator.validate_sub(value, subvalidators, ctx) do
           {:ok, casted} ->
             {Map.put(data, key, casted), errors, seen}
 
@@ -155,10 +158,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     {data, errors}
   end
 
-  defp validate_additional_properties(data, subvds, ctx, errors, seen) do
+  defp validate_additional_properties(data, subvalidators, ctx, errors, seen) do
     for {key, value} <- data, not MapSet.member?(seen, key), reduce: {data, errors} do
       {data, errors} ->
-        case Validator.validate_sub(value, subvds, ctx) do
+        case Validator.validate_sub(value, subvalidators, ctx) do
           {:ok, casted} ->
             {Map.put(data, key, casted), errors}
 
