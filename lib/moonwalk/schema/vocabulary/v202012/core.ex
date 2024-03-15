@@ -10,9 +10,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   todo_take_keywords(~w(
-
-    $dynamicAnchor
-    $dynamicRef
     $id
     $schema
   ))
@@ -29,6 +26,18 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   def take_keyword({"$anchor", _anchor}, acc, ctx) do
+    {:ok, acc, ctx}
+  end
+
+  def take_keyword({"$dynamicRef", raw_ref}, acc, ctx) do
+    with {:ok, ref} <- Ref.parse_dynamic(raw_ref, ctx.ns) do
+      ctx = BuildContext.stage_ref(ctx, ref)
+
+      {:ok, [{:"$dynamic_ref", ref} | acc], ctx}
+    end
+  end
+
+  def take_keyword({"$dynamicAnchor", _anchor}, acc, ctx) do
     {:ok, acc, ctx}
   end
 

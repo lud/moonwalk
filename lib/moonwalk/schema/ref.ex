@@ -67,16 +67,25 @@ end
 defmodule Moonwalk.Schema.Ref do
   alias __MODULE__
   alias Moonwalk.Schema.RNS
-  defstruct [:ns, :kind, :fragment, :arg]
+  defstruct ns: nil, kind: nil, fragment: nil, arg: nil, dynamic?: false
 
   defguardp is_not_blank(str) when is_binary(str) and str != ""
 
   def parse(url, current_ns) do
+    do_parse(url, current_ns, false)
+  end
+
+  def parse_dynamic(url, current_ns) do
+    do_parse(url, current_ns, true)
+  end
+
+  def do_parse(url, current_ns, dynamic?) do
     uri = URI.parse(url)
     {kind, normalized_fragment, arg} = parse_fragment(uri.fragment)
+    dynamic? = dynamic? and normalized_fragment != nil
 
     with {:ok, ns} <- RNS.derive(current_ns, url) do
-      {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg}}
+      {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg, dynamic?: dynamic?}}
     end
   end
 

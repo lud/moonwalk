@@ -36,8 +36,6 @@ defmodule Moonwalk.Schema.BuildContext do
     vocabularies: %{}
   ]
 
-  defguardp is_not_blank(str) when is_binary(str) and str != ""
-
   defmacro wrap_err(body, tag) when is_atom(tag) do
     quote do
       case unquote(body) do
@@ -95,17 +93,59 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   def resolve(ctx, resolvable) do
-    resolve_loop(ctx, [resolvable])
+    resolve_loop(ctx, [resolvable], [])
   end
 
-  defp resolve_loop(ctx, [h | t]) do
+  defp resolve_loop(ctx, [h | t], tail) when is_list(h) do
+    debug_loop(h, t, tail)
+    resolve_loop(ctx, h, [t | tail])
+  end
+
+  defp resolve_loop(ctx, [h | t], tail) do
+    debug_loop(h, t, tail)
+
     with {:ok, resolve_more, ctx} <- ensure_resolved(ctx, h) do
-      resolve_loop(ctx, resolve_more ++ t)
+      # Depth first
+      resolve_loop(ctx, resolve_more, [t | tail])
     end
   end
 
-  defp resolve_loop(ctx, []) do
+  defp resolve_loop(ctx, [], [h | t]) do
+    resolve_loop(ctx, h, t)
+  end
+
+  defp resolve_loop(ctx, [], []) do
     {:ok, ctx}
+  end
+
+  defp debug_loop(h, t, tail) do
+    h = loop_keys(h)
+    t = loop_keys(t)
+    tail = loop_keys(tail)
+    IO.puts("-------------")
+    h |> IO.inspect(label: "h")
+    t |> IO.inspect(label: "t")
+    tail |> IO.inspect(label: "tail")
+  end
+
+  defp loop_keys({:prefetched, id, _}) do
+    id
+  end
+
+  defp loop_keys({:dynamic_anchor, id, _, _}) do
+    id
+  end
+
+  defp loop_keys({:meta, id}) do
+    id
+  end
+
+  defp loop_keys(%Ref{ns: ns}) do
+    ns
+  end
+
+  defp loop_keys(list) when is_list(list) do
+    Enum.map(list, &loop_keys/1)
   end
 
   defp ensure_resolved(ctx, resolvable) do
@@ -118,22 +158,16 @@ defmodule Moonwalk.Schema.BuildContext do
     with :unresolved <- check_resolved(ctx, resolvable),
          {:ok, raw_schema, ctx} <- ensure_fetched(ctx, resolvable),
          {:ok, %{meta: cached_meta} = cached} <- raw_to_cached(raw_schema, resolvable),
-         {:ok, sub_id_schemas} <- resolved_sub_ids(cached.raw, cached_meta, meta?) do
-      resolve_more = [{:meta, cached_meta} | sub_id_schemas]
+         {:ok, dynamic_anchor_schemas} <-
+           maybe_collect_subschemas_with_dynanchor(cached.raw, cached_meta, meta?) |> dbg(),
+         {:ok, sub_id_schemas} <- maybe_collect_subschemas_with_id(cached.raw, cached_meta, meta?) do
+      resolve_more = [{:meta, cached_meta}, dynamic_anchor_schemas, sub_id_schemas]
 
       {:ok, resolve_more, set_cached(ctx, cached, resolvable)}
     else
       :already_resolved -> {:ok, [], ctx}
       {:error, _} = err -> err
     end
-  end
-
-  defp resolved_sub_ids(raw_schema, meta, true = _meta?) do
-    {:ok, []}
-  end
-
-  defp resolved_sub_ids(raw_schema, meta, false = _meta?) do
-    sub_ids_to_resolvables(raw_schema, meta)
   end
 
   defp check_resolved(ctx, {:prefetched, id, _}) do
@@ -144,9 +178,23 @@ defmodule Moonwalk.Schema.BuildContext do
     check_resolved(ctx, id)
   end
 
-  defp check_resolved(ctx, id) when is_binary(id) or :root == id or elem(id, 0) == :meta do
+  defp check_resolved(ctx, id) when is_binary(id) or :root == id do
     case ctx do
       %{resolve_cache: %{^id => _}} -> :already_resolved
+      _ -> :unresolved
+    end
+  end
+
+  defp check_resolved(ctx, {:meta, id}) when is_binary(id) do
+    case ctx do
+      %{resolve_cache: %{{:meta, ^id} => _}} -> :already_resolved
+      _ -> :unresolved
+    end
+  end
+
+  defp check_resolved(ctx, {:dynamic_anchor, id, _, _}) when is_binary(id) do
+    case ctx do
+      %{resolve_cache: %{{:dynamic_anchor, ^id} => _}} -> :already_resolved
       _ -> :unresolved
     end
   end
@@ -167,6 +215,10 @@ defmodule Moonwalk.Schema.BuildContext do
     ext_id
   end
 
+  defp external_id({:dynamic_anchor, ext_id, _, _}) do
+    ext_id
+  end
+
   defp external_id(%Ref{ns: ns}) do
     ns
   end
@@ -176,6 +228,10 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp ensure_fetched(ctx, {:sub_id, ext_id, raw_schema, _}) do
+    {:ok, raw_schema, ctx}
+  end
+
+  defp ensure_fetched(ctx, {:dynamic_anchor, ext_id, raw_schema, _}) do
     {:ok, raw_schema, ctx}
   end
 
@@ -228,6 +284,22 @@ defmodule Moonwalk.Schema.BuildContext do
     end
   end
 
+  defp maybe_collect_subschemas_with_id(raw_schema, meta, true = _meta?) do
+    {:ok, []}
+  end
+
+  defp maybe_collect_subschemas_with_id(raw_schema, meta, false = _meta?) do
+    collect_subschemas_with_id(raw_schema, meta)
+  end
+
+  defp maybe_collect_subschemas_with_dynanchor(raw_schema, meta, true = _meta?) do
+    {:ok, []}
+  end
+
+  defp maybe_collect_subschemas_with_dynanchor(raw_schema, meta, false = _meta?) do
+    collect_subschemas_with_dynanchor(raw_schema, meta)
+  end
+
   # external_id is the url pointing to that schema. For instance if we find a
   # $ref: "http://example.com/schema.json" then the external_id is
   # "http://example.com/schema.json", but that schema could also have an $id, in
@@ -248,6 +320,7 @@ defmodule Moonwalk.Schema.BuildContext do
     cache_entries =
       case resolvable do
         {:meta, _} -> Enum.map(cache_entries, fn {k, v} -> {{:meta, k}, v} end)
+        {:dynamic_anchor, _, _, _} -> Enum.map(cache_entries, fn {k, v} -> {{:dynamic_anchor, k}, v} end)
         _ -> cache_entries
       end
 
@@ -274,84 +347,42 @@ defmodule Moonwalk.Schema.BuildContext do
 
   defp raw_to_cached(raw_schema, {:prefetched, _ext_id, _}) do
     ns = extract_id(raw_schema)
-    anchors = Map.new(find_anchors(raw_schema))
     meta = Map.get(raw_schema, "$schema", nil)
 
-    {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
+    with {:ok, anchors} <- find_anchors(raw_schema) do
+      {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
+    end
   end
 
   defp raw_to_cached(raw_schema, {:sub_id, _ext_id, _, meta}) do
     ns = extract_id(raw_schema)
-    anchors = Map.new(find_anchors(raw_schema))
 
-    {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
+    with {:ok, anchors} <- find_anchors(raw_schema) do
+      {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
+    end
+  end
+
+  defp raw_to_cached(raw_schema, {:dynamic_anchor, ext_id, _, meta}) do
+    {:ok, %Cached{id: nil, vocabularies: nil, meta: meta, raw: raw_schema, anchors: []}}
   end
 
   defp raw_to_cached(raw_schema, %Ref{}) do
     ns = extract_id(raw_schema)
-    anchors = Map.new(find_anchors(raw_schema))
+
     meta = Map.get(raw_schema, "$schema", nil)
 
-    {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
+    with {:ok, anchors} <- find_anchors(raw_schema) do
+      {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
+    end
   end
 
   defp extract_id(raw_schema) do
     with {:ok, id} when is_binary(id) <- Map.fetch(raw_schema, "$id"),
-         {:ok, ns} <- parse_id(id) do
-      ns
+         %URI{scheme: scheme, host: host, fragment: nil} when is_binary(scheme) and is_binary(host) <- URI.parse(id) do
+      id
     else
       _ -> nil
     end
-  end
-
-  defp parse_id(id) when is_binary(id) do
-    case URI.parse(id) do
-      %URI{scheme: scheme, host: host, fragment: nil} when is_binary(scheme) and is_binary(host) -> {:ok, id}
-      _ -> {:error, {:invalid_id, id}}
-    end
-  end
-
-  defp sub_ids_to_resolvables(raw_schema, meta) when is_map(raw_schema) do
-    with {:ok, subs} <- collect_sub_id_schemas(raw_schema) do
-      {:ok, Enum.map(subs, fn {id, schema} -> {:sub_id, id, schema, meta} end)}
-    end
-  end
-
-  # Collect all sub schemas that define a $id property, except the top one.  At
-  # each level, if a $id is encountered, it is passed as a context to nested
-  # schemas, so if there are relative $id (like "some.json") it is converted in
-  # a fully qualified id.
-  defp collect_sub_id_schemas(raw_schema) do
-    # The top id can be nil if all nested $id are fully qualified URIs
-    {top_id, top_schema} = Map.pop(raw_schema, "$id", nil)
-
-    case collect_sub_id_schemas(top_schema, top_id, []) do
-      {:ok, acc} -> {:ok, :lists.flatten(acc)}
-      {:error, _} = err -> err
-    end
-  end
-
-  defp collect_sub_id_schemas(%{"$id" => sub_id} = sub_schema, parent_id, acc) do
-    case merge_id(parent_id, sub_id) do
-      {:ok, id} -> collect_sub_id_schemas_in_map(sub_schema, sub_id, [{id, sub_schema} | acc])
-      {:error, _} = err -> err
-    end
-  end
-
-  defp collect_sub_id_schemas(sub_schema, parent_id, acc) when is_map(sub_schema) do
-    collect_sub_id_schemas_in_map(sub_schema, parent_id, acc)
-  end
-
-  defp collect_sub_id_schemas(list, parent_id, acc) when is_list(list) do
-    Helpers.reduce_ok(list, acc, fn s, acc -> collect_sub_id_schemas(s, parent_id, acc) end)
-  end
-
-  defp collect_sub_id_schemas(scalar, _, acc) when is_binary(scalar) when is_atom(scalar) when is_number(scalar) do
-    {:ok, acc}
-  end
-
-  defp collect_sub_id_schemas_in_map(sub_schema, parent_id, acc) when is_map(sub_schema) do
-    Helpers.reduce_ok(sub_schema, acc, fn {_, s}, acc -> collect_sub_id_schemas(s, parent_id, acc) end)
   end
 
   defp merge_id(nil, child) do
@@ -363,7 +394,30 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp find_anchors(raw_schema) do
-    Map.new(collect_with_attr(raw_schema, "$anchor"))
+    collect_with_attr(raw_schema, "$anchor") |> to_unique_map()
+  end
+
+  defp collect_subschemas_with_dynanchor(raw_schema, meta) do
+    collect_with_attr(raw_schema, "$dynamicAnchor")
+    |> to_unique_map()
+    |> case do
+      {:error, _} = err -> err
+      {:ok, uniques} -> {:ok, Enum.map(uniques, fn {k, v} -> {:dynamic_anchor, k, v, meta} end)}
+    end
+  end
+
+  defp to_unique_map(kvs, acc \\ %{})
+
+  defp to_unique_map([{k, v} | tail], acc) when is_map_key(acc, k) do
+    {:error, {:duplicate_identifier, k}}
+  end
+
+  defp to_unique_map([{k, v} | tail], acc) do
+    to_unique_map(tail, Map.put(acc, k, v))
+  end
+
+  defp to_unique_map([], acc) do
+    {:ok, acc}
   end
 
   # Returns a list of pairs with all schemas and subschemas that define the
@@ -393,7 +447,61 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp collect_with_attr_map(map, key, acc) do
-    Enum.reduce(map, acc, fn {_k, v}, acc -> collect_with_attr(v, key, acc) end)
+    Enum.reduce(map, acc, fn
+      # skip properties that could be named $anchor, $id, etc. Typically found
+      # in the metaschema.
+      {"properties", props}, acc -> collect_with_attr_map(props, key, acc)
+      {_k, v}, acc -> collect_with_attr(v, key, acc)
+    end)
+  end
+
+  defp collect_subschemas_with_id(raw_schema, meta) when is_map(raw_schema) do
+    with {:ok, subs} <- collect_subids(raw_schema) do
+      {:ok, Enum.map(subs, fn {id, schema} -> {:sub_id, id, schema, meta} end)}
+    end
+  end
+
+  # Collect all sub schemas that define a $id property, except the top one.  At
+  # each level, if a $id is encountered, it is passed as a context to nested
+  # schemas, so if there are relative $id (like "some.json") it is converted in
+  # a fully qualified id.
+  defp collect_subids(raw_schema) do
+    # The top id can be nil if all nested $id are fully qualified URIs
+    {top_id, top_schema} = Map.pop(raw_schema, "$id", nil)
+
+    case collect_subids(top_schema, top_id, []) do
+      {:ok, acc} -> {:ok, :lists.flatten(acc)}
+      {:error, _} = err -> err
+    end
+  end
+
+  defp collect_subids(%{"$id" => sub_id} = sub_schema, parent_id, acc) do
+    binding() |> IO.inspect(label: "binding()")
+
+    case merge_id(parent_id, sub_id) do
+      {:ok, id} -> collect_sub_in_map(sub_schema, sub_id, [{id, sub_schema} | acc])
+      {:error, _} = err -> err
+    end
+  end
+
+  defp collect_subids(sub_schema, parent_id, acc) when is_map(sub_schema) do
+    collect_sub_in_map(sub_schema, parent_id, acc)
+  end
+
+  defp collect_subids(list, parent_id, acc) when is_list(list) do
+    Helpers.reduce_ok(list, acc, fn s, acc -> collect_subids(s, parent_id, acc) end)
+  end
+
+  defp collect_subids(scalar, _, acc) when is_binary(scalar) when is_atom(scalar) when is_number(scalar) do
+    {:ok, acc}
+  end
+
+  defp collect_sub_in_map(sub_schema, parent_id, acc) when is_map(sub_schema) do
+    Helpers.reduce_ok(sub_schema, acc, fn
+      # Skip properties that could be named "$id"
+      {"properties", props}, acc -> collect_sub_in_map(props, parent_id, acc)
+      {_, s}, acc -> collect_subids(s, parent_id, acc)
+    end)
   end
 
   # This function is called for all schemas, but only metaschemas should define
@@ -458,6 +566,11 @@ defmodule Moonwalk.Schema.BuildContext do
 
   def as_ref(ctx, %Ref{ns: ns} = ref, fun) when is_function(fun, 2) do
     %{vocabularies: current_vocabs, ns: current_ns} = ctx
+
+    IO.warn("""
+    return the Cached struct and load vocabularies from the meta of the cached
+    element, and not from the ref namespace.
+    """)
 
     with {:ok, sub_vocabs} <- fetch_vocabularies(ctx, ns),
          {:ok, raw_subschema} <- fetch_ref(ctx, ref),

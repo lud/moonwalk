@@ -132,6 +132,8 @@ defmodule Moonwalk.Schema do
   end
 
   defp build_validators_for_module(raw_schema, module, ctx) do
+    raw_schema |> IO.inspect(label: "raw_schema")
+
     {leftovers, mod_acc, ctx} =
       Enum.reduce(raw_schema, {[], module.init_validators(), ctx}, fn pair, {leftovers, mod_acc, ctx} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
