@@ -12,7 +12,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   todo_take_keywords(~w(
     additionalItems
     contains
-    items
     not
     propertyNames
   ))
@@ -47,6 +46,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
       {:ok, {subvalidators, ctx}} -> {:ok, [{:pattern_properties, subvalidators} | acc], ctx}
       {:error, _} = err -> err
     end
+  end
+
+  def take_keyword({"items", items}, acc, ctx) do
+    take_sub(:items, items, acc, ctx)
   end
 
   def take_keyword({"allOf", [_ | _] = all_of}, acc, ctx) do
@@ -107,6 +110,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   def finalize_validators(validators) do
     validators = finalize_properties(validators)
     validators = finalize_if_then_else(validators)
+    validators = finalize_items(validators)
     validators
   end
 
@@ -118,6 +122,16 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     case {properties, pattern_properties, additional_properties} do
       {nil, nil, nil} -> validators
       some -> Keyword.put(validators, :all_properties, some)
+    end
+  end
+
+  defp finalize_items(validators) do
+    {items, validators} = Keyword.pop(validators, :items, nil)
+    {prefix_items, validators} = Keyword.pop(validators, :prefix_items, nil)
+
+    case {items, prefix_items} do
+      {nil, nil} -> validators
+      some -> Keyword.put(validators, :all_items, some)
     end
   end
 
@@ -156,6 +170,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp validate_keyword(data, {:all_properties, _}, _ctx) do
     {:ok, data}
+  end
+
+  defp validate_keyword(data, {:all_items, {items, prefix_items}}, ctx) when is_list(data) do
+    with {:ok, casted_prefix, offset} <- validate_prefix_items(data, prefix_items, ctx),
+         rest_items = data |> Enum.drop(offset) |> Enum.with_index(offset),
+         {:ok, casted_items} <- validate_items(rest_items, items, ctx) do
+      {:ok, casted_prefix ++ casted_items}
+    end
   end
 
   defp validate_keyword(data, {:one_of, subvalidators}, ctx) do
@@ -296,4 +318,60 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
         end
     end
   end
+
+  defp validate_items(items_with_index, nil = _items_chema, _ctx) do
+    {:ok, Enum.map(items_with_index, fn {item, _index} -> item end)}
+  end
+
+  defp validate_items(items_with_index, validators, ctx) do
+    items_with_index
+    |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
+      case Validator.validate_sub(item, validators, ctx) do
+        {:ok, casted} ->
+          {[casted | items], errors}
+
+        {:error, reason} ->
+          {items, [Context.make_error(ctx, :items, item, index: index, reason: reason) | errors]}
+      end
+    end)
+    |> case do
+      {items, []} -> {:ok, :lists.reverse(items)}
+      {_, errors} -> {:error, Error.group(errors)}
+    end
+  end
+
+  defp validate_prefix_items(_values, nil = _prefix_schemas, _ctx) do
+    {:ok, [], 0}
+  end
+
+  # defp validate_prefix_items(values, schemas, ctx) do
+  #   validate_prefix_items(values, schemas, ctx, 0, [], [])
+  # end
+
+  # defp validate_prefix_items([vh | vt], [sh | st], ctx, index, validated, errors) do
+  #   case validate_keyword(vh, sh, ctx) do
+  #     {:ok, data} ->
+  #       validate_prefix_items(vt, st, ctx, index + 1, [data | validated], errors)
+
+  #     {:error, reason} ->
+  #       validate_prefix_items(vt, st, ctx, index + 1, validated, [
+  #         Error.of(:item_error, vh, index: index, reason: reason, prefix: true) | errors
+  #       ])
+  #   end
+  # end
+
+  # defp validate_prefix_items(_vt, _, _ctx, _, _, [_ | _] = errors) do
+  #   # we do not return the tail
+  #   {:error, Error.group(errors)}
+  # end
+
+  # defp validate_prefix_items(_vt, [], _ctx, offset, validated, []) do
+  #   # we do not return the tail
+  #   {:ok, :lists.reverse(validated), offset}
+  # end
+
+  # defp validate_prefix_items([], [_schema | _], _ctx, offset, validated, []) do
+  #   # fewer items than prefix is valid
+  #   {:ok, :lists.reverse(validated), offset}
+  # end
 end

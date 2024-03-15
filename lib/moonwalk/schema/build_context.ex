@@ -105,9 +105,6 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp resolve_loop(ctx, []) do
-    IO.puts("resolve finished")
-    # {:current_stacktrace, ct} = Process.info(self(), :current_stacktrace)
-    # Exception.format_stacktrace(ct) |> IO.puts()
     {:ok, ctx}
   end
 
@@ -149,12 +146,8 @@ defmodule Moonwalk.Schema.BuildContext do
 
   defp check_resolved(ctx, id) when is_binary(id) or :root == id or elem(id, 0) == :meta do
     case ctx do
-      %{resolve_cache: %{^id => _}} ->
-        IO.puts("already resolved #{inspect(id)}")
-        :already_resolved
-
-      _ ->
-        :unresolved
+      %{resolve_cache: %{^id => _}} -> :already_resolved
+      _ -> :unresolved
     end
   end
 
@@ -174,6 +167,10 @@ defmodule Moonwalk.Schema.BuildContext do
     ext_id
   end
 
+  defp external_id(%Ref{ns: ns}) do
+    ns
+  end
+
   defp ensure_fetched(ctx, {:prefetched, ext_id, raw_schema}) do
     {:ok, raw_schema, ctx}
   end
@@ -183,8 +180,6 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp ensure_fetched(ctx, fetchable) do
-    fetchable |> dbg()
-
     with :unfetched <- check_fetched(ctx, fetchable),
          {:ok, ext_id, raw_schema} <- fetch_raw_schema(ctx, fetchable) do
       %{fetch_cache: cache} = ctx
@@ -292,6 +287,14 @@ defmodule Moonwalk.Schema.BuildContext do
     {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
   end
 
+  defp raw_to_cached(raw_schema, %Ref{}) do
+    ns = extract_id(raw_schema)
+    anchors = Map.new(find_anchors(raw_schema))
+    meta = Map.get(raw_schema, "$schema", nil)
+
+    {:ok, %Cached{id: ns, vocabularies: nil, meta: meta, raw: raw_schema, anchors: anchors}}
+  end
+
   defp extract_id(raw_schema) do
     with {:ok, id} when is_binary(id) <- Map.fetch(raw_schema, "$id"),
          {:ok, ns} <- parse_id(id) do
@@ -329,7 +332,7 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp collect_sub_id_schemas(%{"$id" => sub_id} = sub_schema, parent_id, acc) do
-    case merge_id(parent_id, sub_id) |> dbg() do
+    case merge_id(parent_id, sub_id) do
       {:ok, id} -> collect_sub_id_schemas_in_map(sub_schema, sub_id, [{id, sub_schema} | acc])
       {:error, _} = err -> err
     end
@@ -469,7 +472,6 @@ defmodule Moonwalk.Schema.BuildContext do
   # If we build a subschema that has an $id we need to change the current
   # namespace so refs are relative to it.
   def as_sub(ctx, %{"$id" => sub_id} = raw_subschema, fun) when is_function(fun, 2) do
-    sub_id |> dbg()
     %{ns: current_ns} = ctx
 
     with {:ok, full_sub_id} <- merge_id(current_ns, sub_id),

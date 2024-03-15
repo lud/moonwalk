@@ -7,7 +7,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
 
   todo_take_keywords(~w(
     title
-    description
     default
     readOnly
     writeOnly
@@ -15,6 +14,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
   ))
 
   skip_keyword("deprecated")
+  skip_keyword("description")
   ignore_any_keyword()
 
   def finalize_validators([]) do

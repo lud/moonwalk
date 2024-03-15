@@ -90,21 +90,7 @@ defmodule Moonwalk.Schema do
   end
 
   defp build_ref(%Ref{} = ref, ctx) do
-    IO.puts("go_build_ref")
-    pkey = {:infinite_loop, ref}
-    i = Process.get(pkey, 0)
-    Process.put(pkey, i + 1)
-
-    if i > 300 do
-      ref |> IO.inspect(label: "ref")
-      {:current_stacktrace, ct} = Process.info(self(), :current_stacktrace)
-      Exception.format_stacktrace(ct) |> IO.puts()
-      raise "too many loops"
-    end
-
     with {:ok, ctx} <- BuildContext.resolve(ctx, ref) do
-      IO.puts("ref built OK")
-
       BuildContext.as_ref(ctx, ref, fn raw_schema, subctx ->
         build_validators(raw_schema, subctx)
       end)
