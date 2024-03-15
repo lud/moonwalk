@@ -1,5 +1,72 @@
+defmodule Moonwalk.Schema.RNS do
+  # A "namespace" for a schema ID or reference
+  # Universal Resource Reference. That is
+  # basically a URI but with a hack to support URNs (urn:isbn:1234 is
+  # represented as urn://isbn/1234)
+  defstruct [:uri, urn?: false]
+
+  def parse("urn:" <> _ = urn) do
+    %{host: nil, path: path} = uri = URI.parse(urn)
+    [host, path] = String.split(path, ":", parts: 2)
+    uri = %URI{uri | host: host, path: "/" <> path}
+    %__MODULE__{uri: uri, urn?: true}
+  end
+
+  def parse(string) when is_binary(string) do
+    %__MODULE__{uri: URI.parse(string)}
+  end
+
+  def parse(:root) do
+    %__MODULE__{uri: :root}
+  end
+
+  def derive(parent, child) do
+    parent_rns = parse(parent)
+    child_rns = parse(child)
+
+    with {:ok, merged} <- merge(parent_rns, child_rns) do
+      {:ok, to_ns(merged)}
+    end
+  end
+
+  defp merge(%{uri: :root} = parent, %{uri: %{host: nil, path: nil}}) do
+    {:ok, parent}
+  end
+
+  defp merge(%{uri: :root} = parent, %{uri: %{host: host}} = child) when is_binary(host) do
+    {:ok, child}
+  end
+
+  defp merge(%{uri: :root} = parent, %{uri: child}) do
+    {:error, {:invalid_child_ns, URI.to_string(child)}}
+  end
+
+  defp merge(%{uri: parent_uri, urn?: urn?}, %{uri: child_uri}) do
+    {:ok, %__MODULE__{uri: URI.merge(parent_uri, child_uri), urn?: urn?}}
+  end
+
+  def to_ns(%{uri: :root}) do
+    :root
+  end
+
+  def to_ns(%{uri: uri, urn?: true}) do
+    %{host: host, path: "/" <> path} = uri
+    uri = %URI{uri | host: nil, path: host <> ":" <> path}
+    to_string_no_fragment(uri)
+  end
+
+  def to_ns(%{uri: uri}) do
+    to_string_no_fragment(uri)
+  end
+
+  defp to_string_no_fragment(%URI{} = uri) do
+    String.Chars.URI.to_string(Map.put(uri, :fragment, nil))
+  end
+end
+
 defmodule Moonwalk.Schema.Ref do
   alias __MODULE__
+  alias Moonwalk.Schema.RNS
   defstruct [:ns, :kind, :fragment, :arg]
 
   defguardp is_not_blank(str) when is_binary(str) and str != ""
@@ -9,40 +76,45 @@ defmodule Moonwalk.Schema.Ref do
     binding() |> IO.inspect(label: "-- PARSE REF ----------------\n")
     {kind, normalized_fragment, arg} = parse_fragment(uri.fragment)
 
-    ns =
-      case uri do
-        # ref with a "namespace" (an absolute url with scheme, host and path)
-        # we keep that namespace
-        %URI{scheme: scheme, host: host, path: path} = uri
-        when is_not_blank(scheme) and is_not_blank(host) and is_not_blank(path) ->
-          URI.to_string(%URI{uri | fragment: nil})
+    with {:ok, ns} <- RNS.derive(current_ns, url) do
+      {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg}}
+    end
+    # ns =
+    #   case uri do
+    #     # ref with a "namespace" (an absolute url with scheme, host and path)
+    #     # we keep that namespace
+    #     %URI{scheme: scheme, host: host, path: path} = uri
+    #     when is_not_blank(scheme) and is_not_blank(host) and is_not_blank(path) ->
+    #       URI.to_string(%URI{uri | fragment: nil})
 
-        %URI{scheme: "urn", path: path} = uri when is_not_blank(path) ->
-          URI.to_string(Map.put(uri, :fragment, nil))
+    #     %URI{scheme: "urn", path: path} = uri when is_not_blank(path) ->
+    #       URI.to_string(Map.put(uri, :fragment, nil))
 
-        # No host but another path, we need to merge the path on top of the
-        # current namespace
-        %URI{host: nil, path: path} = uri when is_not_blank(path) ->
-          case current_ns do
-            :root ->
-              raise "todo cannot change path without URI $id"
+    #     # No host but another path, we need to merge the path on top of the
+    #     # current namespace
+    #     %URI{host: nil, path: path} = uri when is_not_blank(path) ->
+    #       case current_ns do
+    #         :root ->
+    #           raise "todo cannot change path without URI $id"
 
-            x ->
-              x |> dbg()
-              merged = URI.merge(URI.parse(current_ns), %URI{uri | fragment: nil})
-              URI.to_string(merged)
-          end
+    #         x ->
+    #           x |> dbg()
+    #           merged = URI.merge(URI.parse(current_ns), %URI{uri | fragment: nil})
+    #           URI.to_string(merged)
+    #       end
 
-        # Fragment only,
-        %URI{host: nil, path: nil} ->
-          case URI.parse(current_ns) do
-            %{host: host} when is_not_blank(host) -> current_ns
-            _ -> raise "cannot make full ref from #{inspect(current_ns)} and #{inspect(url)}"
-          end
-      end
-      |> IO.inspect(label: "ns")
+    #     # Fragment only,
+    #     %URI{host: nil, path: nil} when current_ns == :root ->
+    #       :root
 
-    {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg}}
+    #     %URI{host: nil, path: nil} ->
+    #       case URI.parse(current_ns) do
+    #         %{host: host} when is_not_blank(host) -> current_ns
+    #         _ -> raise "cannot make full ref from #{inspect(current_ns)} and #{inspect(url)}"
+    #       end
+    #   end
+    #   |> IO.inspect(label: "ns")
+
     |> IO.inspect(label: "okref")
 
     # rescue

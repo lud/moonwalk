@@ -6,6 +6,7 @@ defmodule Moonwalk.Schema.BuildContext.Cached do
 end
 
 defmodule Moonwalk.Schema.BuildContext do
+  alias Moonwalk.Schema.RNS
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.BuildContext.Cached
   alias Moonwalk.Schema.Ref
@@ -350,36 +351,12 @@ defmodule Moonwalk.Schema.BuildContext do
     Helpers.reduce_ok(sub_schema, acc, fn {_, s}, acc -> collect_sub_id_schemas(s, parent_id, acc) end)
   end
 
-  defp merge_id(nil, uri) do
-    with :ok <- check_full_uri(uri) do
-      {:ok, uri}
-    end
+  defp merge_id(nil, child) do
+    RNS.derive(child, "")
   end
 
   defp merge_id(parent, child) do
-    merged = URI.merge(URI.parse(parent), URI.parse(child))
-
-    with :ok <- check_full_uri(merged) do
-      {:ok, URI.to_string(merged)}
-    end
-  rescue
-    _ in ArgumentError -> {:error, {:unqualified_uri, child}}
-  end
-
-  defp check_full_uri(uri) do
-    case URI.parse(uri) do
-      %URI{scheme: "urn", host: nil, path: path} when is_not_blank(path) ->
-        case String.split(path, ":", parts: 2) do
-          [_, _] -> :ok
-          _ -> {:error, {:unqualified_uri, uri}}
-        end
-
-      %URI{scheme: scheme, host: host} when is_not_blank(scheme) and is_not_blank(host) ->
-        :ok
-
-      _ ->
-        {:error, {:unqualified_uri, uri}}
-    end
+    RNS.derive(parent, child)
   end
 
   defp find_anchors(raw_schema) do
@@ -492,6 +469,7 @@ defmodule Moonwalk.Schema.BuildContext do
   # If we build a subschema that has an $id we need to change the current
   # namespace so refs are relative to it.
   def as_sub(ctx, %{"$id" => sub_id} = raw_subschema, fun) when is_function(fun, 2) do
+    sub_id |> dbg()
     %{ns: current_ns} = ctx
 
     with {:ok, full_sub_id} <- merge_id(current_ns, sub_id),
