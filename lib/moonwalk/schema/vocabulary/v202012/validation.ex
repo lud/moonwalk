@@ -8,7 +8,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   todo_take_keywords ~w(
     dependentRequired
-    enum
     maxContains
     maxProperties
     minContains
@@ -67,6 +66,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   def take_keyword({"minLength", min_length}, acc, ctx) do
     take_integer(:min_length, min_length, acc, ctx)
+  end
+
+  def take_keyword({"enum", enum}, acc, ctx) do
+    {:ok, [{:enum, enum} | acc], ctx}
   end
 
   ignore_any_keyword()
@@ -243,6 +246,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
       {:ok, data}
     else
       {:error, Context.make_error(ctx, :const, data, const: const)}
+    end
+  end
+
+  defp validate_keyword(data, {:enum, enum}, ctx) do
+    if data in enum do
+      {:ok, data}
+    else
+      {:error, Context.make_error(ctx, :enum, data, enum: enum)}
     end
   end
 

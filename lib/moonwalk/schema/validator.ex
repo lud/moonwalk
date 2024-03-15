@@ -90,7 +90,7 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   def validate_sub(data, schema_validators, ctx) do
-    Helpers.reduce_while_ok(schema_validators, data, fn {module, vds}, data ->
+    Helpers.reduce_ok(schema_validators, data, fn {module, vds}, data ->
       module.validate(data, vds, ctx)
     end)
   end

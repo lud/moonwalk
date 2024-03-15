@@ -10,7 +10,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   todo_take_keywords(~w(
-    $anchor
+
     $dynamicAnchor
     $dynamicRef
     $id
@@ -24,9 +24,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     end
   end
 
-  IO.warn("todo look for anchors in $defs")
-
   def take_keyword({"$defs", _defs}, acc, ctx) do
+    {:ok, acc, ctx}
+  end
+
+  def take_keyword({"$anchor", _anchor}, acc, ctx) do
     {:ok, acc, ctx}
   end
 

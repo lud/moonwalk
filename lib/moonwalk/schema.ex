@@ -1,5 +1,13 @@
 defmodule Moonwalk.Schema.BooleanSchema do
   defstruct [:value]
+
+  def of(true) do
+    %__MODULE__{value: true}
+  end
+
+  def of(false) do
+    %__MODULE__{value: false}
+  end
 end
 
 defmodule Moonwalk.Schema do
@@ -28,13 +36,13 @@ defmodule Moonwalk.Schema do
     {:ok, %Schema{validators: %{root: %BooleanSchema{value: valid?}}}}
   end
 
-  def denormalize_sub(raw_sub, ctx) when is_map(raw_sub) do
-    build_validators(raw_sub, ctx)
+  def denormalize_sub(raw_sub, ctx) do
+    BuildContext.as_sub(ctx, raw_sub, &build_validators/2)
   end
 
-  def denormalize_sub(bool, ctx) when is_boolean(bool) do
-    {:ok, %Moonwalk.Schema.BooleanSchema{value: bool}, ctx}
-  end
+  # def denormalize_sub(bool, ctx) when is_boolean(bool) do
+  #   {:ok, %Moonwalk.Schema.BooleanSchema{value: bool}, ctx}
+  # end
 
   # Schema validators are the collection of validators for each namespace. Here
   # "schema" means the top document and all other referenced documents.
@@ -70,29 +78,48 @@ defmodule Moonwalk.Schema do
       {ref, ctx} ->
         refschema_key = Ref.to_key(ref)
 
-        case build_ref(ref, ctx) do
-          {:ok, schema_validators, ctx} ->
-            validators = Map.put(validators, refschema_key, schema_validators)
-            build_staged_recursive(validators, ctx)
-
-          {:error, _} = err ->
-            err
+        with {:already_built, false} <- {:already_built, Map.has_key?(validators, refschema_key)},
+             {:ok, schema_validators, ctx} <- build_ref(ref, ctx) do
+          validators = Map.put(validators, refschema_key, schema_validators)
+          build_staged_recursive(validators, ctx)
+        else
+          {:already_built, true} -> build_staged_recursive(validators, ctx)
+          {:error, _} = err -> err
         end
     end
   end
 
   defp build_ref(%Ref{} = ref, ctx) do
-    with {:ok, ctx} <- BuildContext.ensure_resolved(ctx, ref) do
-      BuildContext.as_ref(ctx, ref, fn raw_schema, ctx ->
-        build_validators(raw_schema, ctx)
+    IO.puts("go_build_ref")
+    pkey = {:infinite_loop, ref}
+    i = Process.get(pkey, 0)
+    Process.put(pkey, i + 1)
+
+    if i > 300 do
+      ref |> IO.inspect(label: "ref")
+      {:current_stacktrace, ct} = Process.info(self(), :current_stacktrace)
+      Exception.format_stacktrace(ct) |> IO.puts()
+      raise "too many loops"
+    end
+
+    with {:ok, ctx} <- BuildContext.resolve(ctx, ref) do
+      IO.puts("ref built OK")
+
+      BuildContext.as_ref(ctx, ref, fn raw_schema, subctx ->
+        build_validators(raw_schema, subctx)
       end)
     end
+  end
+
+  def build_validators(raw_schema, ctx) when is_boolean(raw_schema) do
+    {:ok, BooleanSchema.of(raw_schema), ctx}
   end
 
   def build_validators(raw_schema, ctx) do
     # For each vocabulary module we build its validator map. On the first
     # iteration, raw_schema will be a map but then it will be a list of pairs,
     # the leftovers of the previous iteration.
+
     raw_schema = Map.drop(raw_schema, ["$schema", "$id"])
 
     {leftovers, validators, ctx} =

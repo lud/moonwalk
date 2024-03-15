@@ -78,7 +78,7 @@ defmodule Moonwalk.Schema.OldValidator do
   end
 
   defp validate_keyword(data, %Schema{} = schema, ctx) do
-    Helpers.reduce_while_ok(schema.validators, data, fn vd, data -> validate_keyword(data, vd, ctx) end)
+    Helpers.reduce_ok(schema.validators, data, fn vd, data -> validate_keyword(data, vd, ctx) end)
   end
 
   defp validate_keyword(data, {:type, list}, ctx) when is_list(list) do

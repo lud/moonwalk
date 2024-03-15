@@ -16,8 +16,8 @@ defmodule Moonwalk.Helpers do
     end
   end
 
-  @spec reduce_while_ok(Enumerable.t(), term, (term, term -> result)) :: result
-  def reduce_while_ok(enum, initial, f) when is_function(f, 2) do
+  @spec reduce_ok(Enumerable.t(), term, (term, term -> result)) :: result
+  def reduce_ok(enum, initial, f) when is_function(f, 2) do
     Enum.reduce_while(enum, initial, fn item, acc ->
       case f.(item, acc) do
         {:ok, new_acc} -> {:cont, new_acc}

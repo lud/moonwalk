@@ -24,9 +24,9 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"id.json", []},
     # {"anchor.json", []},
     # {"defs.json", []},
-    # {"ref.json", []},
     # {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
     # {"enum.json", []},
+    {"ref.json", ignore: ["referenced subschema doesn't see annotations from properties"]},
     {"anyOf.json", []},
     {"oneOf.json", []},
     {"infinite-loop-detection.json", []},
@@ -58,7 +58,8 @@ defmodule Moonwalk.SchemaValidationTest do
         end
 
         if validate? do
-          for %{"description" => test_descr} = unit_test <- tests, test_descr not in ignored do
+          for %{"description" => test_descr} = unit_test <- tests do
+            @tag skip: test_descr in ignored
             test test_descr, %{test_case: test_case} do
               # debug_infinite_loop()
               unit_test = unquote(Macro.escape(unit_test))
@@ -166,16 +167,17 @@ defmodule Moonwalk.SchemaValidationTest do
 
   defp debug_infinite_loop_loop(ref, parent, prev) do
     {:current_function, cf} = Process.info(parent, :current_function)
+    {:current_stacktrace, st} = Process.info(parent, :current_stacktrace)
 
     if prev != cf do
       IO.puts("current function: #{inspect(cf)}")
+      Exception.format_stacktrace(st) |> IO.puts()
     end
 
     receive do
-      {:DOWN, ^ref, :process, _pid, reason} -> :ok
+      {:DOWN, ^ref, :process, _pid, _reason} -> :ok
     after
-      100 ->
-        debug_infinite_loop_loop(ref, parent, cf)
+      100 -> debug_infinite_loop_loop(ref, parent, cf)
     end
   end
 end

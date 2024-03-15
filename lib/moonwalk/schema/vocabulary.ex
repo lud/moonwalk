@@ -61,7 +61,7 @@ defmodule Moonwalk.Schema.Vocabulary do
 
   defmacro run_validators(data, validators, ctx, f) when is_atom(f) do
     quote do
-      Helpers.reduce_while_ok(unquote(validators), unquote(data), fn {k, v}, data ->
+      Helpers.reduce_ok(unquote(validators), unquote(data), fn {k, v}, data ->
         unquote(f)(data, {k, v}, unquote(ctx))
       end)
     end

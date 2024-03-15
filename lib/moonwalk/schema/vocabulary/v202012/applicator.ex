@@ -19,7 +19,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   def take_keyword({"properties", properties}, acc, ctx) do
     properties
-    |> Helpers.reduce_while_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
+    |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       case Schema.denormalize_sub(pschema, ctx) do
         {:ok, subvalidators, ctx} -> {:ok, {Map.put(acc, k, subvalidators), ctx}}
         {:error, _} = err -> err
@@ -37,7 +37,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   def take_keyword({"patternProperties", pattern_properties}, acc, ctx) do
     pattern_properties
-    |> Helpers.reduce_while_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
+    |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       with {:ok, re} <- Regex.compile(k),
            {:ok, subvalidators, ctx} <- Schema.denormalize_sub(pschema, ctx) do
         {:ok, {Map.put(acc, {k, re}, subvalidators), ctx}}
@@ -87,7 +87,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   # ---------------------------------------------------------------------------
 
   defp build_sub_list(subschemas, ctx) do
-    Helpers.reduce_while_ok(subschemas, {[], ctx}, fn subschema, {acc, ctx} ->
+    Helpers.reduce_ok(subschemas, {[], ctx}, fn subschema, {acc, ctx} ->
       case Schema.denormalize_sub(subschema, ctx) do
         {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | acc], ctx}}
         {:error, _} = err -> err

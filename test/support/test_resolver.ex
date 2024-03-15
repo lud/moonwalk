@@ -2,6 +2,7 @@ defmodule Moonwalk.Test.TestResolver do
   @root_dir Path.join([File.cwd!(), "_build", "test", "resolved"])
   @suite_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "remotes"])
   File.mkdir_p!(@root_dir)
+  require Logger
 
   def resolve("http://localhost:1234/" <> _ = url) do
     uri = URI.parse(url)
