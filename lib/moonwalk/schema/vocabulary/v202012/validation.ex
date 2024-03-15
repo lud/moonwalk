@@ -12,8 +12,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     maxProperties
     minContains
     minProperties
-    pattern
-    uniqueItems
   )
 
   def take_keyword({"type", t}, vds, ctx) do
@@ -72,6 +70,17 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     {:ok, [{:enum, enum} | acc], ctx}
   end
 
+  def take_keyword({"pattern", pattern}, acc, ctx) do
+    case Regex.compile(pattern) do
+      {:ok, re} -> {:ok, [{:pattern, re} | acc], ctx}
+      {:error, _} -> {:error, {:invalid_pattern, pattern}}
+    end
+  end
+
+  def take_keyword({"uniqueItems", unique?}, acc, ctx) do
+    take_boolean(:unique_items, unique?, acc, ctx)
+  end
+
   ignore_any_keyword()
 
   # ---------------------------------------------------------------------------
@@ -122,16 +131,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     run_validators(data, vds, ctx, :validate_keyword)
   end
 
-  pass validate_keyword(data, {:exclusive_maximum, _}, _) when not is_number(data)
-  pass validate_keyword(data, {:exclusive_minimum, _}, _) when not is_number(data)
-  pass validate_keyword(data, {:maximum, _}, _) when not is_number(data)
-  pass validate_keyword(data, {:minimum, _}, _) when not is_number(data)
-  pass validate_keyword(data, {:max_items, _}, _) when not is_list(data)
-  pass validate_keyword(data, {:min_items, _}, _) when not is_list(data)
-  pass validate_keyword(data, {:required, _}, _) when not is_map(data)
-  pass validate_keyword(data, {:max_length, _}, _) when not is_binary(data)
-  pass validate_keyword(data, {:min_length, _}, _) when not is_binary(data)
-
   defp validate_keyword(data, {:type, ts}, ctx) when is_list(ts) do
     Enum.find_value(ts, fn t ->
       case validate_type(data, t) do
@@ -161,9 +160,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  defp validate_keyword(data, {:maximum, _}, _ctx) do
-    {:ok, data}
-  end
+  pass validate_keyword(data, {:maximum, _}, _)
 
   defp validate_keyword(data, {:exclusive_maximum, n}, ctx) when is_number(data) do
     case data < n do
@@ -172,6 +169,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  pass validate_keyword(data, {:exclusive_maximum, _}, _)
+
   defp validate_keyword(data, {:minimum, n}, ctx) when is_number(data) do
     case data >= n do
       true -> {:ok, data}
@@ -179,12 +178,16 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  pass validate_keyword(data, {:minimum, _}, _)
+
   defp validate_keyword(data, {:exclusive_minimum, n}, ctx) when is_number(data) do
     case data > n do
       true -> {:ok, data}
       false -> {:error, Context.make_error(ctx, :exclusive_minimum, data, n: n)}
     end
   end
+
+  pass validate_keyword(data, {:exclusive_minimum, _}, _)
 
   defp validate_keyword(data, {:max_items, max}, ctx) when is_list(data) do
     len = length(data)
@@ -196,6 +199,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  pass validate_keyword(data, {:max_items, _}, _)
+
   defp validate_keyword(data, {:min_items, min}, ctx) when is_list(data) do
     len = length(data)
 
@@ -205,6 +210,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
       {:error, Context.make_error(ctx, :min_items, data, min_items: min, len: len)}
     end
   end
+
+  pass validate_keyword(data, {:min_items, _}, _)
 
   defp validate_keyword(data, {:multiple_of, n}, ctx) when is_number(data) do
     case fractional_is_zero?(data / n) do
@@ -220,6 +227,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  pass validate_keyword(data, {:required, _}, _)
+
   defp validate_keyword(data, {:max_length, max}, ctx) when is_binary(data) do
     len = String.length(data)
 
@@ -230,6 +239,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  pass validate_keyword(data, {:max_length, _}, _)
+
   defp validate_keyword(data, {:min_length, min}, ctx) when is_binary(data) do
     len = String.length(data)
 
@@ -239,6 +250,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
       {:error, Context.make_error(ctx, :min_length, data, min_items: min, len: len)}
     end
   end
+
+  pass validate_keyword(data, {:min_length, _}, _)
 
   defp validate_keyword(data, {:const, const}, ctx) do
     # 1 == 1.0 should be true according to JSON Schema specs
@@ -257,6 +270,15 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  defp validate_keyword(data, {:pattern, re}, ctx) when is_binary(data) do
+    if Regex.match?(re, data) do
+      {:ok, data}
+    else
+      {:error, Context.make_error(ctx, :pattern, data, pattern: re.source)}
+    end
+  end
+
+  pass validate_keyword(data, {:pattern, _}, _)
   # ---------------------------------------------------------------------------
 
   defp validate_type(data, :array) do

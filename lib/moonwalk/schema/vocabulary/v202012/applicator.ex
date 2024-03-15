@@ -13,7 +13,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     additionalItems
     contains
     not
-    propertyNames
+
   ))
 
   def take_keyword({"properties", properties}, acc, ctx) do
@@ -83,6 +83,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   def take_keyword({"else", else_schema}, acc, ctx) do
     take_sub(:else, else_schema, acc, ctx)
+  end
+
+  def take_keyword({"propertyNames", property_names}, acc, ctx) do
+    take_sub(:property_names, property_names, acc, ctx)
   end
 
   ignore_any_keyword()
@@ -336,7 +340,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end)
     |> case do
       {items, []} -> {:ok, :lists.reverse(items)}
-      {_, errors} -> {:error, Error.group(errors)}
+      {_, errors} -> {:error, Context.group_error(ctx, nil, errors)}
     end
   end
 

@@ -136,6 +136,10 @@ defmodule Moonwalk.Schema.BuildContext do
     id
   end
 
+  defp loop_keys({:sub_id, id, _, _}) do
+    id
+  end
+
   defp loop_keys({:meta, id}) do
     id
   end
@@ -617,15 +621,25 @@ defmodule Moonwalk.Schema.BuildContext do
     end
   end
 
-  defp fetch_ref(ctx, ref) do
+  defp fetch_ref(ctx, %Ref{dynamic?: false} = ref) do
     %{ns: ns} = ref
 
     with {:ok, cached} <- deref_cached(ctx, ns) do
       case ref do
-        %{kind: :docpath, arg: docpath} -> fetch_docpath(cached.raw, docpath) |> wrap_err({:invalid_ref, ref})
-        %{kind: :top} -> {:ok, cached.raw}
-        %{kind: :anchor, arg: anchor} -> Map.fetch(cached.anchors, anchor) |> wrap_err({:invalid_ref, ref})
+        %Ref{kind: :docpath, arg: docpath} -> fetch_docpath(cached.raw, docpath) |> wrap_err({:invalid_ref, ref})
+        %Ref{kind: :top} -> {:ok, cached.raw}
+        %Ref{kind: :anchor, arg: anchor} -> Map.fetch(cached.anchors, anchor) |> wrap_err({:invalid_ref, ref})
       end
+    end
+  end
+
+  defp fetch_ref(ctx, %Ref{kind: :anchor, dynamic?: true} = ref) do
+    ctx |> dbg()
+    ref |> dbg()
+    %{arg: arg} = ref
+
+    with {:ok, cached} <- deref_cached(ctx, {:dynamic_anchor, arg}) do
+      {:ok, cached.raw}
     end
   end
 

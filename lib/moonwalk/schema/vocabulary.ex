@@ -68,12 +68,20 @@ defmodule Moonwalk.Schema.Vocabulary do
   end
 
   defmacro pass(ast) do
-    {:when, _, [{_fun_name, _, [data_var, _tuple, _ctx]}, _]} = ast
+    case ast do
+      {:when, _, [{_fun_name, _, [data_var, _tuple, _ctx]}, _]} ->
+        quote do
+          defp unquote(ast) do
+            {:ok, unquote(data_var)}
+          end
+        end
 
-    quote do
-      defp unquote(ast) do
-        {:ok, unquote(data_var)}
-      end
+      {_fun_name, _, [data_var, _tuple, _ctx]} ->
+        quote do
+          defp unquote(ast) do
+            {:ok, unquote(data_var)}
+          end
+        end
     end
   end
 
@@ -90,6 +98,14 @@ defmodule Moonwalk.Schema.Vocabulary do
     end
   end
 
+  defp check_integer(n) when is_integer(n) do
+    :ok
+  end
+
+  defp check_integer(other) do
+    {:error, "not an integer: #{inspect(other)}"}
+  end
+
   def take_number(key, n, acc, ctx) when is_list(acc) do
     with :ok <- check_number(n) do
       {:ok, [{key, n} | acc], ctx}
@@ -104,11 +120,17 @@ defmodule Moonwalk.Schema.Vocabulary do
     {:error, "not a number: #{inspect(other)}"}
   end
 
-  defp check_integer(n) when is_integer(n) do
+  def take_boolean(key, bool, acc, ctx) do
+    with :ok <- check_boolean(bool) do
+      {:ok, [{key, bool} | acc], ctx}
+    end
+  end
+
+  defp check_boolean(b) when is_boolean(b) do
     :ok
   end
 
-  defp check_integer(other) do
-    {:error, "not an integer: #{inspect(other)}"}
+  defp check_boolean(other) do
+    {:error, "not a boolean: #{inspect(other)}"}
   end
 end

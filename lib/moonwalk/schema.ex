@@ -76,7 +76,7 @@ defmodule Moonwalk.Schema do
         {:ok, validators, ctx}
 
       {ref, ctx} ->
-        refschema_key = Ref.to_key(ref)
+        refschema_key = Ref.to_key(ref) |> dbg()
 
         with {:already_built, false} <- {:already_built, Map.has_key?(validators, refschema_key)},
              {:ok, schema_validators, ctx} <- build_ref(ref, ctx) do

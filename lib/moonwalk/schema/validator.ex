@@ -50,11 +50,11 @@ defmodule Moonwalk.Schema.Validator.Context do
     Error.new(kind, data, formatter, args)
   end
 
-  # defimpl Inspect do
-  #   def inspect(%{path: path}, _opts) do
-  #     "#Context<#{inspect(:lists.reverse(path))}>"
-  #   end
-  # end
+  defimpl Inspect do
+    def inspect(%{path: path}, _opts) do
+      "#Context<#{inspect(:lists.reverse(path))}>"
+    end
+  end
 end
 
 defmodule Moonwalk.Schema.Validator do

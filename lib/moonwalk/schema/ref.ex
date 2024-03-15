@@ -123,6 +123,11 @@ defmodule Moonwalk.Schema.Ref do
   @doc """
   Returns a key that identifies the associated validators in a context
   """
+  def to_key(%{dynamic?: true, kind: :anchor} = ref) do
+    %{fragment: fragment} = ref
+    {:dynamic_anchor, fragment}
+  end
+
   def to_key(ref) do
     %Ref{kind: kind, ns: ns, fragment: fragment} = ref
 
