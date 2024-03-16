@@ -665,7 +665,7 @@ defmodule Moonwalk.Schema.BuildContext do
   def as_root(ctx, fun) when is_function(fun, 2) do
     %{vocabularies: current_vocabs, ns: current_ns, root: root_ns} = ctx
 
-    with {:ok, sub_vocabs} <- fetch_vocabularies(ctx, root_ns),
+    with {:ok, sub_vocabs} <- fetch_vocabularies_for(ctx, root_ns),
          {:ok, raw_schema} <- fetch_raw(ctx, root_ns),
          subctx = %__MODULE__{ctx | ns: root_ns, vocabularies: sub_vocabs},
          {:ok, result, new_ctx} <- fun.(raw_schema, subctx) do
@@ -678,13 +678,8 @@ defmodule Moonwalk.Schema.BuildContext do
   def as_ref(ctx, %Ref{ns: ns} = ref, fun) when is_function(fun, 2) do
     %{vocabularies: current_vocabs, ns: current_ns} = ctx
 
-    IO.warn("""
-    return the Cached struct and load vocabularies from the meta of the cached
-    element, and not from the ref namespace.
-    """)
-
-    with {:ok, sub_vocabs} <- fetch_vocabularies(ctx, ns),
-         {:ok, raw_subschema} <- fetch_ref(ctx, ref),
+    with {:ok, raw_subschema, meta} <- fetch_ref(ctx, ref),
+         {:ok, sub_vocabs} <- fetch_vocabularies_of(ctx, meta),
          subctx = %__MODULE__{ctx | ns: ns, vocabularies: sub_vocabs},
          {:ok, result, new_ctx} <- fun.(raw_subschema, subctx) do
       {:ok, result, %__MODULE__{new_ctx | ns: current_ns, vocabularies: current_vocabs}}
@@ -711,12 +706,16 @@ defmodule Moonwalk.Schema.BuildContext do
     fun.(raw_subschema, ctx)
   end
 
-  # The vocabularies are defined by the meta schema, so we do a double fetch
-  defp fetch_vocabularies(ctx, ns) do
-    with {:ok, cached} <- deref_cached(ctx, ns),
-         {:ok, meta} <- deref_cached_meta(ctx, cached.meta) do
-      {:ok, meta.vocabularies}
-    else
+  defp fetch_vocabularies_for(ctx, ns) do
+    # The vocabularies are defined by the meta schema, so we do a double fetch
+    with {:ok, %{meta: meta}} <- deref_cached(ctx, ns) do
+      fetch_vocabularies_of(ctx, meta)
+    end
+  end
+
+  defp fetch_vocabularies_of(ctx, meta) do
+    case deref_cached(ctx, {:meta, meta}) do
+      {:ok, %{vocabularies: vocabularies}} -> {:ok, vocabularies}
       {:error, _} = err -> err
     end
   end
@@ -731,51 +730,35 @@ defmodule Moonwalk.Schema.BuildContext do
   defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :anchor} = ref) do
     %{ns: ns, arg: anchor} = ref
 
-    with {:ok, %{raw: raw}} <- deref_cached(ctx, {:anchor, ns, anchor}) do
-      {:ok, raw}
+    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, {:anchor, ns, anchor}) do
+      {:ok, raw, meta}
     end
   end
 
   defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :docpath} = ref) do
     %{ns: ns, arg: docpath} = ref
 
-    with {:ok, %{raw: raw}} <- deref_cached(ctx, ns) do
-      fetch_docpath(raw, docpath)
+    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, ns),
+         {:ok, raw} <- fetch_docpath(raw, docpath) do
+      {:ok, raw, meta}
     end
   end
 
   defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :top} = ref) do
     %{ns: ns, arg: docpath} = ref
 
-    with {:ok, %{raw: raw}} <- deref_cached(ctx, ns) do
-      {:ok, raw}
+    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, ns) do
+      {:ok, raw, meta}
     end
   end
 
   defp fetch_ref(ctx, %Ref{dynamic?: true, kind: :anchor} = ref) do
     %{arg: anchor} = ref
 
-    with {:ok, %{raw: raw}} <- deref_cached(ctx, {:dynamic_anchor, anchor}) do
-      {:ok, raw}
+    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, {:dynamic_anchor, anchor}) do
+      {:ok, raw, meta}
     end
   end
-
-  #   cache_key =
-  #     case ref do
-  #       %Ref{kind: :docpath} -> fetch_docpath(cached.raw, docpath) |> wrap_err({:invalid_ref, ref})
-  #       # %Ref{kind: :top} -> {:ok, cached.raw}
-  #       %Ref{kind: :anchor, arg: anchor} -> {:anchor, ns, anchor}
-  #     end
-
-  # end
-
-  # defp fetch_ref(ctx, %Ref{kind: :anchor, dynamic?: true} = ref) do
-  #   %{arg: arg} = ref
-
-  #   with {:ok, cached} <- deref_cached(ctx, {:dynamic_anchor, arg}) do
-  #     {:ok, cached.raw}
-  #   end
-  # end
 
   defp fetch_docpath(raw_schema, docpath) do
     case do_fetch_docpath(raw_schema, docpath) do
@@ -809,9 +792,5 @@ defmodule Moonwalk.Schema.BuildContext do
       # TODO no raise
       err -> raise_err(err, {:missed_cache, ns})
     end
-  end
-
-  defp deref_cached_meta(ctx, ns) do
-    deref_cached(ctx, {:meta, ns})
   end
 end

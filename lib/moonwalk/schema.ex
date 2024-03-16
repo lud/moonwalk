@@ -108,7 +108,7 @@ defmodule Moonwalk.Schema do
 
     raw_schema = Map.drop(raw_schema, ["$schema", "$id"])
 
-    {leftovers, validators, ctx} =
+    {_leftovers, validators, ctx} =
       Enum.reduce(ctx.vocabularies, {raw_schema, %{}, ctx}, fn module, {raw_schema, acc, ctx} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
@@ -120,11 +120,13 @@ defmodule Moonwalk.Schema do
         end
       end)
 
-    case leftovers do
-      [] -> :ok
-      map when map_size(map) == 0 -> :ok
-      other -> IO.warn("got some leftovers: #{inspect(other)}", [])
-    end
+    # TODO we should warn if the dialect did not pick all elements from the
+    # schema. But this should be opt-in
+    # case leftovers do
+    #   [] -> :ok
+    #   map when map_size(map) == 0 -> :ok
+    #   other -> IO.warn("got some leftovers: #{inspect(other)}", [])
+    # end
 
     {:ok, validators, ctx}
   catch

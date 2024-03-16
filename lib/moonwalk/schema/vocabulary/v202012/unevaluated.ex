@@ -16,6 +16,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
     :ignore
   end
 
+  def validate(_data, _validators, _context) do
+    raise "TODO!"
+  end
+
   def finalize_validators(list) do
     Map.new(list)
   end

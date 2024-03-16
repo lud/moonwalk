@@ -156,7 +156,7 @@ defmodule Moonwalk.SchemaValidationTest do
 
   JsonSchemaSuite.stop_warn_unchecked(agent)
 
-  defp debug_infinite_loop do
+  def debug_infinite_loop do
     parent = self()
 
     spawn_link(fn ->

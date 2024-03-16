@@ -23,8 +23,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
     run_validators(data, vds, ctx, :validate_keyword)
   end
 
-  defp validate_keyword(data, {:format, format}, ctx) do
-    IO.warn("todo acutal validation")
+  defp validate_keyword(data, {:format, _format}, _ctx) do
     {:ok, data}
   end
 end
