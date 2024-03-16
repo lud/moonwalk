@@ -22,4 +22,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Content do
   def finalize_validators([]) do
     :ignore
   end
+
+  def validate(_data, _validators, _context) do
+    raise "TODO!"
+  end
 end

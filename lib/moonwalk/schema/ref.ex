@@ -33,11 +33,11 @@ defmodule Moonwalk.Schema.RNS do
     {:ok, parent}
   end
 
-  defp merge(%{uri: :root} = parent, %{uri: %{host: host}} = child) when is_binary(host) do
+  defp merge(%{uri: :root}, %{uri: %{host: host}} = child) when is_binary(host) do
     {:ok, child}
   end
 
-  defp merge(%{uri: :root} = parent, %{uri: child}) do
+  defp merge(%{uri: :root}, %{uri: child}) do
     {:error, {:invalid_child_ns, URI.to_string(child)}}
   end
 
@@ -68,8 +68,6 @@ defmodule Moonwalk.Schema.Ref do
   alias __MODULE__
   alias Moonwalk.Schema.RNS
   defstruct ns: nil, kind: nil, fragment: nil, arg: nil, dynamic?: false
-
-  defguardp is_not_blank(str) when is_binary(str) and str != ""
 
   def parse(url, current_ns) do
     do_parse(url, current_ns, false)

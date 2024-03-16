@@ -22,4 +22,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
   def finalize_validators(list) do
     Map.new(list)
   end
+
+  def validate(_data, _validators, _context) do
+    raise "should not be called"
+  end
 end
