@@ -8,6 +8,7 @@ defmodule Moonwalk.Helpers do
       case f.(item) do
         {:ok, result} -> {:cont, [result | acc]}
         {:error, _} = err -> {:halt, err}
+        other -> raise ArgumentError, "bad return from map_ok callback: #{inspect(other)}"
       end
     end)
     |> case do
@@ -22,6 +23,7 @@ defmodule Moonwalk.Helpers do
       case f.(item, acc) do
         {:ok, new_acc} -> {:cont, new_acc}
         {:error, _} = err -> {:halt, err}
+        other -> raise ArgumentError, "bad return from reduce_ok callback: #{inspect(other)}"
       end
     end)
     |> case do

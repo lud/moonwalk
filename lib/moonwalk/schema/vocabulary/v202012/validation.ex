@@ -141,14 +141,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end)
     |> case do
       {:ok, data} -> {:ok, data}
-      nil -> {:error, Context.type_error(ctx, data, ts)}
+      nil -> {:error, Context.make_error(ctx, :type, data, type: ts)}
     end
   end
 
   defp validate_keyword(data, {:type, t}, ctx) do
     case validate_type(data, t) do
       true -> {:ok, data}
-      false -> {:error, Context.type_error(ctx, data, t)}
+      false -> {:error, Context.make_error(ctx, :type, data, type: t)}
       {:swap, new_data} -> {:ok, new_data}
     end
   end

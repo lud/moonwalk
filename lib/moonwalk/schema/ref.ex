@@ -110,7 +110,14 @@ defmodule Moonwalk.Schema.Ref do
   end
 
   defp parse_docpath(raw_docpath) do
-    raw_docpath |> String.split("/") |> Enum.map(&unescape_json_pointer/1)
+    raw_docpath |> String.split("/") |> Enum.map(&parse_docpath_segment/1)
+  end
+
+  defp parse_docpath_segment(string) do
+    case Integer.parse(string) do
+      {int, ""} -> int
+      _ -> unescape_json_pointer(string)
+    end
   end
 
   defp unescape_json_pointer(str) do

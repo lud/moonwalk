@@ -13,7 +13,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     additionalItems
     contains
     not
-
   ))
 
   def take_keyword({"properties", properties}, acc, ctx) do
@@ -50,6 +49,20 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   def take_keyword({"items", items}, acc, ctx) do
     take_sub(:items, items, acc, ctx)
+  end
+
+  def take_keyword({"prefixItems", prefix_items}, acc, ctx) do
+    prefix_items
+    |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
+      case Schema.denormalize_sub(item, ctx) do
+        {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | subacc], ctx}}
+        {:error, _} = err -> err
+      end
+    end)
+    |> case do
+      {:ok, {subvalidators, ctx}} -> {:ok, [{:prefix_items, :lists.reverse(subvalidators)} | acc], ctx}
+      {:error, _} = err -> err
+    end
   end
 
   def take_keyword({"allOf", [_ | _] = all_of}, acc, ctx) do
@@ -348,30 +361,34 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     {:ok, [], 0}
   end
 
-  # defp validate_prefix_items(values, schemas, ctx) do
-  #   validate_prefix_items(values, schemas, ctx, 0, [], [])
-  # end
+  defp validate_prefix_items(values, schemas, ctx) do
+    validate_prefix_items(values, schemas, ctx, 0, [], [])
+  end
 
-  # defp validate_prefix_items([vh | vt], [sh | st], ctx, index, validated, errors) do
-  #   case validate_keyword(vh, sh, ctx) do
-  #     {:ok, data} ->
-  #       validate_prefix_items(vt, st, ctx, index + 1, [data | validated], errors)
+  defp validate_prefix_items([vh | vt], [sh | st], ctx, index, validated, errors) do
+    case Validator.validate_sub(vh, sh, ctx) do
+      {:ok, data} ->
+        validate_prefix_items(vt, st, ctx, index + 1, [data | validated], errors)
 
-  #     {:error, reason} ->
-  #       validate_prefix_items(vt, st, ctx, index + 1, validated, [
-  #         Error.of(:item_error, vh, index: index, reason: reason, prefix: true) | errors
-  #       ])
-  #   end
-  # end
+      {:error, reason} ->
+        validate_prefix_items(vt, st, ctx, index + 1, validated, [
+          Context.make_error(ctx, :prefix_items, vh, index: index, reason: reason) | errors
+        ])
+    end
+  end
+
+  # No more schemas to validate
+  defp validate_prefix_items(_vt, [], ctx, offset, validated, errors) do
+    # we do not return the tail
+    case errors do
+      [] -> {:ok, :lists.reverse(validated), offset}
+      errors -> {:error, Context.group_error(ctx, :prefix_items, errors)}
+    end
+  end
 
   # defp validate_prefix_items(_vt, _, _ctx, _, _, [_ | _] = errors) do
   #   # we do not return the tail
   #   {:error, Error.group(errors)}
-  # end
-
-  # defp validate_prefix_items(_vt, [], _ctx, offset, validated, []) do
-  #   # we do not return the tail
-  #   {:ok, :lists.reverse(validated), offset}
   # end
 
   # defp validate_prefix_items([], [_schema | _], _ctx, offset, validated, []) do

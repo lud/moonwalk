@@ -60,18 +60,18 @@ defmodule Moonwalk.Schema.BuildContext do
     quote do
       case unquote(body) do
         ok_tuple when elem(ok_tuple, 0) == :ok -> ok_tuple
-        {:error, reason} -> raise "#{inspect(unquote(tag))} error: #{inspect(reason)}"
+        {:error, reason} -> raise "#{inspect(unquote(tag))}, error: #{inspect(reason)}"
         :error -> raise "#{inspect(unquote(tag))}, :error"
       end
     end
   end
 
-  defmacro raise_err(body, {tag, _data}) when is_atom(tag) do
+  defmacro raise_err(body, {tag, data}) when is_atom(tag) do
     quote do
       case unquote(body) do
         ok_tuple when elem(ok_tuple, 0) == :ok -> ok_tuple
-        {:error, reason} -> raise "#{inspect(unquote(tag))} error: #{inspect(reason)}"
-        :error -> raise "#{inspect(unquote(tag))}, :error"
+        {:error, reason} -> raise "#{inspect(unquote(tag))} (#{inspect(unquote(data))}), error: #{inspect(reason)}"
+        :error -> raise "#{inspect(unquote(tag))} (#{inspect(unquote(data))}), :error"
       end
     end
   end
@@ -93,84 +93,35 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   def resolve(ctx, resolvable) do
-    resolve_loop(ctx, [resolvable], [])
-  end
-
-  defp resolve_loop(ctx, [h | t], tail) when is_list(h) do
-    debug_loop(h, t, tail)
-    resolve_loop(ctx, h, [t | tail])
-  end
-
-  defp resolve_loop(ctx, [h | t], tail) do
-    debug_loop(h, t, tail)
-
-    with {:ok, resolve_more, ctx} <- ensure_resolved(ctx, h) do
-      # Depth first
-      resolve_loop(ctx, resolve_more, [t | tail])
+    case check_resolved(ctx, resolvable) do
+      :unresolved -> do_resolve(ctx, resolvable)
+      :already_resolved -> {:ok, ctx}
     end
   end
 
-  defp resolve_loop(ctx, [], [h | t]) do
-    resolve_loop(ctx, h, t)
+  defp do_resolve(ctx, resolvable) do
+    with {:ok, raw_schema, ctx} <- ensure_fetched(ctx, resolvable),
+         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable)),
+         {:ok, cache_entries} <- create_cache_entries(identified_schemas),
+         {:ok, ctx} <- insert_cache_entries(ctx, cache_entries) do
+      resolve_meta_loop(ctx, Map.get(raw_schema, "$schema"))
+    else
+      {:error, _} = err -> err
+    end
   end
 
-  defp resolve_loop(ctx, [], []) do
+  defp resolve_meta_loop(ctx, nil) do
     {:ok, ctx}
   end
 
-  defp debug_loop(h, t, tail) do
-    h = loop_keys(h)
-    t = loop_keys(t)
-    tail = loop_keys(tail)
-    IO.puts("-------------")
-    h |> IO.inspect(label: "h")
-    t |> IO.inspect(label: "t")
-    tail |> IO.inspect(label: "tail")
-  end
-
-  defp loop_keys({:prefetched, id, _}) do
-    id
-  end
-
-  defp loop_keys({:dynamic_anchor, id, _, _}) do
-    id
-  end
-
-  defp loop_keys({:sub_id, id, _, _}) do
-    id
-  end
-
-  defp loop_keys({:meta, id}) do
-    id
-  end
-
-  defp loop_keys(%Ref{ns: ns}) do
-    ns
-  end
-
-  defp loop_keys(list) when is_list(list) do
-    Enum.map(list, &loop_keys/1)
-  end
-
-  defp ensure_resolved(ctx, resolvable) do
-    meta? =
-      case resolvable do
-        {:meta, _} -> true
-        _ -> false
-      end
-
-    with :unresolved <- check_resolved(ctx, resolvable),
-         {:ok, raw_schema, ctx} <- ensure_fetched(ctx, resolvable),
-         {:ok, %{meta: cached_meta} = cached} <- raw_to_cached(raw_schema, resolvable),
-         {:ok, dynamic_anchor_schemas} <-
-           maybe_collect_subschemas_with_dynanchor(cached.raw, cached_meta, meta?) |> dbg(),
-         {:ok, sub_id_schemas} <- maybe_collect_subschemas_with_id(cached.raw, cached_meta, meta?) do
-      resolve_more = [{:meta, cached_meta}, dynamic_anchor_schemas, sub_id_schemas]
-
-      {:ok, resolve_more, set_cached(ctx, cached, resolvable)}
+  defp resolve_meta_loop(ctx, meta) when is_binary(meta) do
+    with :unresolved <- check_resolved(ctx, {:meta, meta}),
+         {:ok, raw_schema, ctx} <- ensure_fetched(ctx, meta),
+         {:ok, cache_entry} <- create_meta_entry(raw_schema, meta),
+         {:ok, ctx} <- insert_cache_entries(ctx, [{{:meta, meta}, cache_entry}]) do
+      resolve_meta_loop(ctx, Map.get(raw_schema, "$schema"))
     else
-      :already_resolved -> {:ok, [], ctx}
-      {:error, _} = err -> err
+      :already_resolved -> {:ok, ctx}
     end
   end
 
@@ -205,6 +156,164 @@ defmodule Moonwalk.Schema.BuildContext do
 
   defp check_resolved(ctx, %Ref{ns: ns}) do
     check_resolved(ctx, ns)
+  end
+
+  # Extract all $ids and achors. We receive the top schema
+  defp scan_schema(top_schema, external_id) when not is_nil(external_id) do
+    id = Map.get(top_schema, "$id", nil)
+
+    nss =
+      case {id, external_id} do
+        {nil, ext} -> [ext]
+        {ext, ext} -> [ext]
+        {id, ext} -> [id, ext]
+      end
+
+    # The schema will be findable by its $id or external id.
+    id_aliases = nss
+
+    # Anchor needs to be resolved from the $id or the external ID (an URL) if
+    # set.
+    anchor =
+      case Map.fetch(top_schema, "$anchor") do
+        {:ok, anchor} -> Enum.map(nss, &{:anchor, &1, anchor})
+        :error -> []
+      end
+
+    dynamic_anchor =
+      case Map.fetch(top_schema, "$dynamicAnchor") do
+        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor}]
+        :error -> []
+      end
+
+    aliases = id_aliases ++ anchor ++ dynamic_anchor
+
+    meta = Map.get(top_schema, "$schema", nil)
+
+    top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases}
+
+    scan_map_values(top_schema, id, nss, meta, [top_descriptor])
+  end
+
+  defp scan_subschema(raw_schema, parent_id, nss, meta, acc) when is_map(raw_schema) do
+    # If the subschema defines an id, we will discard the current namespaces, as
+    # the sibling or nested anchors will now only relate to this id
+
+    id =
+      with {:ok, rel_id} <- Map.fetch(raw_schema, "$id"),
+           {:ok, full_id} <- merge_id(parent_id, rel_id) do
+        full_id
+      else
+        _ -> nil
+      end
+
+    id_aliases =
+      case id do
+        nil -> []
+        id -> [id]
+      end
+
+    nss =
+      case id do
+        nil -> nss
+        id -> [id]
+      end
+
+    anchor =
+      case Map.fetch(raw_schema, "$anchor") do
+        {:ok, anchor} -> Enum.map(nss, &{:anchor, &1, anchor})
+        :error -> []
+      end
+
+    dynamic_anchor =
+      case Map.fetch(raw_schema, "$dynamicAnchor") do
+        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor}]
+        :error -> []
+      end
+
+    # We do not check for the $meta is subschemas, we only add the parent_one to
+    # the descriptor.
+    #
+    # If some aliases are found for the current schema we prepend it to the
+    # accumulator. This means that the accumulator needs to be reversed before
+    # creating the cache entries so the dynamicAnchors are resolved in scope
+    # order.
+
+    acc =
+      case id_aliases ++ anchor ++ dynamic_anchor do
+        [] ->
+          acc
+
+        aliases ->
+          top_descriptor = %{raw: raw_schema, meta: meta, aliases: aliases}
+          [top_descriptor | acc]
+      end
+
+    scan_map_values(raw_schema, id || parent_id, nss, meta, acc)
+  end
+
+  defp scan_subschema(scalar, parent_id, nss, meta, acc)
+       when is_binary(scalar)
+       when is_atom(scalar)
+       when is_number(scalar) do
+    {:ok, acc}
+  end
+
+  defp scan_subschema(list, parent_id, nss, meta, acc) when is_list(list) do
+    Helpers.reduce_ok(list, acc, fn item, acc -> scan_subschema(item, parent_id, nss, meta, acc) end)
+  end
+
+  defp scan_map_values(schema, parent_id, nss, meta, acc) do
+    Helpers.reduce_ok(schema, acc, fn
+      {"properties", props}, acc when is_map(props) ->
+        scan_map_values(props, parent_id, nss, meta, acc)
+
+      {"properties", props}, _ ->
+        raise "TODO what are those properties?: #{inspect(props)}"
+
+      {_k, v}, acc ->
+        scan_subschema(v, parent_id, nss, meta, acc)
+    end)
+  end
+
+  defp create_cache_entries(identified_schemas) do
+    {:ok, Enum.flat_map(identified_schemas, &to_cache_entries/1)}
+  end
+
+  defp to_cache_entries(%{aliases: aliases, meta: meta, raw: raw}) do
+    case aliases do
+      [single] -> [{single, %{meta: meta, raw: raw}}]
+      [first | aliases] -> [{first, %{meta: meta, raw: raw}} | Enum.map(aliases, &{&1, {:alias_of, first}})]
+    end
+  end
+
+  defp insert_cache_entries(ctx, entries) do
+    %{resolve_cache: cache} = ctx
+
+    cache_result =
+      Helpers.reduce_ok(entries, cache, fn
+        {{:dynamic_anchor, _} = k, v}, cache ->
+          {:ok, Map.put_new(cache, k, v)}
+
+        {k, v}, cache ->
+          case cache do
+            %{^k => _} -> {:error, {:duplicate_resolution, k}}
+            _ -> {:ok, Map.put(cache, k, v)}
+          end
+      end)
+
+    with {:ok, cache} <- cache_result do
+      {:ok, %__MODULE__{ctx | resolve_cache: cache}}
+    end
+  end
+
+  defp create_meta_entry(raw_schema, id) do
+    vocabulary = Map.get(raw_schema, "$vocabulary")
+
+    case load_vocabularies(vocabulary) do
+      {:ok, vocabularies} -> {:ok, %{vocabularies: vocabularies}}
+      {:error, _} = err -> err
+    end
   end
 
   defp external_id({:prefetched, ext_id, _}) do
@@ -480,8 +589,6 @@ defmodule Moonwalk.Schema.BuildContext do
   end
 
   defp collect_subids(%{"$id" => sub_id} = sub_schema, parent_id, acc) do
-    binding() |> IO.inspect(label: "binding()")
-
     case merge_id(parent_id, sub_id) do
       {:ok, id} -> collect_sub_in_map(sub_schema, sub_id, [{id, sub_schema} | acc])
       {:error, _} = err -> err
@@ -621,27 +728,54 @@ defmodule Moonwalk.Schema.BuildContext do
     end
   end
 
-  defp fetch_ref(ctx, %Ref{dynamic?: false} = ref) do
-    %{ns: ns} = ref
+  defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :anchor} = ref) do
+    %{ns: ns, arg: anchor} = ref
 
-    with {:ok, cached} <- deref_cached(ctx, ns) do
-      case ref do
-        %Ref{kind: :docpath, arg: docpath} -> fetch_docpath(cached.raw, docpath) |> wrap_err({:invalid_ref, ref})
-        %Ref{kind: :top} -> {:ok, cached.raw}
-        %Ref{kind: :anchor, arg: anchor} -> Map.fetch(cached.anchors, anchor) |> wrap_err({:invalid_ref, ref})
-      end
+    with {:ok, %{raw: raw}} <- deref_cached(ctx, {:anchor, ns, anchor}) do
+      {:ok, raw}
     end
   end
 
-  defp fetch_ref(ctx, %Ref{kind: :anchor, dynamic?: true} = ref) do
-    ctx |> dbg()
-    ref |> dbg()
-    %{arg: arg} = ref
+  defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :docpath} = ref) do
+    %{ns: ns, arg: docpath} = ref
 
-    with {:ok, cached} <- deref_cached(ctx, {:dynamic_anchor, arg}) do
-      {:ok, cached.raw}
+    with {:ok, %{raw: raw}} <- deref_cached(ctx, ns) do
+      fetch_docpath(raw, docpath)
     end
   end
+
+  defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :top} = ref) do
+    %{ns: ns, arg: docpath} = ref
+
+    with {:ok, %{raw: raw}} <- deref_cached(ctx, ns) do
+      {:ok, raw}
+    end
+  end
+
+  defp fetch_ref(ctx, %Ref{dynamic?: true, kind: :anchor} = ref) do
+    %{arg: anchor} = ref
+
+    with {:ok, %{raw: raw}} <- deref_cached(ctx, {:dynamic_anchor, anchor}) do
+      {:ok, raw}
+    end
+  end
+
+  #   cache_key =
+  #     case ref do
+  #       %Ref{kind: :docpath} -> fetch_docpath(cached.raw, docpath) |> wrap_err({:invalid_ref, ref})
+  #       # %Ref{kind: :top} -> {:ok, cached.raw}
+  #       %Ref{kind: :anchor, arg: anchor} -> {:anchor, ns, anchor}
+  #     end
+
+  # end
+
+  # defp fetch_ref(ctx, %Ref{kind: :anchor, dynamic?: true} = ref) do
+  #   %{arg: arg} = ref
+
+  #   with {:ok, cached} <- deref_cached(ctx, {:dynamic_anchor, arg}) do
+  #     {:ok, cached.raw}
+  #   end
+  # end
 
   defp fetch_docpath(raw_schema, docpath) do
     case do_fetch_docpath(raw_schema, docpath) do
@@ -654,16 +788,27 @@ defmodule Moonwalk.Schema.BuildContext do
     {:ok, raw_schema}
   end
 
-  defp do_fetch_docpath(raw_schema, [h | t]) do
+  defp do_fetch_docpath(list, [h | t]) when is_list(list) and is_integer(h) do
+    with {:ok, item} <- Enum.fetch(list, h) do
+      do_fetch_docpath(item, t)
+    end
+  end
+
+  defp do_fetch_docpath(raw_schema, [h | t]) when is_map(raw_schema) and is_binary(h) do
     case Map.fetch(raw_schema, h) do
       {:ok, sub} -> do_fetch_docpath(sub, t)
       :error -> :error
     end
   end
 
-  defp deref_cached(%{resolve_cache: cache}, ns) do
+  defp deref_cached(%{resolve_cache: cache} = ctx, ns) do
     # Map.fetch(cache, ns) |> wrap_err({:missing_cache, ns})
-    Map.fetch(cache, ns) |> raise_err({:missing_cache, ns})
+    case Map.fetch(cache, ns) do
+      {:ok, {:alias_of, alias_of}} -> deref_cached(ctx, alias_of)
+      {:ok, cached} -> {:ok, cached}
+      # TODO no raise
+      err -> raise_err(err, {:missed_cache, ns})
+    end
   end
 
   defp deref_cached_meta(ctx, ns) do
