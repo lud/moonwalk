@@ -26,7 +26,7 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
     # {"enum.json", []},
     # {"dynamicRef.json", []},
-    # {"multipleOf.json", []},
+    {"multipleOf.json", []},
     {"additionalProperties.json", []},
     {"anchor.json", []},
     {"ref.json", ignore: ["referenced subschema doesn't see annotations from properties"]},

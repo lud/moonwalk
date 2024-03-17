@@ -218,7 +218,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
       true -> {:ok, data}
       false -> {:error, Context.make_error(ctx, :multiple_of, data, multiple_of: n)}
     end
+  rescue
+    # Rescue infinite division (huge numbers divided by float)
+    _ in ArithmeticError -> {:error, Context.make_error(ctx, :multiple_of, data, multiple_of: n)}
   end
+
+  pass validate_keyword(data, {:multiple_of, _}, _)
 
   defp validate_keyword(data, {:required, keys}, ctx) when is_map(data) do
     case keys -- Map.keys(data) do
