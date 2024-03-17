@@ -27,6 +27,7 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"enum.json", []},
     # {"dynamicRef.json", []},
     # {"multipleOf.json", []},
+    {"additionalProperties.json", []},
     {"anchor.json", []},
     {"ref.json", ignore: ["referenced subschema doesn't see annotations from properties"]},
     {"anyOf.json", []},
