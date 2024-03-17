@@ -7,6 +7,7 @@ defmodule Moonwalk.Schema.BuildContext do
   @default_opts %{resolver: UnknownResolver}
   @default_opts_list Map.to_list(@default_opts)
 
+  @latest_draft "https://json-schema.org/draft/2020-12/schema"
   @vocabulary %{
     "https://json-schema.org/draft/2020-12/vocab/core" => Vocabulary.V202012.Core,
     "https://json-schema.org/draft/2020-12/vocab/validation" => Vocabulary.V202012.Validation,
@@ -96,24 +97,37 @@ defmodule Moonwalk.Schema.BuildContext do
          {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable)),
          {:ok, cache_entries} <- create_cache_entries(identified_schemas),
          {:ok, ctx} <- insert_cache_entries(ctx, cache_entries) do
-      resolve_meta_loop(ctx, Map.get(raw_schema, "$schema"))
+      resolve_meta_loop(ctx, metas_of(cache_entries))
     else
       {:error, _} = err -> err
     end
   end
 
-  defp resolve_meta_loop(ctx, nil) do
+  defp metas_of(cache_entries) do
+    Enum.flat_map(cache_entries, fn
+      {_, {:alias_of, _}} -> []
+      {_, v} -> [v.meta]
+    end)
+    |> Enum.uniq()
+  end
+
+  defp resolve_meta_loop(ctx, []) do
     {:ok, ctx}
   end
 
-  defp resolve_meta_loop(ctx, meta) when is_binary(meta) do
+  defp resolve_meta_loop(ctx, [nil | tail]) do
+    resolve_meta_loop(ctx, tail)
+  end
+
+  defp resolve_meta_loop(ctx, [meta | tail]) when is_binary(meta) do
     with :unresolved <- check_resolved(ctx, {:meta, meta}),
          {:ok, raw_schema, ctx} <- ensure_fetched(ctx, meta),
          {:ok, cache_entry} <- create_meta_entry(raw_schema),
          {:ok, ctx} <- insert_cache_entries(ctx, [{{:meta, meta}, cache_entry}]) do
-      resolve_meta_loop(ctx, Map.get(raw_schema, "$schema"))
+      resolve_meta_loop(ctx, [cache_entry.meta | tail])
     else
       :already_resolved -> {:ok, ctx}
+      {:error, _} = err -> err
     end
   end
 
@@ -169,7 +183,8 @@ defmodule Moonwalk.Schema.BuildContext do
 
     aliases = id_aliases ++ anchor ++ dynamic_anchor
 
-    meta = Map.get(top_schema, "$schema", nil)
+    # If no metaschema is defined we will use the latest draft
+    meta = Map.get(top_schema, "$schema", @latest_draft)
 
     top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases}
 
@@ -290,9 +305,12 @@ defmodule Moonwalk.Schema.BuildContext do
 
   defp create_meta_entry(raw_schema) do
     vocabulary = Map.get(raw_schema, "$vocabulary")
+    # Do not default to latest meta on meta schema as we will not use it anyway
+    # TODO we should not even recursively download metaschemas?
+    meta = Map.get(raw_schema, "$schema", nil)
 
     case load_vocabularies(vocabulary) do
-      {:ok, vocabularies} -> {:ok, %{vocabularies: vocabularies}}
+      {:ok, vocabularies} -> {:ok, %{vocabularies: vocabularies, meta: meta}}
       {:error, _} = err -> err
     end
   end

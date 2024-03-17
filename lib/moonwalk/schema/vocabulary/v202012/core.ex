@@ -17,7 +17,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   def take_keyword({"$ref", raw_ref}, acc, ctx) do
     with {:ok, ref} <- Ref.parse(raw_ref, ctx.ns) do
       ctx = BuildContext.stage_ref(ctx, ref)
-      {:ok, [{:"$ref", ref} | acc], ctx}
+      {:ok, [{:ref, ref} | acc], ctx}
     end
   end
 
@@ -33,7 +33,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     with {:ok, ref} <- Ref.parse_dynamic(raw_ref, ctx.ns) do
       ctx = BuildContext.stage_ref(ctx, ref)
 
-      {:ok, [{:"$dynamic_ref", ref} | acc], ctx}
+      {:ok, [{:dynamic_ref, ref} | acc], ctx}
     end
   end
 
@@ -58,7 +58,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     run_validators(data, vds, ctx, :validate_keyword)
   end
 
-  defp validate_keyword(data, {:"$ref", ref}, ctx) do
+  defp validate_keyword(data, {:ref, ref}, ctx) do
+    subvalidators = Context.checkout_ref(ctx, ref)
+    Validator.validate_sub(data, subvalidators, ctx)
+  end
+
+  defp validate_keyword(data, {:dynamic_ref, ref}, ctx) do
     subvalidators = Context.checkout_ref(ctx, ref)
     Validator.validate_sub(data, subvalidators, ctx)
   end
