@@ -2,15 +2,16 @@ defmodule Moonwalk.Schema.Vocabulary do
   alias Moonwalk.Schema
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator.Context
-  alias Moonwalk.Schema.BuildContext
+  alias Moonwalk.Schema.Builder
+  alias Moonwalk.Schema.Resolver
   alias Moonwalk.Schema.Validator.Error
 
   @type validators :: term
   @type pair :: {binary, term}
   @type data :: %{optional(binary) => data} | [data] | binary | boolean | number | nil
   @callback init_validators :: validators
-  @callback take_keyword(pair, validators, build_context :: BuildContext.t()) ::
-              {:ok, validators(), BuildContext.t()} | :ignore | {:error, term}
+  @callback take_keyword(pair, validators, builder :: Builder.t()) ::
+              {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
   @callback validate(data, validators, context :: Context.t()) :: {:ok, data} | {:error, Error.t()}
 
@@ -86,7 +87,7 @@ defmodule Moonwalk.Schema.Vocabulary do
   end
 
   def take_sub(key, subraw, acc, ctx) when is_list(acc) do
-    case Schema.denormalize_sub(subraw, ctx) do
+    case Builder.build_sub(subraw, ctx) do
       {:ok, subvalidators, ctx} -> {:ok, [{key, subvalidators} | acc], ctx}
       {:error, _} = err -> err
     end

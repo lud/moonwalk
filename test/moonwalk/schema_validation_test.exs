@@ -25,11 +25,11 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"defs.json", []},
     # {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
     # {"enum.json", []},
-    # {"dynamicRef.json", []},
+    # {"dynamicRef.json", [ignore: ["strict-tree schema, guards against misspelled properties"]]},
     {"multipleOf.json", []},
     {"additionalProperties.json", []},
     {"anchor.json", []},
-    {"ref.json", ignore: ["referenced subschema doesn't see annotations from properties"]},
+    {"ref.json", ignore: ["ref creates new scope when adjacent to keywords"]},
     {"anyOf.json", []},
     {"oneOf.json", []},
     {"infinite-loop-detection.json", []},
@@ -55,6 +55,8 @@ defmodule Moonwalk.SchemaValidationTest do
     for test_case <- suite do
       %{"description" => case_descr, "tests" => tests} = test_case
 
+      ignore_all? = case_descr in ignored
+
       describe filename <> " - " <> case_descr <> " - " do
         setup do
           {:ok, %{test_case: unquote(Macro.escape(test_case))}}
@@ -62,7 +64,7 @@ defmodule Moonwalk.SchemaValidationTest do
 
         if validate? do
           for %{"description" => test_descr} = unit_test <- tests do
-            @tag skip: test_descr in ignored
+            @tag skip: ignore_all? or test_descr in ignored
             test test_descr, %{test_case: test_case} do
               # debug_infinite_loop()
               unit_test = unquote(Macro.escape(unit_test))
@@ -72,17 +74,18 @@ defmodule Moonwalk.SchemaValidationTest do
         else
           # If we are not testing the validation we must at least ensure that
           # the schema can be manipulated by the library
+          @tag skip: ignore_all?
           test "schema denormalization", %{test_case: test_case} do
             # debug_infinite_loop()
-            denorm_schema(Map.fetch!(test_case, "schema"), test_case["description"])
+            build_schema(Map.fetch!(test_case, "schema"), test_case["description"])
           end
         end
       end
     end
   end)
 
-  defp denorm_schema(json_schema, description) do
-    case Moonwalk.Schema.denormalize(json_schema, resolver: Moonwalk.Test.TestResolver) do
+  defp build_schema(json_schema, description) do
+    case Moonwalk.Schema.build(json_schema, resolver: Moonwalk.Test.TestResolver) do
       {:ok, schema} -> schema
       {:error, reason} -> flunk(denorm_failure(json_schema, reason, [], description))
     end
@@ -112,7 +115,7 @@ defmodule Moonwalk.SchemaValidationTest do
     %{"schema" => json_schema, "description" => case_descr} = test_case
     %{"data" => data, "valid" => expected_valid, "description" => test_descr} = unit_test
 
-    schema = denorm_schema(json_schema, case_descr)
+    schema = build_schema(json_schema, case_descr)
 
     {valid?, errors} =
       case Moonwalk.Schema.validate(data, schema) do

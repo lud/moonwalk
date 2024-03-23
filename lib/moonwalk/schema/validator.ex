@@ -23,8 +23,8 @@ defmodule Moonwalk.Schema.Validator.Context do
     %__MODULE__{ctx | path: [key | path]}
   end
 
-  def checkout_ref(%{validators: vds}, ref) do
-    Map.fetch!(vds, Ref.to_key(ref))
+  def checkout_ref(%{validators: vds}, vkey) do
+    Map.fetch!(vds, vkey)
   end
 
   @deprecated "use make_error"
@@ -63,19 +63,17 @@ defmodule Moonwalk.Schema.Validator do
   alias Moonwalk.Schema
   alias Moonwalk.Schema.Validator.Context
 
-  def validate(data, %Schema{validators: validators}) do
+  def validate(data, %Schema{} = schema) do
+    %{validators: validators, root_key: root_key} = schema |> dbg()
     ctx = Moonwalk.Schema.Validator.Context.new(validators)
 
-    do_validate(data, ctx)
-  end
-
-  # TODO force pass a downpath segment register evaluated items and properties
-  # in the context
-  #
-  # Otherwise see if a vocalbulary can know if another vocabulary is being used
-  # and implement unevaluatedProperties in the applicator
-  def do_validate(data, ctx) do
-    validate_sub(data, ctx.validators.root, ctx)
+    # TODO force pass a downpath segment register evaluated items and properties
+    # in the context
+    #
+    # Otherwise see if a vocalbulary can know if another vocabulary is being used
+    # and implement unevaluatedProperties in the applicator
+    root_validator = Map.fetch!(validators, root_key)
+    validate_sub(data, root_validator, ctx)
   end
 
   def validate_sub(data, %BooleanSchema{value: valid?}, ctx) do
@@ -85,7 +83,7 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate_sub(data, {:alias_of, ns}, ctx) do
+  def validate_sub(data, {:alias_of, ns} = x, ctx) do
     validate_sub(data, Map.fetch!(ctx.validators, ns), ctx)
   end
 

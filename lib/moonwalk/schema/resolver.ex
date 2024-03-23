@@ -1,11 +1,13 @@
-defmodule Moonwalk.Schema.BuildContext do
+defmodule Moonwalk.Schema.Resolver do
+  alias Moonwalk.Schema
   alias Moonwalk.Schema.RNS
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Ref
   alias Moonwalk.Schema.Vocabulary
 
-  @default_opts %{resolver: UnknownResolver}
-  @default_opts_list Map.to_list(@default_opts)
+  defmodule Resolved do
+    defstruct [:raw, :meta, :vocabularies]
+  end
 
   @latest_draft "https://json-schema.org/draft/2020-12/schema"
   @vocabulary %{
@@ -18,86 +20,51 @@ defmodule Moonwalk.Schema.BuildContext do
     "https://json-schema.org/draft/2020-12/vocab/unevaluated" => Vocabulary.V202012.Unevaluated
   }
 
+  @derive {Inspect, except: [:fetch_cache, :vocabularies, :ns, :dynamic_scope, :opts]}
   @enforce_keys [:root]
   defstruct [
     :ns,
     :root,
     staged_refs: [],
-    opts: @default_opts,
+    opts: %{resolver: UnknownResolver},
     fetch_cache: %{},
-    resolve_cache: %{},
-    vocabularies: %{}
+    resolved: %{},
+    vocabularies: %{},
+    dynamic_scope: []
   ]
-
-  defmacro wrap_err(body, tag) when is_atom(tag) do
-    quote do
-      case unquote(body) do
-        ok_tuple when elem(ok_tuple, 0) == :ok -> ok_tuple
-        {:error, reason} -> {:error, {unquote(tag), reason}}
-        :error -> {:error, unquote(tag)}
-      end
-    end
-  end
-
-  defmacro wrap_err(body, {tag, data}) when is_atom(tag) do
-    quote do
-      case unquote(body) do
-        ok_tuple when elem(ok_tuple, 0) == :ok -> ok_tuple
-        {:error, reason} -> {:error, {unquote(tag), unquote(data), reason}}
-        :error -> {:error, {unquote(tag), unquote(data)}}
-      end
-    end
-  end
-
-  defmacro raise_err(body, tag) when is_atom(tag) do
-    quote do
-      case unquote(body) do
-        ok_tuple when elem(ok_tuple, 0) == :ok -> ok_tuple
-        {:error, reason} -> raise "#{inspect(unquote(tag))}, error: #{inspect(reason)}"
-        :error -> raise "#{inspect(unquote(tag))}, :error"
-      end
-    end
-  end
-
-  defmacro raise_err(body, {tag, data}) when is_atom(tag) do
-    quote do
-      case unquote(body) do
-        ok_tuple when elem(ok_tuple, 0) == :ok -> ok_tuple
-        {:error, reason} -> raise "#{inspect(unquote(tag))} (#{inspect(unquote(data))}), error: #{inspect(reason)}"
-        :error -> raise "#{inspect(unquote(tag))} (#{inspect(unquote(data))}), :error"
-      end
-    end
-  end
 
   @opaque t :: %__MODULE__{}
 
-  def default_opts_list do
-    @default_opts_list
-  end
-
-  def for_root(raw_schema, opts_map) when is_map(raw_schema) do
+  # TODO build new_root as set_root(new(opts), raw_schema)
+  def new_root(raw_schema, opts_map) when is_map(raw_schema) do
     # Bootstrap of the recursive resolving of schemas, metaschemas and
     # anchors/$ids. We just need to set the :root value in the context as the
     # $id (or `:root` atom if not set) of the top schema.
 
     root_ns = Map.get(raw_schema, "$id", :root)
-    ctx = %__MODULE__{root: root_ns, opts: opts_map}
-    resolve(ctx, {:prefetched, root_ns, raw_schema})
-  end
+    rsv = %__MODULE__{root: root_ns, opts: opts_map}
 
-  def resolve(ctx, resolvable) do
-    case check_resolved(ctx, resolvable) do
-      :unresolved -> do_resolve(ctx, resolvable)
-      :already_resolved -> {:ok, ctx}
+    with {:ok, rsv} <- resolve(rsv, {:prefetched, root_ns, raw_schema}),
+         {:ok, vocabularies} <- fetch_vocabularies_for(rsv, root_ns) do
+      {:ok, %__MODULE__{rsv | ns: root_ns, vocabularies: vocabularies}}
+    else
+      {:error, _} = err -> err
     end
   end
 
-  defp do_resolve(ctx, resolvable) do
-    with {:ok, raw_schema, ctx} <- ensure_fetched(ctx, resolvable),
+  def resolve(rsv, resolvable) do
+    case check_resolved(rsv, resolvable) do
+      :unresolved -> do_resolve(rsv, resolvable)
+      :already_resolved -> {:ok, rsv}
+    end
+  end
+
+  defp do_resolve(rsv, resolvable) do
+    with {:ok, raw_schema, rsv} <- ensure_fetched(rsv, resolvable),
          {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable)),
          {:ok, cache_entries} <- create_cache_entries(identified_schemas),
-         {:ok, ctx} <- insert_cache_entries(ctx, cache_entries) do
-      resolve_meta_loop(ctx, metas_of(cache_entries))
+         {:ok, rsv} <- insert_cache_entries(rsv, cache_entries) do
+      resolve_meta_loop(rsv, metas_of(cache_entries))
     else
       {:error, _} = err -> err
     end
@@ -111,46 +78,46 @@ defmodule Moonwalk.Schema.BuildContext do
     |> Enum.uniq()
   end
 
-  defp resolve_meta_loop(ctx, []) do
-    {:ok, ctx}
+  defp resolve_meta_loop(rsv, []) do
+    {:ok, rsv}
   end
 
-  defp resolve_meta_loop(ctx, [nil | tail]) do
-    resolve_meta_loop(ctx, tail)
+  defp resolve_meta_loop(rsv, [nil | tail]) do
+    resolve_meta_loop(rsv, tail)
   end
 
-  defp resolve_meta_loop(ctx, [meta | tail]) when is_binary(meta) do
-    with :unresolved <- check_resolved(ctx, {:meta, meta}),
-         {:ok, raw_schema, ctx} <- ensure_fetched(ctx, meta),
+  defp resolve_meta_loop(rsv, [meta | tail]) when is_binary(meta) do
+    with :unresolved <- check_resolved(rsv, {:meta, meta}),
+         {:ok, raw_schema, rsv} <- ensure_fetched(rsv, meta),
          {:ok, cache_entry} <- create_meta_entry(raw_schema),
-         {:ok, ctx} <- insert_cache_entries(ctx, [{{:meta, meta}, cache_entry}]) do
-      resolve_meta_loop(ctx, [cache_entry.meta | tail])
+         {:ok, rsv} <- insert_cache_entries(rsv, [{{:meta, meta}, cache_entry}]) do
+      resolve_meta_loop(rsv, [cache_entry.meta | tail])
     else
-      :already_resolved -> {:ok, ctx}
+      :already_resolved -> {:ok, rsv}
       {:error, _} = err -> err
     end
   end
 
-  defp check_resolved(ctx, {:prefetched, id, _}) do
-    check_resolved(ctx, id)
+  defp check_resolved(rsv, {:prefetched, id, _}) do
+    check_resolved(rsv, id)
   end
 
-  defp check_resolved(ctx, id) when is_binary(id) or :root == id do
-    case ctx do
-      %{resolve_cache: %{^id => _}} -> :already_resolved
+  defp check_resolved(rsv, id) when is_binary(id) or :root == id do
+    case rsv do
+      %{resolved: %{^id => _}} -> :already_resolved
       _ -> :unresolved
     end
   end
 
-  defp check_resolved(ctx, {:meta, id}) when is_binary(id) do
-    case ctx do
-      %{resolve_cache: %{{:meta, ^id} => _}} -> :already_resolved
+  defp check_resolved(rsv, {:meta, id}) when is_binary(id) do
+    case rsv do
+      %{resolved: %{{:meta, ^id} => _}} -> :already_resolved
       _ -> :unresolved
     end
   end
 
-  defp check_resolved(ctx, %Ref{ns: ns}) do
-    check_resolved(ctx, ns)
+  defp check_resolved(rsv, %Ref{ns: ns}) do
+    check_resolved(rsv, ns)
   end
 
   # Extract all $ids and achors. We receive the top schema
@@ -177,7 +144,8 @@ defmodule Moonwalk.Schema.BuildContext do
 
     dynamic_anchor =
       case Map.fetch(top_schema, "$dynamicAnchor") do
-        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor}]
+        # a dynamic anchor is also adressable as a regular anchor for the given namespace
+        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor} | Enum.map(nss, &{:anchor, &1, dynamic_anchor})]
         :error -> []
       end
 
@@ -188,7 +156,11 @@ defmodule Moonwalk.Schema.BuildContext do
 
     top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases}
 
-    scan_map_values(top_schema, id, nss, meta, [top_descriptor])
+    # reverse the found schemas order so the top-ones appear first and
+    # dynamicAnchor scope priority is respected.
+    with {:ok, acc} <- scan_map_values(top_schema, id, nss, meta, [top_descriptor]) do
+      {:ok, :lists.reverse(acc)}
+    end
   end
 
   defp scan_subschema(raw_schema, parent_id, nss, meta, acc) when is_map(raw_schema) do
@@ -223,7 +195,8 @@ defmodule Moonwalk.Schema.BuildContext do
 
     dynamic_anchor =
       case Map.fetch(raw_schema, "$dynamicAnchor") do
-        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor}]
+        # a dynamic anchor is also adressable as a regular anchor for the given namespace
+        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor} | Enum.map(nss, &{:anchor, &1, dynamic_anchor})]
         :error -> []
       end
 
@@ -241,11 +214,12 @@ defmodule Moonwalk.Schema.BuildContext do
           acc
 
         aliases ->
-          top_descriptor = %{raw: raw_schema, meta: meta, aliases: aliases}
-          [top_descriptor | acc]
+          descriptor = %{raw: raw_schema, meta: meta, aliases: aliases}
+          [descriptor | acc]
       end
 
     scan_map_values(raw_schema, id || parent_id, nss, meta, acc)
+    |> dbg()
   end
 
   defp scan_subschema(scalar, _parent_id, _nss, _meta, acc)
@@ -278,13 +252,16 @@ defmodule Moonwalk.Schema.BuildContext do
 
   defp to_cache_entries(%{aliases: aliases, meta: meta, raw: raw}) do
     case aliases do
-      [single] -> [{single, %{meta: meta, raw: raw}}]
-      [first | aliases] -> [{first, %{meta: meta, raw: raw}} | Enum.map(aliases, &{&1, {:alias_of, first}})]
+      [single] ->
+        [{single, %Resolved{meta: meta, raw: raw}}]
+
+      [first | aliases] ->
+        [{first, %Resolved{meta: meta, raw: raw}} | Enum.map(aliases, &{&1, {:alias_of, first}})]
     end
   end
 
-  defp insert_cache_entries(ctx, entries) do
-    %{resolve_cache: cache} = ctx
+  defp insert_cache_entries(rsv, entries) do
+    %{resolved: cache} = rsv
 
     cache_result =
       Helpers.reduce_ok(entries, cache, fn
@@ -299,7 +276,7 @@ defmodule Moonwalk.Schema.BuildContext do
       end)
 
     with {:ok, cache} <- cache_result do
-      {:ok, %__MODULE__{ctx | resolve_cache: cache}}
+      {:ok, %__MODULE__{rsv | resolved: cache}}
     end
   end
 
@@ -310,7 +287,7 @@ defmodule Moonwalk.Schema.BuildContext do
     meta = Map.get(raw_schema, "$schema", nil)
 
     case load_vocabularies(vocabulary) do
-      {:ok, vocabularies} -> {:ok, %{vocabularies: vocabularies, meta: meta}}
+      {:ok, vocabularies} -> {:ok, %Resolved{vocabularies: vocabularies, meta: meta}}
       {:error, _} = err -> err
     end
   end
@@ -327,42 +304,42 @@ defmodule Moonwalk.Schema.BuildContext do
     ns
   end
 
-  defp ensure_fetched(ctx, {:prefetched, _, raw_schema}) do
-    {:ok, raw_schema, ctx}
+  defp ensure_fetched(rsv, {:prefetched, _, raw_schema}) do
+    {:ok, raw_schema, rsv}
   end
 
-  defp ensure_fetched(ctx, fetchable) do
-    with :unfetched <- check_fetched(ctx, fetchable),
-         {:ok, ext_id, raw_schema} <- fetch_raw_schema(ctx, fetchable) do
-      %{fetch_cache: cache} = ctx
-      {:ok, raw_schema, %__MODULE__{ctx | fetch_cache: Map.put(cache, ext_id, raw_schema)}}
+  defp ensure_fetched(rsv, fetchable) do
+    with :unfetched <- check_fetched(rsv, fetchable),
+         {:ok, ext_id, raw_schema} <- fetch_raw_schema(rsv, fetchable) do
+      %{fetch_cache: cache} = rsv
+      {:ok, raw_schema, %__MODULE__{rsv | fetch_cache: Map.put(cache, ext_id, raw_schema)}}
     else
-      {:already_fetched, raw_schema} -> {:ok, raw_schema, ctx}
+      {:already_fetched, raw_schema} -> {:ok, raw_schema, rsv}
       {:error, _} = err -> err
     end
   end
 
-  defp check_fetched(ctx, %Ref{ns: ns}) do
-    check_fetched(ctx, ns)
+  defp check_fetched(rsv, %Ref{ns: ns}) do
+    check_fetched(rsv, ns)
   end
 
-  defp check_fetched(ctx, id) when is_binary(id) do
-    case ctx do
-      %{resolve_cache: %{^id => _}} -> :already_fetched
+  defp check_fetched(rsv, id) when is_binary(id) do
+    case rsv do
+      %{resolved: %{^id => _}} -> :already_fetched
       _ -> :unfetched
     end
   end
 
-  def fetch_raw_schema(ctx, {:meta, url}) do
-    fetch_raw_schema(ctx, url)
+  def fetch_raw_schema(rsv, {:meta, url}) do
+    fetch_raw_schema(rsv, url)
   end
 
-  def fetch_raw_schema(ctx, url) when is_binary(url) do
-    call_resolver(ctx.opts.resolver, url)
+  def fetch_raw_schema(rsv, url) when is_binary(url) do
+    call_resolver(rsv.opts.resolver, url)
   end
 
-  def fetch_raw_schema(ctx, %Ref{ns: ns}) do
-    fetch_raw_schema(ctx, ns)
+  def fetch_raw_schema(rsv, %Ref{ns: ns}) do
+    fetch_raw_schema(rsv, ns)
   end
 
   defp call_resolver(resolver, url) do
@@ -403,51 +380,27 @@ defmodule Moonwalk.Schema.BuildContext do
     {:unknown_vocabulary, uri} -> {:error, {:unknown_vocabulary, uri}}
   end
 
-  def stage_ref(%{staged_refs: staged} = ctx, ref) do
-    %__MODULE__{ctx | staged_refs: append_unique(staged, ref)}
-  end
+  def as_root(rsv, fun) when is_function(fun, 2) do
+    %{vocabularies: current_vocabs, ns: current_ns, root: root_ns} = rsv
 
-  defp append_unique([ref | t], ref) do
-    append_unique(t, ref)
-  end
-
-  defp append_unique([h | t], ref) do
-    [h | append_unique(t, ref)]
-  end
-
-  defp append_unique([], ref) do
-    [ref]
-  end
-
-  def take_staged(%{staged_refs: []} = ctx) do
-    {:empty, ctx}
-  end
-
-  def take_staged(%{staged_refs: [h | t]} = ctx) do
-    {h, %__MODULE__{ctx | staged_refs: t}}
-  end
-
-  def as_root(ctx, fun) when is_function(fun, 2) do
-    %{vocabularies: current_vocabs, ns: current_ns, root: root_ns} = ctx
-
-    with {:ok, sub_vocabs} <- fetch_vocabularies_for(ctx, root_ns),
-         {:ok, raw_schema} <- fetch_raw(ctx, root_ns),
-         subctx = %__MODULE__{ctx | ns: root_ns, vocabularies: sub_vocabs},
-         {:ok, result, new_ctx} <- fun.(raw_schema, subctx) do
-      {:ok, result, %__MODULE__{new_ctx | ns: current_ns, vocabularies: current_vocabs}}
+    with {:ok, sub_vocabs} <- fetch_vocabularies_for(rsv, root_ns),
+         {:ok, raw_schema} <- fetch_raw(rsv, root_ns),
+         subrsv = %__MODULE__{rsv | ns: root_ns, vocabularies: sub_vocabs},
+         {:ok, result, new_rsv} <- fun.(raw_schema, subrsv) do
+      {:ok, result, %__MODULE__{new_rsv | ns: current_ns, vocabularies: current_vocabs}}
     else
       {:error, _} = err -> err
     end
   end
 
-  def as_ref(ctx, %Ref{ns: ns} = ref, fun) when is_function(fun, 2) do
-    %{vocabularies: current_vocabs, ns: current_ns} = ctx
+  def as_ref(rsv, %Ref{ns: ns} = ref, fun) when is_function(fun, 2) do
+    %{vocabularies: current_vocabs, ns: current_ns} = rsv
 
-    with {:ok, raw_subschema, meta} <- fetch_ref(ctx, ref),
-         {:ok, sub_vocabs} <- fetch_vocabularies_of(ctx, meta),
-         subctx = %__MODULE__{ctx | ns: ns, vocabularies: sub_vocabs},
-         {:ok, result, new_ctx} <- fun.(raw_subschema, subctx) do
-      {:ok, result, %__MODULE__{new_ctx | ns: current_ns, vocabularies: current_vocabs}}
+    with {:ok, raw_subschema, meta} <- fetch_ref_raw_meta(rsv, ref),
+         {:ok, sub_vocabs} <- fetch_vocabularies_of(rsv, meta),
+         subrsv = %__MODULE__{rsv | ns: ns, vocabularies: sub_vocabs},
+         {:ok, result, new_rsv} <- fun.(raw_subschema, subrsv) do
+      {:ok, result, %__MODULE__{new_rsv | ns: current_ns, vocabularies: current_vocabs}}
     else
       {:error, _} = err -> err
     end
@@ -455,72 +408,85 @@ defmodule Moonwalk.Schema.BuildContext do
 
   # If we build a subschema that has an $id we need to change the current
   # namespace so refs are relative to it.
-  def as_sub(ctx, %{"$id" => sub_id} = raw_subschema, fun) when is_function(fun, 2) do
-    %{ns: current_ns} = ctx
+  def as_sub(rsv, %{"$id" => sub_id} = raw_subschema, fun) when is_function(fun, 2) do
+    %{ns: current_ns, dynamic_scope: current_scope} = rsv
 
     with {:ok, full_sub_id} <- merge_id(current_ns, sub_id),
-         subctx = %__MODULE__{ctx | ns: full_sub_id},
-         {:ok, result, new_ctx} <- fun.(raw_subschema, subctx) do
-      {:ok, result, %__MODULE__{new_ctx | ns: current_ns}}
+         subrsv = %__MODULE__{rsv | ns: full_sub_id, dynamic_scope: [full_sub_id | current_scope]},
+         {:ok, result, new_rsv} <- fun.(raw_subschema, subrsv) do
+      {:ok, result, %__MODULE__{new_rsv | ns: current_ns, dynamic_scope: current_scope}}
     else
       {:error, _} = err -> err
     end
   end
 
-  def as_sub(ctx, raw_subschema, fun) when is_function(fun, 2) when is_map(raw_subschema) do
-    fun.(raw_subschema, ctx)
+  def as_sub(rsv, raw_subschema, fun) when is_function(fun, 2) when is_map(raw_subschema) do
+    fun.(raw_subschema, rsv)
   end
 
-  defp fetch_vocabularies_for(ctx, ns) do
+  def fetch_vocabularies_for(rsv, %Resolved{meta: meta}) do
+    fetch_vocabularies_of(rsv, meta)
+  end
+
+  def fetch_vocabularies_for(rsv, ns) do
     # The vocabularies are defined by the meta schema, so we do a double fetch
-    with {:ok, %{meta: meta}} <- deref_cached(ctx, ns) do
-      fetch_vocabularies_of(ctx, meta)
+    with {:ok, %{meta: meta}} <- deref_resolved(rsv, ns) do
+      fetch_vocabularies_of(rsv, meta)
     end
   end
 
-  defp fetch_vocabularies_of(ctx, meta) do
-    case deref_cached(ctx, {:meta, meta}) do
+  defp fetch_vocabularies_of(rsv, meta) do
+    case deref_resolved(rsv, {:meta, meta}) do
       {:ok, %{vocabularies: vocabularies}} -> {:ok, vocabularies}
       {:error, _} = err -> err
     end
   end
 
-  defp fetch_raw(ctx, ns) do
-    case deref_cached(ctx, ns) do
+  defp fetch_raw(rsv, ns) do
+    case deref_resolved(rsv, ns) do
       {:ok, %{raw: raw}} -> {:ok, raw}
       {:error, _} = err -> err
     end
   end
 
-  defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :anchor} = ref) do
-    %{ns: ns, arg: anchor} = ref
-
-    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, {:anchor, ns, anchor}) do
-      {:ok, raw, meta}
-    end
-  end
-
-  defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :docpath} = ref) do
+  # Pointer
+  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: _, kind: :docpath} = ref) do
     %{ns: ns, arg: docpath} = ref
 
-    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, ns),
+    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, ns),
          {:ok, raw} <- fetch_docpath(raw, docpath) do
       {:ok, raw, meta}
     end
   end
 
-  defp fetch_ref(ctx, %Ref{dynamic?: false, kind: :top} = ref) do
+  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: false, kind: :top} = ref) do
     %{ns: ns} = ref
 
-    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, ns) do
+    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, ns) do
       {:ok, raw, meta}
     end
   end
 
-  defp fetch_ref(ctx, %Ref{dynamic?: true, kind: :anchor} = ref) do
-    %{arg: anchor} = ref
+  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: false, kind: :anchor} = ref) do
+    %{ns: ns, arg: anchor} = ref
 
-    with {:ok, %{raw: raw, meta: meta}} <- deref_cached(ctx, {:dynamic_anchor, anchor}) do
+    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, {:anchor, ns, anchor}) do
+      {:ok, raw, meta}
+    end
+  end
+
+  # Dynamic anchor
+  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: true, kind: :anchor} = ref) do
+    %{ns: ns, arg: anchor} = ref
+
+    # Try to resolve as a regular ref if no dynamic anchor is found
+    cached_result =
+      with {:error, {:missed_cache, first_error}} <- deref_resolved(rsv, {:dynamic_anchor, anchor}),
+           {:error, {:missed_cache, _}} <- deref_resolved(rsv, {:anchor, ns, anchor}) do
+        {:error, {:missed_cache, first_error}}
+      end
+
+    with {:ok, %{raw: raw, meta: meta}} <- cached_result do
       {:ok, raw, meta}
     end
   end
@@ -549,11 +515,30 @@ defmodule Moonwalk.Schema.BuildContext do
     end
   end
 
-  defp deref_cached(%{resolve_cache: cache} = ctx, key) do
+  defp deref_resolved(%{resolved: cache} = rsv, key) do
     case Map.fetch(cache, key) do
-      {:ok, {:alias_of, alias_of}} -> deref_cached(ctx, alias_of)
+      {:ok, {:alias_of, alias_of}} -> deref_resolved(rsv, alias_of)
       {:ok, cached} -> {:ok, cached}
       :error -> {:error, {:missed_cache, key}}
+    end
+  end
+
+  def fetch_resolved(rsv, binary) when is_binary(binary) do
+    deref_resolved(rsv, binary)
+  end
+
+  def fetch_resolved(rsv, :root) do
+    deref_resolved(rsv, :root)
+  end
+
+  def fetch_resolved(rsv, %Ref{} = ref) do
+    fetch_ref(rsv, ref)
+  end
+
+  def fetch_ref(rsv, ref) do
+    case fetch_ref_raw_meta(rsv, ref) do
+      {:ok, raw, meta} -> {:ok, %Resolved{raw: raw, meta: meta}}
+      {:error, _} = err -> err
     end
   end
 end

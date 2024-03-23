@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
+  alias Moonwalk.Schema.Builder
   alias Moonwalk.Helpers
   alias Moonwalk.Schema
   alias Moonwalk.Schema.Validator
@@ -18,7 +19,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   def take_keyword({"properties", properties}, acc, ctx) do
     properties
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
-      case Schema.denormalize_sub(pschema, ctx) do
+      case Builder.build_sub(pschema, ctx) do
         {:ok, subvalidators, ctx} -> {:ok, {Map.put(acc, k, subvalidators), ctx}}
         {:error, _} = err -> err
       end
@@ -37,7 +38,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     pattern_properties
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       with {:ok, re} <- Regex.compile(k),
-           {:ok, subvalidators, ctx} <- Schema.denormalize_sub(pschema, ctx) do
+           {:ok, subvalidators, ctx} <- Builder.build_sub(pschema, ctx) do
         {:ok, {Map.put(acc, {k, re}, subvalidators), ctx}}
       end
     end)
@@ -54,7 +55,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   def take_keyword({"prefixItems", prefix_items}, acc, ctx) do
     prefix_items
     |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
-      case Schema.denormalize_sub(item, ctx) do
+      case Builder.build_sub(item, ctx) do
         {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | subacc], ctx}}
         {:error, _} = err -> err
       end
@@ -108,7 +109,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp build_sub_list(subschemas, ctx) do
     Helpers.reduce_ok(subschemas, {[], ctx}, fn subschema, {acc, ctx} ->
-      case Schema.denormalize_sub(subschema, ctx) do
+      case Builder.build_sub(subschema, ctx) do
         {:ok, subvalidators, ctx} -> {:ok, {[subvalidators | acc], ctx}}
         {:error, _} = err -> err
       end
@@ -266,6 +267,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   defp validate_properties(data, schema_map, ctx, errors, seen) do
+    # TODO maybe build a new map so we can diff the keys with the original map
+    # and check what was evaluated or not
     Enum.reduce(schema_map, {data, errors, seen}, fn
       {key, subvalidators}, {data, errors, seen} when is_map_key(data, key) ->
         seen = MapSet.put(seen, key)

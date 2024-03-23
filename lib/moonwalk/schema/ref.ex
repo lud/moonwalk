@@ -137,7 +137,7 @@ defmodule Moonwalk.Schema.Ref do
     %Ref{kind: kind, ns: ns, fragment: fragment} = ref
 
     case kind do
-      :top -> {ns, :top}
+      :top -> ns
       :docpath -> {ns, :pointer, fragment}
       :anchor -> {ns, :anchor, fragment}
     end

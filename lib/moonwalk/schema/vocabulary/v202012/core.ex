@@ -1,6 +1,7 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   alias Moonwalk.Schema.Validator
-  alias Moonwalk.Schema.BuildContext
+  alias Moonwalk.Schema.Resolver
+  alias Moonwalk.Schema.Builder
   alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.Ref
   use Moonwalk.Schema.Vocabulary
@@ -9,15 +10,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     []
   end
 
-  todo_take_keywords(~w(
-    $id
-    $schema
-  ))
-
   def take_keyword({"$ref", raw_ref}, acc, ctx) do
     with {:ok, ref} <- Ref.parse(raw_ref, ctx.ns) do
-      ctx = BuildContext.stage_ref(ctx, ref)
-      {:ok, [{:ref, ref} | acc], ctx}
+      {validator_ref, ctx} = Builder.stage_build(ctx, ref)
+      {:ok, [{:ref, validator_ref} | acc], ctx}
     end
   end
 
@@ -31,9 +27,9 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
 
   def take_keyword({"$dynamicRef", raw_ref}, acc, ctx) do
     with {:ok, ref} <- Ref.parse_dynamic(raw_ref, ctx.ns) do
-      ctx = BuildContext.stage_ref(ctx, ref)
+      {validator_ref, ctx} = Builder.stage_build(ctx, ref)
 
-      {:ok, [{:dynamic_ref, ref} | acc], ctx}
+      {:ok, [{:dynamic_ref, validator_ref} | acc], ctx}
     end
   end
 
@@ -42,6 +38,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   skip_keyword("$comment")
+  skip_keyword("$id")
+  skip_keyword("$schema")
   ignore_any_keyword()
 
   def finalize_validators([]) do
