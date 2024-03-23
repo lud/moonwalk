@@ -219,7 +219,6 @@ defmodule Moonwalk.Schema.Resolver do
       end
 
     scan_map_values(raw_schema, id || parent_id, nss, meta, acc)
-    |> dbg()
   end
 
   defp scan_subschema(scalar, _parent_id, _nss, _meta, acc)

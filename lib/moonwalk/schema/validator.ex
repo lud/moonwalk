@@ -64,7 +64,7 @@ defmodule Moonwalk.Schema.Validator do
   alias Moonwalk.Schema.Validator.Context
 
   def validate(data, %Schema{} = schema) do
-    %{validators: validators, root_key: root_key} = schema |> dbg()
+    %{validators: validators, root_key: root_key} = schema
     ctx = Moonwalk.Schema.Validator.Context.new(validators)
 
     # TODO force pass a downpath segment register evaluated items and properties

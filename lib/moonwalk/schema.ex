@@ -93,14 +93,12 @@ defmodule Moonwalk.Schema.Builder do
       {buildable, bld} ->
         vkey = validator_key(buildable)
 
-        if is_map_key(all_validators, vkey) do
-          build_all(bld, all_validators)
+        with {:already_built?, false} <- {:already_built?, is_map_key(all_validators, vkey)},
+             {:ok, schema_validators, %__MODULE__{} = bld} <- build_schema_validators(bld, buildable) do
+          build_all(bld, Map.put(all_validators, vkey, schema_validators))
         else
-          with {:ok, schema_validators, %__MODULE__{} = bld} <- build_schema_validators(bld, buildable) do
-            build_all(bld, Map.put(all_validators, vkey, schema_validators))
-          else
-            {:error, _} = err -> err
-          end
+          {:already_built?, true} -> build_all(bld, all_validators)
+          {:error, _} = err -> err
         end
     end
   end
@@ -184,8 +182,6 @@ defmodule Moonwalk.Schema.Builder do
   end
 
   defp build_mod_validators(raw_schema, module, bld) do
-    raw_schema |> IO.inspect(label: "raw_schema")
-
     {leftovers, mod_acc, %__MODULE__{} = bld} =
       Enum.reduce(raw_schema, {[], module.init_validators(), bld}, fn pair, {leftovers, mod_acc, bld} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
@@ -221,8 +217,7 @@ defmodule Moonwalk.Schema do
 
     with {:ok, resolver} <- Resolver.new_root(raw_schema, %{resolver: resolver_impl}),
          bld = Builder.new(resolver: resolver),
-         {root_key, bld} = Builder.stage_build(bld, resolver.root) |> dbg(),
-         #  bld = stage_build_all(bld),
+         {root_key, bld} = Builder.stage_build(bld, resolver.root),
          {:ok, validators} <- Builder.build_all(bld) do
       {:ok, %Schema{validators: validators, root_key: root_key}}
     end
@@ -231,24 +226,6 @@ defmodule Moonwalk.Schema do
   def build(valid?, _opts) when is_boolean(valid?) do
     {:ok, %Schema{root_key: :root, validators: %{root: %BooleanSchema{value: valid?}}}}
   end
-
-  # defp stage_build_all(bld) do
-  #   bld.resolver.resolved
-  #   |> Map.keys()
-  #   |> Enum.reject(&match?({:meta, _}, &1))
-  #   |> Enum.reduce(bld, fn k, bld ->
-  #     {_, bld} = Builder.stage_build(bld, k)
-  #     bld
-  #   end)
-  # end
-
-  # def denormalize_sub(raw_sub, ctx) do
-  #   Resolver.as_sub(ctx, raw_sub, &x_todo_build_validators/2)
-  # end
-
-  # def denormalize_sub(bool, ctx) when is_boolean(bool) do
-  #   {:ok, %Moonwalk.Schema.BooleanSchema{value: bool}, ctx}
-  # end
 
   # Schema validators are the collection of validators for each namespace. Here
   # "schema" means the top document and all other referenced documents.
