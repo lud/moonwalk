@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Resolver do
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema
   alias Moonwalk.Schema.RNS
   alias Moonwalk.Helpers
@@ -138,14 +139,14 @@ defmodule Moonwalk.Schema.Resolver do
     # set.
     anchor =
       case Map.fetch(top_schema, "$anchor") do
-        {:ok, anchor} -> Enum.map(nss, &{:anchor, &1, anchor})
+        {:ok, anchor} -> Enum.map(nss, &Key.for_anchor(&1, anchor))
         :error -> []
       end
 
     dynamic_anchor =
       case Map.fetch(top_schema, "$dynamicAnchor") do
         # a dynamic anchor is also adressable as a regular anchor for the given namespace
-        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor} | Enum.map(nss, &{:anchor, &1, dynamic_anchor})]
+        {:ok, da} -> Enum.flat_map(nss, &[Key.for_anchor(&1, da), Key.for_dynamic_anchor(&1, da)])
         :error -> []
       end
 
@@ -189,14 +190,14 @@ defmodule Moonwalk.Schema.Resolver do
 
     anchor =
       case Map.fetch(raw_schema, "$anchor") do
-        {:ok, anchor} -> Enum.map(nss, &{:anchor, &1, anchor})
+        {:ok, anchor} -> Enum.map(nss, &Key.for_anchor(&1, anchor))
         :error -> []
       end
 
     dynamic_anchor =
       case Map.fetch(raw_schema, "$dynamicAnchor") do
         # a dynamic anchor is also adressable as a regular anchor for the given namespace
-        {:ok, dynamic_anchor} -> [{:dynamic_anchor, dynamic_anchor} | Enum.map(nss, &{:anchor, &1, dynamic_anchor})]
+        {:ok, da} -> Enum.flat_map(nss, &[Key.for_anchor(&1, da), Key.for_dynamic_anchor(&1, da)])
         :error -> []
       end
 

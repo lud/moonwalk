@@ -11,6 +11,7 @@ defmodule Moonwalk.Schema.BooleanSchema do
 end
 
 defmodule Moonwalk.Schema.Builder do
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Ref
   alias Moonwalk.Schema.RNS
@@ -35,24 +36,7 @@ defmodule Moonwalk.Schema.Builder do
       when is_binary(buildable)
       when is_struct(buildable, Ref)
       when buildable == :root do
-    key = to_build_key(buildable)
-    {key, %__MODULE__{bld | staged: append_unique(staged, buildable)}}
-  end
-
-  defp to_build_key(binary) when is_binary(binary) do
-    binary
-  end
-
-  defp to_build_key(%Ref{} = ref) do
-    Ref.to_key(ref)
-  end
-
-  defp to_build_key(:root) do
-    :root
-  end
-
-  defp to_build_key({:anchor, _, _} = k) do
-    k
+    {Key.of(buildable), %__MODULE__{bld | staged: append_unique(staged, buildable)}}
   end
 
   defp append_unique([key | t], key) do
@@ -91,15 +75,22 @@ defmodule Moonwalk.Schema.Builder do
         {:ok, all_validators}
 
       {buildable, bld} ->
-        vkey = validator_key(buildable)
+        vkey = Key.of(buildable)
 
-        with {:already_built?, false} <- {:already_built?, is_map_key(all_validators, vkey)},
+        with :buildable <- check_buildable(all_validators, vkey),
              {:ok, schema_validators, %__MODULE__{} = bld} <- build_schema_validators(bld, buildable) do
           build_all(bld, Map.put(all_validators, vkey, schema_validators))
         else
-          {:already_built?, true} -> build_all(bld, all_validators)
+          :already_built -> build_all(bld, all_validators)
           {:error, _} = err -> err
         end
+    end
+  end
+
+  defp check_buildable(all_validators, vkey) do
+    case is_map_key(all_validators, vkey) do
+      true -> :already_built
+      false -> :buildable
     end
   end
 
@@ -107,40 +98,12 @@ defmodule Moonwalk.Schema.Builder do
     with {:ok, %Resolver{} = resolver} <- Resolver.resolve(bld.resolver, resolvable),
          {:ok, %Resolved{} = resolved} <- Resolver.fetch_resolved(resolver, resolvable),
          {:ok, vocabularies} when is_list(vocabularies) <- Resolver.fetch_vocabularies_for(resolver, resolved) do
-      bld = %__MODULE__{bld | resolver: resolver, vocabularies: vocabularies, ns: namespace_of(resolvable)}
+      bld = %__MODULE__{bld | resolver: resolver, vocabularies: vocabularies, ns: Key.namespace_of(resolvable)}
 
       do_build_sub(resolved.raw, bld)
     else
       {:error, _} = err -> err
     end
-  end
-
-  defp namespace_of(binary) when is_binary(binary) do
-    binary
-  end
-
-  defp namespace_of(:root) do
-    :root
-  end
-
-  defp namespace_of(%Ref{ns: ns}) do
-    ns
-  end
-
-  defp validator_key(binary) when is_binary(binary) do
-    binary
-  end
-
-  defp validator_key(%Ref{} = ref) do
-    Ref.to_key(ref)
-  end
-
-  defp validator_key(:root) do
-    :root
-  end
-
-  defp validator_key({:anchor, _, _} = k) do
-    k
   end
 
   def build_sub(%{"$id" => id}, %__MODULE__{} = bld) do

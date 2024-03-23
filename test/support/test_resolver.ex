@@ -28,7 +28,7 @@ defmodule Moonwalk.Test.TestResolver do
   end
 
   defp fetch_and_write(url, path) do
-    with {:ok, %{body: json}} <- http_get(url),
+    with {:ok, %{status: 200, body: json}} <- http_get(url),
          :ok <- File.mkdir_p(Path.dirname(path)),
          {:ok, data} <- Jason.decode(json),
          :ok <- File.write(path, json) do

@@ -124,32 +124,4 @@ defmodule Moonwalk.Schema.Ref do
     |> String.replace("~0", "~")
     |> URI.decode()
   end
-
-  @doc """
-  Returns a key that identifies the associated validators in a context
-  """
-  def to_key(%{dynamic?: true, kind: :anchor} = ref) do
-    %{fragment: fragment} = ref
-    {:dynamic_anchor, fragment}
-  end
-
-  def to_key(ref) do
-    %Ref{kind: kind, ns: ns, fragment: fragment} = ref
-
-    case kind do
-      :top -> ns
-      :docpath -> {ns, :pointer, fragment}
-      :anchor -> {ns, :anchor, fragment}
-    end
-  end
-
-  # defimpl Inspect do
-  #   def inspect(%Ref{kind: kind, ns: :root, fragment: frag}, _opts) do
-  #     "Ref<#{inspect(kind)}, :root|#{frag}>"
-  #   end
-
-  #   def inspect(%Ref{kind: kind, ns: ns, fragment: frag}, _opts) do
-  #     "Ref<#{inspect(kind)}, #{ns}#{frag}>"
-  #   end
-  # end
 end
