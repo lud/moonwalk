@@ -1,6 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   alias Moonwalk.Schema.Validator
-  alias Moonwalk.Schema.Resolver
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.Ref

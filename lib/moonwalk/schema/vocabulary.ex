@@ -1,9 +1,7 @@
 defmodule Moonwalk.Schema.Vocabulary do
-  alias Moonwalk.Schema
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.Builder
-  alias Moonwalk.Schema.Resolver
   alias Moonwalk.Schema.Validator.Error
 
   @type validators :: term

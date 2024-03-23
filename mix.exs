@@ -10,6 +10,7 @@ defmodule Moonwalk.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      test_coverage: [tool: ExCoveralls],
       package: package()
     ]
   end
@@ -43,11 +44,16 @@ defmodule Moonwalk.MixProject do
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.18.0"}
     ]
   end
 
   defp package do
     [licenses: ["MIT"], links: %{"Github" => "https://github.com/lud/moonwalk"}]
+  end
+
+  def cli do
+    [preferred_envs: ["coveralls.html": :test]]
   end
 end

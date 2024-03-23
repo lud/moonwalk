@@ -1,6 +1,5 @@
 defmodule Moonwalk.Schema.Resolver do
   alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema
   alias Moonwalk.Schema.RNS
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Ref
@@ -83,9 +82,9 @@ defmodule Moonwalk.Schema.Resolver do
     {:ok, rsv}
   end
 
-  defp resolve_meta_loop(rsv, [nil | tail]) do
-    resolve_meta_loop(rsv, tail)
-  end
+  # defp resolve_meta_loop(rsv, [nil | tail]) do
+  #   resolve_meta_loop(rsv, tail)
+  # end
 
   defp resolve_meta_loop(rsv, [meta | tail]) when is_binary(meta) do
     with :unresolved <- check_resolved(rsv, {:meta, meta}),
@@ -94,7 +93,7 @@ defmodule Moonwalk.Schema.Resolver do
          {:ok, rsv} <- insert_cache_entries(rsv, [{{:meta, meta}, cache_entry}]) do
       resolve_meta_loop(rsv, [cache_entry.meta | tail])
     else
-      :already_resolved -> {:ok, rsv}
+      :already_resolved -> resolve_meta_loop(rsv, tail)
       {:error, _} = err -> err
     end
   end
@@ -125,11 +124,11 @@ defmodule Moonwalk.Schema.Resolver do
   defp scan_schema(top_schema, external_id) when not is_nil(external_id) do
     id = Map.get(top_schema, "$id", nil)
 
+    # TODO handle when external and ID differ
     nss =
       case {id, external_id} do
         {nil, ext} -> [ext]
         {ext, ext} -> [ext]
-        {id, ext} -> [id, ext]
       end
 
     # The schema will be findable by its $id or external id.

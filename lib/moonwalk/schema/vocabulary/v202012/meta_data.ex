@@ -15,12 +15,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
 
   ignore_any_keyword()
 
-  def finalize_validators([]) do
+  def finalize_validators(_) do
     :ignore
-  end
-
-  def finalize_validators(list) do
-    Map.new(list)
   end
 
   def validate(_data, _validators, _context) do

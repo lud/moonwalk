@@ -9,7 +9,6 @@ defmodule Moonwalk.Schema.Validator.Error do
 end
 
 defmodule Moonwalk.Schema.Validator.Context do
-  alias Moonwalk.Schema.Ref
   alias Moonwalk.Schema.Validator.Error
   defstruct [:path, :validators]
 
@@ -76,14 +75,14 @@ defmodule Moonwalk.Schema.Validator do
     validate_sub(data, root_validator, ctx)
   end
 
-  def validate_sub(data, %BooleanSchema{value: valid?}, ctx) do
-    case valid? do
+  def validate_sub(data, %BooleanSchema{} = bs, ctx) do
+    case BooleanSchema.valid?(bs) do
       true -> {:ok, data}
       false -> {:error, Context.boolean_schema_error(ctx)}
     end
   end
 
-  def validate_sub(data, {:alias_of, ns} = x, ctx) do
+  def validate_sub(data, {:alias_of, ns}, ctx) do
     validate_sub(data, Map.fetch!(ctx.validators, ns), ctx)
   end
 

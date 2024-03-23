@@ -1,7 +1,6 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Helpers
-  alias Moonwalk.Schema
   alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Validator.Context
   use Moonwalk.Schema.Vocabulary
