@@ -104,7 +104,7 @@ defmodule Moonwalk.Schema.Ref do
   end
 
   defp parse_fragment(anchor) do
-    {:anchor, "#" <> anchor, anchor}
+    {:anchor, anchor, anchor}
   end
 
   defp parse_docpath(raw_docpath) do

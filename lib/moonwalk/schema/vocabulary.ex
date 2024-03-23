@@ -8,10 +8,10 @@ defmodule Moonwalk.Schema.Vocabulary do
   @type pair :: {binary, term}
   @type data :: %{optional(binary) => data} | [data] | binary | boolean | number | nil
   @callback init_validators :: validators
-  @callback take_keyword(pair, validators, builder :: Builder.t()) ::
+  @callback take_keyword(pair, validators, bld :: Builder.t()) ::
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
-  @callback validate(data, validators, context :: Context.t()) :: {:ok, data} | {:error, Error.t()}
+  @callback validate(data, validators, ctx :: Context.t()) :: {:ok, data} | {:error, Error.t()}
 
   defmacro __using__(_) do
     quote do

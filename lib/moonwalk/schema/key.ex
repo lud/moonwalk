@@ -13,9 +13,13 @@ defmodule Moonwalk.Schema.Key do
     of_ref(ref)
   end
 
+  def of({:dynamic_anchor, _, _} = key) do
+    key
+  end
+
   defp of_ref(%{dynamic?: true, ns: ns, kind: :anchor} = ref) do
     %{fragment: fragment} = ref
-    {:dynamic_anchor, ns, fragment}
+    for_dynamic_anchor(ns, fragment)
   end
 
   defp of_ref(ref) do
@@ -44,11 +48,15 @@ defmodule Moonwalk.Schema.Key do
     binary
   end
 
-  def namespace_of(:root) do
-    :root
-  end
-
-  def namespace_of(%Ref{ns: ns}) do
+  def namespace_of({:anchor, ns, _}) do
     ns
   end
+
+  def namespace_of({:dynamic_anchor, ns, _}) do
+    ns
+  end
+
+  # def namespace_of(%Ref{ns: ns}) do
+  #   ns
+  # end
 end

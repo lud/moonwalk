@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Validator.Error do
+  # @derive {Inspect, only: [:resolver, :staged]}
   defstruct [:kind, :data, :args, :formatter]
 
   @opaque t :: %__MODULE__{}
@@ -48,12 +49,6 @@ defmodule Moonwalk.Schema.Validator.Context do
   def __make_error__(_ctx, kind, data, formatter, args) do
     Error.new(kind, data, formatter, args)
   end
-
-  defimpl Inspect do
-    def inspect(%{path: path}, _opts) do
-      "#Context<#{inspect(:lists.reverse(path))}>"
-    end
-  end
 end
 
 defmodule Moonwalk.Schema.Validator do
@@ -82,8 +77,8 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def validate_sub(data, {:alias_of, ns}, ctx) do
-    validate_sub(data, Map.fetch!(ctx.validators, ns), ctx)
+  def validate_sub(data, {:alias_of, key}, ctx) do
+    validate_sub(data, Map.fetch!(ctx.validators, key), ctx)
   end
 
   def validate_sub(data, schema_validators, ctx) do

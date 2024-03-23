@@ -102,6 +102,10 @@ defmodule Moonwalk.Schema.Resolver do
     check_resolved(rsv, id)
   end
 
+  defp check_resolved(rsv, {:dynamic_anchor, ns, _}) do
+    check_resolved(rsv, ns)
+  end
+
   defp check_resolved(rsv, id) when is_binary(id) or :root == id do
     case rsv do
       %{resolved: %{^id => _}} -> :already_resolved
@@ -145,7 +149,7 @@ defmodule Moonwalk.Schema.Resolver do
     dynamic_anchor =
       case Map.fetch(top_schema, "$dynamicAnchor") do
         # a dynamic anchor is also adressable as a regular anchor for the given namespace
-        {:ok, da} -> Enum.flat_map(nss, &[Key.for_anchor(&1, da), Key.for_dynamic_anchor(&1, da)])
+        {:ok, da} -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, da), Key.for_anchor(&1, da)])
         :error -> []
       end
 
@@ -196,7 +200,7 @@ defmodule Moonwalk.Schema.Resolver do
     dynamic_anchor =
       case Map.fetch(raw_schema, "$dynamicAnchor") do
         # a dynamic anchor is also adressable as a regular anchor for the given namespace
-        {:ok, da} -> Enum.flat_map(nss, &[Key.for_anchor(&1, da), Key.for_dynamic_anchor(&1, da)])
+        {:ok, da} -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, da), Key.for_anchor(&1, da)])
         :error -> []
       end
 
@@ -263,15 +267,11 @@ defmodule Moonwalk.Schema.Resolver do
     %{resolved: cache} = rsv
 
     cache_result =
-      Helpers.reduce_ok(entries, cache, fn
-        {{:dynamic_anchor, _} = k, v}, cache ->
-          {:ok, Map.put_new(cache, k, v)}
-
-        {k, v}, cache ->
-          case cache do
-            %{^k => _} -> {:error, {:duplicate_resolution, k}}
-            _ -> {:ok, Map.put(cache, k, v)}
-          end
+      Helpers.reduce_ok(entries, cache, fn {k, v}, cache ->
+        case cache do
+          %{^k => _} -> {:error, {:duplicate_resolution, k}}
+          _ -> {:ok, Map.put(cache, k, v)}
+        end
       end)
 
     with {:ok, cache} <- cache_result do
@@ -448,20 +448,62 @@ defmodule Moonwalk.Schema.Resolver do
     end
   end
 
-  # Pointer
+  defp deref_resolved(%{resolved: cache} = rsv, key) do
+    case Map.fetch(cache, key) do
+      {:ok, {:alias_of, key}} -> deref_resolved(rsv, key)
+      {:ok, cached} -> {:ok, cached}
+      :error -> {:error, {:missed_cache, key}}
+    end
+  end
+
+  # def fetch_resolved(rsv, binary) when is_binary(binary) do
+  #   do_fetch_resolved(rsv, binary)
+  # end
+
+  # def fetch_resolved(rsv, :root) do
+  #   do_fetch_resolved(rsv, :root)
+  # end
+
+  # def fetch_resolved(rsv, %Ref{} = ref) do
+  #   fetch_ref(rsv, ref)
+  # end
+
+  # def fetch_resolved(rsv, {:dynamic_anchor, _, _} = k) do
+  #   do_fetch_resolved(rsv, k)
+  # end
+
+  def fetch_resolved(%{resolved: cache}, key) do
+    case Map.fetch(cache, key) do
+      {:ok, cached} -> {:ok, cached}
+      :error -> {:error, {:missed_cache, key}}
+    end
+  end
+
+  defp fetch_ref(rsv, ref) do
+    case fetch_ref_raw_meta(rsv, ref) do
+      {:ok, raw, meta} -> {:ok, %Resolved{raw: raw, meta: meta}}
+      {:error, _} = err -> err
+    end
+  end
+
+  # When fetching a ref we deref aliases for anchors and docpaths as we need to
+  # retrieve some potentially nested part of the JSON schema. For :top
+  # references we can safely return the :alias_of tuple.
+
+  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: false, kind: :top} = ref) do
+    %{ns: ns} = ref
+
+    with {:ok, %{raw: raw, meta: meta}} <- fetch_resolved(rsv, ns) do
+      {:ok, raw, meta}
+    end
+  end
+
+  # TODO $dynamicRef with docpath should be resolved too.
   defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: _, kind: :docpath} = ref) do
     %{ns: ns, arg: docpath} = ref
 
     with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, ns),
          {:ok, raw} <- fetch_docpath(raw, docpath) do
-      {:ok, raw, meta}
-    end
-  end
-
-  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: false, kind: :top} = ref) do
-    %{ns: ns} = ref
-
-    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, ns) do
       {:ok, raw, meta}
     end
   end
@@ -476,6 +518,7 @@ defmodule Moonwalk.Schema.Resolver do
 
   # Dynamic anchor
   defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: true, kind: :anchor} = ref) do
+    raise "is this used?"
     %{ns: ns, arg: anchor} = ref
 
     # Try to resolve as a regular ref if no dynamic anchor is found
@@ -511,33 +554,6 @@ defmodule Moonwalk.Schema.Resolver do
     case Map.fetch(raw_schema, h) do
       {:ok, sub} -> do_fetch_docpath(sub, t)
       :error -> :error
-    end
-  end
-
-  defp deref_resolved(%{resolved: cache} = rsv, key) do
-    case Map.fetch(cache, key) do
-      {:ok, {:alias_of, alias_of}} -> deref_resolved(rsv, alias_of)
-      {:ok, cached} -> {:ok, cached}
-      :error -> {:error, {:missed_cache, key}}
-    end
-  end
-
-  def fetch_resolved(rsv, binary) when is_binary(binary) do
-    deref_resolved(rsv, binary)
-  end
-
-  def fetch_resolved(rsv, :root) do
-    deref_resolved(rsv, :root)
-  end
-
-  def fetch_resolved(rsv, %Ref{} = ref) do
-    fetch_ref(rsv, ref)
-  end
-
-  def fetch_ref(rsv, ref) do
-    case fetch_ref_raw_meta(rsv, ref) do
-      {:ok, raw, meta} -> {:ok, %Resolved{raw: raw, meta: meta}}
-      {:error, _} = err -> err
     end
   end
 end

@@ -9,21 +9,12 @@ defmodule Moonwalk.Schema.Builder do
   @derive {Inspect, only: [:resolver, :staged]}
   defstruct [:resolver, staged: [], vocabularies: nil, ns: nil]
 
-  # defimpl Inspect do
-  #   def inspect(t, _) do
-  #     "#Builder<>"
-  #   end
-  # end
-
   def new(opts) do
     struct!(__MODULE__, Map.new(opts))
   end
 
-  def stage_build(%{staged: staged} = bld, buildable)
-      when is_binary(buildable)
-      when is_struct(buildable, Ref)
-      when buildable == :root do
-    {Key.of(buildable), %__MODULE__{bld | staged: append_unique(staged, buildable)}}
+  def stage_build(%{staged: staged} = bld, buildable) do
+    %__MODULE__{bld | staged: append_unique(staged, buildable)}
   end
 
   defp append_unique([key | t], key) do
@@ -57,21 +48,82 @@ defmodule Moonwalk.Schema.Builder do
   end
 
   defp build_all(bld, all_validators) do
+    # We split the buildables in three cases:
+    # - One dynamic refs will lead to build all existing dynamic refs not
+    #   already built.
+    # - Resolvables such as ID and Ref will be resolved and turned into
+    #   :resolved tuples.
+    # - :resolved tuples assume to be already resolved and will be built into
+    #   validators.
+    #
+    # We need to do that 2-pass in the stage list because some resolvables
+    # (dynamic refs) lead to stage and build multiple validators.
+
     case take_staged(bld) do
-      :empty ->
-        {:ok, all_validators}
-
-      {buildable, bld} ->
-        vkey = Key.of(buildable)
-
+      {{:resolved, vkey}, %{resolver: resolver} = bld} ->
         with :buildable <- check_buildable(all_validators, vkey),
-             {:ok, schema_validators, %__MODULE__{} = bld} <- build_schema_validators(bld, buildable) do
+             {:ok, resolved} <- Resolver.fetch_resolved(resolver, vkey),
+             {:ok, schema_validators, bld} <- build_resolved(bld, vkey, resolved) do
           build_all(bld, Map.put(all_validators, vkey, schema_validators))
         else
-          :already_built -> build_all(bld, all_validators)
+          # :already_built -> build_all(bld, all_validators)
           {:error, _} = err -> err
         end
+
+      {%Ref{dynamic?: true}, bld} ->
+        bld = stage_all_dynamic(bld)
+        build_all(bld, all_validators)
+
+      {resolvable, bld} when is_binary(resolvable) when is_struct(resolvable, Ref) ->
+        with :buildable <- check_buildable(all_validators, Key.of(resolvable)),
+             {:ok, bld} <- resolve_and_stage(bld, resolvable) do
+          build_all(bld, all_validators)
+        else
+          {:error, _} = err -> err
+        end
+
+      # Finally there is nothing more to build
+      :empty ->
+        {:ok, all_validators}
     end
+  end
+
+  defp resolve_and_stage(bld, resolvable) do
+    %{resolver: resolver, staged: staged} = bld
+    vkey = Key.of(resolvable)
+
+    with {:ok, new_resolver} <- Resolver.resolve(resolver, resolvable) do
+      {:ok, %__MODULE__{bld | resolver: new_resolver, staged: [{:resolved, vkey} | staged]}}
+    else
+      {:error, _} = err -> err
+    end
+  end
+
+  defp stage_all_dynamic(bld) do
+    # To build all dynamic references we tap into the resolver. The resolver
+    # also conveniently allows to fetch by its own keys ({:dynamic_anchor, _,
+    # _}) instead of passing the original ref.
+    #
+    # Everytime we encounter a dynamic ref in build_all/2 we insert all dynamic
+    # references into the staged list. But if we insert the reft itself it will
+    # lead to an infinite loop, since we do that when we find a ref in this
+    # loop.
+    #
+    # So instead of inserting the ref we insert the Key, and the Key module and
+    # Resolver accept to work with that kind of schema identifier (that is,
+    # {:dynamic_anchor, _, _} tuple).
+
+    # new items can appear when we build subschemas that stage a ref in the
+    # build struct.
+    #
+    # But to keep it clean we just scan the whole list every time.
+    dynamic_buildables =
+      Enum.flat_map(bld.resolver.resolved, fn
+        {{:dynamic_anchor, _, _} = vkey, _resolved} -> [{:resolved, vkey}]
+        _ -> []
+      end)
+
+    %__MODULE__{bld | staged: dynamic_buildables ++ bld.staged}
   end
 
   defp check_buildable(all_validators, vkey) do
@@ -81,16 +133,29 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
-  defp build_schema_validators(%__MODULE__{} = bld, resolvable) do
+  defp build_schema_validators(%__MODULE__{} = bld, {:resolved, key, resolved} = resolvable) do
     with {:ok, %Resolver{} = resolver} <- Resolver.resolve(bld.resolver, resolvable),
-         {:ok, %Resolved{} = resolved} <- Resolver.fetch_resolved(resolver, resolvable),
-         {:ok, vocabularies} when is_list(vocabularies) <- Resolver.fetch_vocabularies_for(resolver, resolved) do
-      bld = %__MODULE__{bld | resolver: resolver, vocabularies: vocabularies, ns: Key.namespace_of(resolvable)}
+         {:ok, resolved} <- Resolver.fetch_resolved(resolver, resolvable) do
+      bld = %__MODULE__{bld | resolver: resolver}
+    else
+      {:error, _} = err -> err
+    end
+  end
+
+  defp build_resolved(bld, vkey, %Resolved{} = resolved) do
+    with {:ok, vocabularies} when is_list(vocabularies) <- Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
+      bld = %__MODULE__{bld | vocabularies: vocabularies, ns: Key.namespace_of(vkey)}
 
       do_build_sub(resolved.raw, bld)
     else
       {:error, _} = err -> err
     end
+  end
+
+  defp build_resolved(bld, _vkey, {:alias_of, key}) do
+    # If the resolver returns an alias we know the target of the alias is
+    # already resolved, so we can just stage it as so.
+    {:ok, {:alias_of, key}, stage_build(bld, {:resolved, key})}
   end
 
   def build_sub(%{"$id" => id}, %__MODULE__{} = bld) do
@@ -148,6 +213,7 @@ defmodule Moonwalk.Schema.Builder do
 end
 
 defmodule Moonwalk.Schema do
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Schema.Resolver
@@ -163,7 +229,8 @@ defmodule Moonwalk.Schema do
 
     with {:ok, resolver} <- Resolver.new_root(raw_schema, %{resolver: resolver_impl}),
          bld = Builder.new(resolver: resolver),
-         {root_key, bld} = Builder.stage_build(bld, resolver.root),
+         bld = Builder.stage_build(bld, resolver.root),
+         root_key = Key.of(resolver.root),
          {:ok, validators} <- Builder.build_all(bld) do
       {:ok, %Schema{validators: validators, root_key: root_key}}
     end

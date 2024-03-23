@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Schema.Validator.Context
@@ -9,31 +10,31 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     []
   end
 
-  def take_keyword({"$ref", raw_ref}, acc, ctx) do
-    with {:ok, ref} <- Ref.parse(raw_ref, ctx.ns) do
-      {validator_ref, ctx} = Builder.stage_build(ctx, ref)
-      {:ok, [{:ref, validator_ref} | acc], ctx}
+  def take_keyword({"$ref", raw_ref}, acc, bld) do
+    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) do
+      bld = Builder.stage_build(bld, ref)
+      {:ok, [{:ref, Key.of(ref)} | acc], bld}
     end
   end
 
-  def take_keyword({"$defs", _defs}, acc, ctx) do
-    {:ok, acc, ctx}
+  def take_keyword({"$defs", _defs}, acc, bld) do
+    {:ok, acc, bld}
   end
 
-  def take_keyword({"$anchor", _anchor}, acc, ctx) do
-    {:ok, acc, ctx}
+  def take_keyword({"$anchor", _anchor}, acc, bld) do
+    {:ok, acc, bld}
   end
 
-  def take_keyword({"$dynamicRef", raw_ref}, acc, ctx) do
-    with {:ok, ref} <- Ref.parse_dynamic(raw_ref, ctx.ns) do
-      {validator_ref, ctx} = Builder.stage_build(ctx, ref)
+  def take_keyword({"$dynamicRef", raw_ref}, acc, bld) do
+    with {:ok, ref} <- Ref.parse_dynamic(raw_ref, bld.ns) do
+      bld = Builder.stage_build(bld, ref)
 
-      {:ok, [{:dynamic_ref, validator_ref} | acc], ctx}
+      {:ok, [{:dynamic_ref, Key.of(ref)} | acc], bld}
     end
   end
 
-  def take_keyword({"$dynamicAnchor", _anchor}, acc, ctx) do
-    {:ok, acc, ctx}
+  def take_keyword({"$dynamicAnchor", _anchor}, acc, bld) do
+    {:ok, acc, bld}
   end
 
   skip_keyword("$comment")
