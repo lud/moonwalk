@@ -92,16 +92,24 @@ defmodule Moonwalk.Schema.Vocabulary do
   end
 
   def take_integer(key, n, acc, ctx) when is_list(acc) do
-    with :ok <- check_integer(n) do
+    with {:ok, n} <- force_integer(n) do
       {:ok, [{key, n} | acc], ctx}
     end
   end
 
-  defp check_integer(n) when is_integer(n) do
-    :ok
+  defp force_integer(n) when is_integer(n) do
+    {:ok, n}
   end
 
-  defp check_integer(other) do
+  defp force_integer(n) when is_float(n) do
+    if Helpers.fractional_is_zero?(n) do
+      {:ok, Helpers.trunc(n)}
+    else
+      {:error, "not an integer: #{inspect(n)}"}
+    end
+  end
+
+  defp force_integer(other) do
     {:error, "not an integer: #{inspect(other)}"}
   end
 

@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
+  alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator.Context
   use Moonwalk.Schema.Vocabulary
 
@@ -218,7 +219,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   pass validate_keyword(data, {:min_items, _}, _)
 
   defp validate_keyword(data, {:multiple_of, n}, ctx) when is_number(data) do
-    case fractional_is_zero?(data / n) do
+    case Helpers.fractional_is_zero?(data / n) do
       true -> {:ok, data}
       false -> {:error, Context.make_error(ctx, :multiple_of, data, multiple_of: n)}
     end
@@ -331,7 +332,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   defp validate_type(data, :integer) when is_float(data) do
-    fractional_is_zero?(data) && {:swap, trunc(data)}
+    Helpers.fractional_is_zero?(data) && {:swap, trunc(data)}
   end
 
   defp validate_type(data, :integer) do
@@ -340,10 +341,5 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   defp validate_type(data, :number) do
     is_number(data)
-  end
-
-  # TODO this will not work with large numbers
-  defp fractional_is_zero?(n) when is_float(n) do
-    n - trunc(n) === 0.0
   end
 end

@@ -1,6 +1,7 @@
 defmodule Moonwalk.Helpers do
   @type result :: {:ok, term} | {:error, term}
   @type result(t) :: {:ok, t} | {:error, term}
+  import Kernel, except: [trunc: 1]
 
   # @spec map_ok(Enumerable.t(), (term -> result(term))) :: result([term])
   # def map_ok(enum, f) when is_function(f, 1) do
@@ -30,5 +31,15 @@ defmodule Moonwalk.Helpers do
       {:error, _} = err -> err
       acc -> {:ok, acc}
     end
+  end
+
+  # TODO this will not work with large numbers
+  def fractional_is_zero?(n) when is_float(n) do
+    n - Kernel.trunc(n) === 0.0
+  end
+
+  # TODO check behaviour with large numbers
+  def trunc(n) when is_float(n) do
+    Kernel.trunc(n)
   end
 end
