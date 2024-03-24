@@ -18,34 +18,38 @@ defmodule Moonwalk.Schema.Key do
   end
 
   defp of_ref(%{dynamic?: true, ns: ns, kind: :anchor} = ref) do
-    %{fragment: fragment} = ref
-    for_dynamic_anchor(ns, fragment)
+    %{arg: arg} = ref
+    for_dynamic_anchor(ns, arg)
   end
 
-  defp of_ref(ref) do
-    %Ref{kind: kind, ns: ns, fragment: fragment} = ref
+  defp of_ref(%{dynamic?: false} = ref) do
+    %Ref{kind: kind, ns: ns, arg: arg} = ref
 
     case kind do
       :top -> ns
-      :docpath -> for_pointer(ns, fragment)
-      :anchor -> for_anchor(ns, fragment)
+      :docpath -> for_pointer(ns, arg)
+      :anchor -> for_anchor(ns, arg)
     end
   end
 
-  def for_pointer(ns, fragment) do
-    {:pointer, ns, fragment}
+  def for_pointer(ns, arg) do
+    {:pointer, ns, arg}
   end
 
-  def for_anchor(ns, fragment) do
-    {:anchor, ns, fragment}
+  def for_anchor(ns, arg) do
+    {:anchor, ns, arg}
   end
 
-  def for_dynamic_anchor(ns, fragment) do
-    {:dynamic_anchor, ns, fragment}
+  def for_dynamic_anchor(ns, arg) do
+    {:dynamic_anchor, ns, arg}
   end
 
   def namespace_of(binary) when is_binary(binary) do
     binary
+  end
+
+  def namespace_of(:root) do
+    :root
   end
 
   def namespace_of({:anchor, ns, _}) do
@@ -53,6 +57,10 @@ defmodule Moonwalk.Schema.Key do
   end
 
   def namespace_of({:dynamic_anchor, ns, _}) do
+    ns
+  end
+
+  def namespace_of({:pointer, ns, _}) do
     ns
   end
 

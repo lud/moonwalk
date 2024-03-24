@@ -11,20 +11,45 @@ end
 
 defmodule Moonwalk.Schema.Validator.Context do
   alias Moonwalk.Schema.Validator.Error
-  defstruct [:path, :validators]
+  defstruct [:path, :validators, :scope]
 
   @opaque t :: %__MODULE__{}
 
-  def new(validators) do
-    %__MODULE__{path: [], validators: validators}
+  def new(validators, root_scope) do
+    %__MODULE__{path: [], validators: validators, scope: [root_scope]}
   end
 
   def downpath(%{path: path} = ctx, key) do
     %__MODULE__{ctx | path: [key | path]}
   end
 
+  def checkout_ref(%{scope: scope} = ctx, {:dynamic_anchor, ns, anchor}) do
+    case checkout_dynamic_ref(scope, ctx, anchor) do
+      :error -> checkout_ref(ctx, {:anchor, ns, anchor})
+      {:ok, v} -> v
+    end
+  end
+
   def checkout_ref(%{validators: vds}, vkey) do
     Map.fetch!(vds, vkey)
+  end
+
+  defp checkout_dynamic_ref([nil | scope], ctx, anchor) do
+    checkout_dynamic_ref(scope, ctx, anchor)
+  end
+
+  defp checkout_dynamic_ref([h | scope], ctx, anchor) do
+    with :error <- checkout_dynamic_ref(scope, ctx, anchor) do
+      Map.fetch(ctx.validators, {:dynamic_anchor, h, anchor})
+    end
+  end
+
+  defp checkout_dynamic_ref([], _, _) do
+    :error
+  end
+
+  def append_scope(%__MODULE__{scope: scope} = ctx, segment) do
+    %__MODULE__{ctx | scope: [segment | scope]}
   end
 
   @deprecated "use make_error"
@@ -59,7 +84,7 @@ defmodule Moonwalk.Schema.Validator do
 
   def validate(data, %Schema{} = schema) do
     %{validators: validators, root_key: root_key} = schema
-    ctx = Moonwalk.Schema.Validator.Context.new(validators)
+    ctx = Moonwalk.Schema.Validator.Context.new(validators, root_key)
 
     # TODO force pass a downpath segment register evaluated items and properties
     # in the context
@@ -81,9 +106,14 @@ defmodule Moonwalk.Schema.Validator do
     validate_sub(data, Map.fetch!(ctx.validators, key), ctx)
   end
 
+  IO.warn("remove __scope__")
+
   def validate_sub(data, schema_validators, ctx) do
-    Helpers.reduce_ok(schema_validators, data, fn {module, vds}, data ->
-      module.validate(data, vds, ctx)
+    ctx = Context.append_scope(ctx, schema_validators[:__scope__])
+
+    Helpers.reduce_ok(schema_validators, data, fn
+      {:__scope__, _}, data -> {:ok, data}
+      {module, vds}, data -> module.validate(data, vds, ctx)
     end)
   end
 end

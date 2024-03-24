@@ -456,13 +456,28 @@ defmodule Moonwalk.Schema.Resolver do
     end
   end
 
-  # def fetch_resolved(rsv, binary) when is_binary(binary) do
-  #   do_fetch_resolved(rsv, binary)
-  # end
+  def fetch_resolved(rsv, binary) when is_binary(binary) do
+    do_fetch_resolved(rsv, binary)
+  end
 
-  # def fetch_resolved(rsv, :root) do
-  #   do_fetch_resolved(rsv, :root)
-  # end
+  def fetch_resolved(rsv, :root) do
+    do_fetch_resolved(rsv, :root)
+  end
+
+  def fetch_resolved(rsv, {:pointer, ns, docpath}) do
+    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, ns),
+         {:ok, nested} <- fetch_docpath(raw, docpath) do
+      {:ok, %Resolved{raw: nested, meta: meta}}
+    end
+  end
+
+  def fetch_resolved(rsv, {:dynamic_anchor, _, _} = k) do
+    do_fetch_resolved(rsv, k)
+  end
+
+  def fetch_resolved(rsv, {:anchor, _, _} = k) do
+    do_fetch_resolved(rsv, k)
+  end
 
   # def fetch_resolved(rsv, %Ref{} = ref) do
   #   fetch_ref(rsv, ref)
@@ -472,17 +487,10 @@ defmodule Moonwalk.Schema.Resolver do
   #   do_fetch_resolved(rsv, k)
   # end
 
-  def fetch_resolved(%{resolved: cache}, key) do
+  defp do_fetch_resolved(%{resolved: cache}, key) do
     case Map.fetch(cache, key) do
       {:ok, cached} -> {:ok, cached}
       :error -> {:error, {:missed_cache, key}}
-    end
-  end
-
-  defp fetch_ref(rsv, ref) do
-    case fetch_ref_raw_meta(rsv, ref) do
-      {:ok, raw, meta} -> {:ok, %Resolved{raw: raw, meta: meta}}
-      {:error, _} = err -> err
     end
   end
 

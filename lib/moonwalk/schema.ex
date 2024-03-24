@@ -29,12 +29,23 @@ defmodule Moonwalk.Schema.Builder do
     [key]
   end
 
+  def ensure_resolved(%{resolver: resolver} = bld, resolvable) do
+    case Resolver.resolve(resolver, resolvable) do
+      {:ok, resolver} -> {:ok, %__MODULE__{bld | resolver: resolver}}
+      {:error, _} = err -> err
+    end
+  end
+
+  def fetch_resolved(%{resolver: resolver}, key) do
+    Resolver.fetch_resolved(resolver, key)
+  end
+
   defp take_staged(%{staged: []}) do
     :empty
   end
 
-  defp take_staged(%{staged: [h | t]} = bld) do
-    {h, %__MODULE__{bld | staged: t}}
+  defp take_staged(%{staged: [staged | tail]} = bld) do
+    {staged, %__MODULE__{bld | staged: tail}}
   end
 
   # * all_validators represent the map of schema_id_or_ref => validators for
@@ -64,9 +75,9 @@ defmodule Moonwalk.Schema.Builder do
         with :buildable <- check_buildable(all_validators, vkey),
              {:ok, resolved} <- Resolver.fetch_resolved(resolver, vkey),
              {:ok, schema_validators, bld} <- build_resolved(bld, vkey, resolved) do
-          build_all(bld, Map.put(all_validators, vkey, schema_validators))
+          build_all(bld, Map.put(all_validators, vkey, put_scope(schema_validators, vkey)))
         else
-          # :already_built -> build_all(bld, all_validators)
+          {:already_built, _} -> build_all(bld, all_validators)
           {:error, _} = err -> err
         end
 
@@ -74,11 +85,12 @@ defmodule Moonwalk.Schema.Builder do
         bld = stage_all_dynamic(bld)
         build_all(bld, all_validators)
 
-      {resolvable, bld} when is_binary(resolvable) when is_struct(resolvable, Ref) ->
+      {resolvable, bld} when is_binary(resolvable) when is_struct(resolvable, Ref) when :root == resolvable ->
         with :buildable <- check_buildable(all_validators, Key.of(resolvable)),
              {:ok, bld} <- resolve_and_stage(bld, resolvable) do
           build_all(bld, all_validators)
         else
+          {:already_built, _} -> build_all(bld, all_validators)
           {:error, _} = err -> err
         end
 
@@ -88,13 +100,24 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
+  defp put_scope(%BooleanSchema{} = schema_validators, _vkey) do
+    schema_validators
+  end
+
+  defp put_scope(schema_validators, vkey) when is_map(schema_validators) do
+    Map.put(schema_validators, :__scope__, Key.namespace_of(vkey))
+  end
+
+  defp put_scope({:alias_of, _} = aliased, _vkey) do
+    aliased
+  end
+
   defp resolve_and_stage(bld, resolvable) do
     %{resolver: resolver, staged: staged} = bld
     vkey = Key.of(resolvable)
 
-    with {:ok, new_resolver} <- Resolver.resolve(resolver, resolvable) do
-      {:ok, %__MODULE__{bld | resolver: new_resolver, staged: [{:resolved, vkey} | staged]}}
-    else
+    case Resolver.resolve(resolver, resolvable) do
+      {:ok, new_resolver} -> {:ok, %__MODULE__{bld | resolver: new_resolver, staged: [{:resolved, vkey} | staged]}}
       {:error, _} = err -> err
     end
   end
@@ -128,27 +151,19 @@ defmodule Moonwalk.Schema.Builder do
 
   defp check_buildable(all_validators, vkey) do
     case is_map_key(all_validators, vkey) do
-      true -> :already_built
+      true -> {:already_built, vkey}
       false -> :buildable
     end
   end
 
-  defp build_schema_validators(%__MODULE__{} = bld, {:resolved, key, resolved} = resolvable) do
-    with {:ok, %Resolver{} = resolver} <- Resolver.resolve(bld.resolver, resolvable),
-         {:ok, resolved} <- Resolver.fetch_resolved(resolver, resolvable) do
-      bld = %__MODULE__{bld | resolver: resolver}
-    else
-      {:error, _} = err -> err
-    end
-  end
-
   defp build_resolved(bld, vkey, %Resolved{} = resolved) do
-    with {:ok, vocabularies} when is_list(vocabularies) <- Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
-      bld = %__MODULE__{bld | vocabularies: vocabularies, ns: Key.namespace_of(vkey)}
+    case Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
+      {:ok, vocabularies} when is_list(vocabularies) ->
+        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: Key.namespace_of(vkey)}
+        do_build_sub(resolved.raw, bld)
 
-      do_build_sub(resolved.raw, bld)
-    else
-      {:error, _} = err -> err
+      {:error, _} = err ->
+        err
     end
   end
 
@@ -160,11 +175,11 @@ defmodule Moonwalk.Schema.Builder do
 
   def build_sub(%{"$id" => id}, %__MODULE__{} = bld) do
     with {:ok, key} <- RNS.derive(bld.ns, id) do
-      {:ok, {:alias_of, key}, bld}
+      {:ok, {:alias_of, key}, stage_build(bld, key)}
     end
   end
 
-  def build_sub(raw_schema, %__MODULE__{} = bld) do
+  def build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) when is_boolean(raw_schema) do
     do_build_sub(raw_schema, bld)
   end
 
