@@ -268,7 +268,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   defp validate_keyword(data, {:enum, enum}, ctx) do
-    if data in enum do
+    # validate 1 == 1.0 or 1.0 == 1
+    if Enum.any?(enum, &(&1 == data)) do
       {:ok, data}
     else
       {:error, Context.make_error(ctx, :enum, data, enum: enum)}

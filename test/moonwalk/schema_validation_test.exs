@@ -24,7 +24,7 @@ defmodule Moonwalk.SchemaValidationTest do
     # {"id.json", []},
     # {"defs.json", []},
     {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
-    # {"enum.json", []},
+    {"enum.json", []},
     {"dynamicRef.json", [ignore: ["strict-tree schema, guards against misspelled properties"]]},
     {"multipleOf.json", []},
     {"additionalProperties.json", []},
