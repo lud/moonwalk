@@ -29,7 +29,7 @@ defmodule Moonwalk.SchemaValidationTest do
     {"multipleOf.json", []},
     {"additionalProperties.json", []},
     {"anchor.json", []},
-    # {"ref.json", ignore: ["ref creates new scope when adjacent to keywords"]},
+    {"default.json", []},
     {"ref.json", ignore: ["ref creates new scope when adjacent to keywords"]},
     {"anyOf.json", []},
     {"oneOf.json", []},
