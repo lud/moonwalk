@@ -54,12 +54,12 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
 
     if unchecked != [] do
       total = length(unchecked)
-      maxprint = 10
+      maxprint = 20
       more? = total > maxprint
 
       print_list =
         unchecked
-        |> Enum.sort()
+        |> Enum.shuffle()
         |> Enum.take(maxprint)
         |> Enum.map_intersperse(?\n, fn {filename, _, false} ->
           "- #{filename}"

@@ -78,7 +78,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   def take_keyword({"uniqueItems", unique?}, acc, ctx) do
-    take_boolean(:unique_items, unique?, acc, ctx)
+    if unique? do
+      {:ok, [{:unique_items, true} | acc], ctx}
+    else
+      {:ok, acc, ctx}
+    end
   end
 
   ignore_any_keyword()
@@ -285,6 +289,23 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   pass validate_keyword(data, {:pattern, _}, _)
+
+  defp validate_keyword(data, {:unique_items, true}, ctx) when is_list(data) do
+    data
+    |> Enum.with_index()
+    |> Enum.reduce({[], %{}}, fn {item, index}, {errors, seen} ->
+      if Map.has_key?(seen, item) do
+        {[Context.make_error(ctx, :unique_items_item, item, index: index) | errors], seen}
+      else
+        {errors, Map.put(seen, item, true)}
+      end
+    end)
+    |> case do
+      {[], _} -> {:ok, data}
+      {errors, _} -> {:error, Context.make_error(ctx, :unique_items, data, errors: errors)}
+    end
+  end
+
   # ---------------------------------------------------------------------------
 
   defp validate_type(data, :array) do
