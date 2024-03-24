@@ -21,6 +21,7 @@ defmodule Moonwalk.SchemaValidationTest do
   end)
 
   suites = [
+    {"required.json", []},
     {"id.json", []},
     {"prefixItems.json", []},
     {"refRemote.json", []},
