@@ -197,6 +197,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
+  pass validate_keyword(data, {:all_items, _}, _)
+
   defp validate_keyword(data, {:one_of, subvalidators}, ctx) do
     case validate_split(subvalidators, data, ctx) do
       {[{_, data}], _} ->
@@ -393,8 +395,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   #   {:error, Error.group(errors)}
   # end
 
-  # defp validate_prefix_items([], [_schema | _], _ctx, offset, validated, []) do
-  #   # fewer items than prefix is valid
-  #   {:ok, :lists.reverse(validated), offset}
-  # end
+  defp validate_prefix_items([], [_schema | _], _ctx, offset, validated, []) do
+    # fewer items than prefix is valid
+    {:ok, :lists.reverse(validated), offset}
+  end
 end
