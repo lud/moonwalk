@@ -306,6 +306,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
+  pass validate_keyword(data, {:unique_items, true}, _)
+
   # ---------------------------------------------------------------------------
 
   defp validate_type(data, :array) do
