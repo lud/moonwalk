@@ -244,6 +244,9 @@ defmodule Moonwalk.Schema.Resolver do
       {"properties", props}, _ ->
         raise "TODO what are those properties?: #{inspect(props)}"
 
+      {ignored, _}, _ when ignored in ["enum", "const"] ->
+        {:ok, acc}
+
       {_k, v}, acc ->
         scan_subschema(v, parent_id, nss, meta, acc)
     end)
