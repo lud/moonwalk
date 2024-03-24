@@ -128,11 +128,11 @@ defmodule Moonwalk.Schema.Resolver do
   defp scan_schema(top_schema, external_id) when not is_nil(external_id) do
     id = Map.get(top_schema, "$id", nil)
 
-    # TODO handle when external and ID differ
     nss =
       case {id, external_id} do
         {nil, ext} -> [ext]
         {ext, ext} -> [ext]
+        {local, ext} -> [local, ext]
       end
 
     # The schema will be findable by its $id or external id.
