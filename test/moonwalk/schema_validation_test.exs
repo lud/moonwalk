@@ -21,40 +21,47 @@ defmodule Moonwalk.SchemaValidationTest do
   end)
 
   suites = [
-    {"optional/anchor.json", []},
-    {"maxItems.json", []},
-    {"minItems.json", []},
-    {"required.json", []},
-    {"id.json", []},
-    {"prefixItems.json", []},
-    {"refRemote.json", []},
-    {"maxLength.json", []},
-    {"defs.json", []},
-    {"patternProperties.json", []},
-    {"uniqueItems.json", []},
-    {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
-    {"enum.json", []},
-    {"dynamicRef.json", [ignore: ["strict-tree schema, guards against misspelled properties"]]},
-    {"multipleOf.json", []},
+    {"contains.json", []},
     {"additionalProperties.json", []},
-    {"anchor.json", []},
-    {"default.json", []},
-    {"ref.json", ignore: ["ref creates new scope when adjacent to keywords"]},
-    {"anyOf.json", []},
-    {"oneOf.json", []},
-    {"infinite-loop-detection.json", []},
-    {"const.json", []},
-    {"if-then-else.json", []},
     {"allOf.json", []},
-    {"properties.json", []},
-    {"exclusiveMinimum.json", []},
-    {"minimum.json", []},
-    {"exclusiveMaximum.json", []},
-    {"maximum.json", []},
+    {"anchor.json", []},
+    {"anyOf.json", []},
+    {"boolean_schema.json", []},
+    {"const.json", []},
     {"content.json", validate: false},
+    {"default.json", []},
+    {"defs.json", []},
+    {"dynamicRef.json", [ignore: ["strict-tree schema, guards against misspelled properties"]]},
+    {"enum.json", []},
+    {"exclusiveMaximum.json", []},
+    {"exclusiveMinimum.json", []},
+    {"id.json", []},
+    {"if-then-else.json", []},
+    {"infinite-loop-detection.json", []},
+    {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
+    {"maximum.json", []},
+    {"maxItems.json", []},
+    {"maxLength.json", []},
+    {"minimum.json", []},
+    {"minItems.json", []},
+    {"multipleOf.json", []},
+    {"oneOf.json", []},
+    {"patternProperties.json", []},
+    {"prefixItems.json", []},
+    {"properties.json", []},
+    {"ref.json", ignore: ["ref creates new scope when adjacent to keywords"]},
+    {"refRemote.json", []},
+    {"required.json", []},
     {"type.json", []},
+    {"uniqueItems.json", []},
     {"vocabulary.json", []},
-    {"boolean_schema.json", []}
+
+    # Optionals
+
+    {"optional/anchor.json", []}
+
+    # This one will require to get all
+    # {"optional/unknownKeyword.json", []}
   ]
 
   Enum.each(suites, fn {filename, opts} ->
@@ -67,7 +74,7 @@ defmodule Moonwalk.SchemaValidationTest do
 
       ignore_all? = case_descr in ignored
 
-      describe filename <> " - " <> case_descr <> " - " do
+      describe "[#{filename}] #{case_descr}:" do
         setup do
           {:ok, %{test_case: unquote(Macro.escape(test_case))}}
         end

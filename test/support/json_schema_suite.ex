@@ -10,7 +10,6 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
       dir
       |> Path.join("**/*.json")
       |> Path.wildcard()
-      |> Enum.sort()
       |> Enum.map(fn path -> {Path.relative_to(path, dir), path, false} end)
 
     {:ok, _} = Agent.start_link(fn -> %{dir: dir, files: files} end, name: __MODULE__)
@@ -54,12 +53,15 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
 
     if unchecked != [] do
       total = length(unchecked)
-      maxprint = 200
+      maxprint = 10
       more? = total > maxprint
 
       print_list =
         unchecked
-        |> Enum.sort()
+        |> Enum.sort_by(fn
+          {"optional/" <> _ = subpath, _, _} -> {1, subpath}
+          {subpath, _, _} -> {0, subpath}
+        end)
         |> Enum.take(maxprint)
         |> Enum.map_intersperse(?\n, fn {filename, _, false} ->
           "- #{filename}"

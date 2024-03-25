@@ -11,7 +11,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   todo_take_keywords(~w(
     additionalItems
-    contains
+
     not
   ))
 
@@ -100,6 +100,13 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   def take_keyword({"propertyNames", property_names}, acc, ctx) do
     take_sub(:property_names, property_names, acc, ctx)
+  end
+
+  def take_keyword({"contains", contains}, acc, ctx) do
+    case Builder.build_sub(contains, ctx) do
+      {:ok, subvalidators, ctx} -> {:ok, [{:contains, subvalidators} | acc], ctx}
+      {:error, _} = err -> err
+    end
   end
 
   ignore_any_keyword()
@@ -246,6 +253,24 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
         end
     end
   end
+
+  defp validate_keyword(data, {:contains, subschema}, ctx) when is_list(data) do
+    any_match? =
+      Enum.any?(data, fn item ->
+        case Validator.validate_sub(item, subschema, ctx) do
+          {:ok, _} -> true
+          {:error, _} -> false
+        end
+      end)
+
+    if any_match? do
+      {:ok, data}
+    else
+      {:error, Context.make_error(ctx, :contains, data, [])}
+    end
+  end
+
+  pass validate_keyword(data, {:contains, _}, _)
 
   # ---------------------------------------------------------------------------
 
