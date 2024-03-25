@@ -9,7 +9,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   todo_take_keywords ~w(
     dependentRequired
-    maxContains
+
     maxProperties
     minContains
     minProperties
@@ -84,6 +84,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     else
       {:ok, acc, ctx}
     end
+  end
+
+  def take_keyword({"maxContains", max_contains}, acc, ctx) do
+    {:ok, [{:max_contains, max_contains} | acc], ctx}
   end
 
   ignore_any_keyword()
