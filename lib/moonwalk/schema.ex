@@ -1,4 +1,10 @@
+defmodule Moonwalk.Schema.Dialect do
+  @moduledoc false
+  defstruct [:scope, :validators]
+end
+
 defmodule Moonwalk.Schema.Builder do
+  alias Moonwalk.Schema.Dialect
   alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Ref
@@ -104,8 +110,8 @@ defmodule Moonwalk.Schema.Builder do
     schema_validators
   end
 
-  defp put_scope(schema_validators, vkey) when is_map(schema_validators) do
-    Map.put(schema_validators, :__scope__, Key.namespace_of(vkey))
+  defp put_scope(%Dialect{} = schema_validators, vkey) do
+    %Dialect{schema_validators | scope: Key.namespace_of(vkey)}
   end
 
   defp put_scope({:alias_of, _} = aliased, _vkey) do
@@ -189,14 +195,14 @@ defmodule Moonwalk.Schema.Builder do
 
   defp do_build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) do
     {_leftovers, schema_validators, %__MODULE__{} = bld} =
-      Enum.reduce(bld.vocabularies, {raw_schema, %{}, bld}, fn module, {raw_schema, schema_validators, bld} ->
+      Enum.reduce(bld.vocabularies, {raw_schema, [], bld}, fn module, {raw_schema, schema_validators, bld} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
         {consumed_raw_schema, mod_validators, %__MODULE__{} = bld} = build_mod_validators(raw_schema, module, bld)
 
         case mod_validators do
           :ignore -> {consumed_raw_schema, schema_validators, bld}
-          _ -> {consumed_raw_schema, Map.put(schema_validators, module, mod_validators), bld}
+          _ -> {consumed_raw_schema, [{module, mod_validators} | schema_validators], bld}
         end
       end)
 
@@ -208,7 +214,7 @@ defmodule Moonwalk.Schema.Builder do
     #   other -> IO.warn("got some leftovers: #{inspect(other)}", [])
     # end
 
-    {:ok, schema_validators, bld}
+    {:ok, %Moonwalk.Schema.Dialect{validators: schema_validators}, bld}
   end
 
   defp build_mod_validators(raw_schema, module, bld) do
@@ -228,6 +234,7 @@ defmodule Moonwalk.Schema.Builder do
 end
 
 defmodule Moonwalk.Schema do
+  alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Builder
@@ -237,7 +244,20 @@ defmodule Moonwalk.Schema do
   defstruct validators: %{}, root_key: nil
   @opaque t :: %__MODULE__{}
 
-  defdelegate validate(data, schema), to: Moonwalk.Schema.Validator
+  def validate(data, schema) do
+    case validation_entrypoint(data, schema) do
+      {:ok, casted_data, _} -> {:ok, casted_data}
+      {:error, %Validator{} = _validator} = err -> err
+    end
+  end
+
+  @doc false
+  # entrypoint for tests when we want to return the validator struct
+  def validation_entrypoint(data, schema) do
+    %__MODULE__{validators: validators, root_key: root_key} = schema
+    root_schema_validators = Map.fetch!(validators, root_key)
+    Validator.validate(data, root_schema_validators, Validator.new(schema))
+  end
 
   def build(raw_schema, opts) when is_map(raw_schema) do
     resolver_impl = Keyword.fetch!(opts, :resolver)

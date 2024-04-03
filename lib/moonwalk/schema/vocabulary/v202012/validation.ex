@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
+  alias Moonwalk.Schema.Validator
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator.Context
   use Moonwalk.Schema.Vocabulary
@@ -8,11 +9,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   todo_take_keywords ~w(
-    dependentRequired
-    maxContains
+
     maxProperties
     minContains
-    minProperties
+
   )
 
   def take_keyword({"type", t}, vds, ctx) do
@@ -67,6 +67,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     take_integer(:min_length, min_length, acc, ctx)
   end
 
+  def take_keyword({"minProperties", min_properties}, acc, ctx) do
+    take_integer(:min_properties, min_properties, acc, ctx)
+  end
+
   def take_keyword({"enum", enum}, acc, ctx) do
     {:ok, [{:enum, enum} | acc], ctx}
   end
@@ -84,6 +88,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     else
       {:ok, acc, ctx}
     end
+  end
+
+  def take_keyword({"maxContains", max_contains}, acc, ctx) do
+    {:ok, [{:max_contains, max_contains} | acc], ctx}
+  end
+
+  def take_keyword({"dependentRequired", dependent_required}, acc, ctx) do
+    {:ok, [{:dependent_required, dependent_required} | acc], ctx}
   end
 
   ignore_any_keyword()
@@ -132,11 +144,22 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     :number
   end
 
-  def validate(data, vds, ctx) do
-    run_validators(data, vds, ctx, :validate_keyword)
+  def validate(data, vds, vdr) do
+    run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-  defp validate_keyword(data, {:type, ts}, ctx) when is_list(ts) do
+  IO.warn("remove validate_keyword_debug")
+
+  defp validate_keyword_debug(data, tuple, vdr) do
+    IO.puts("tuple: #{inspect(tuple)}")
+
+    case validate_keyword(data, tuple, vdr) do
+      {:ok, _, _} = ok -> ok
+      {:error, %Validator{}} = err -> err
+    end
+  end
+
+  defp validate_keyword(data, {:type, ts}, vdr) when is_list(ts) do
     Enum.find_value(ts, fn t ->
       case validate_type(data, t) do
         true -> {:ok, data}
@@ -145,169 +168,199 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
       end
     end)
     |> case do
-      {:ok, data} -> {:ok, data}
-      nil -> {:error, Context.make_error(ctx, :type, data, type: ts)}
+      {:ok, data} -> {:ok, data, vdr}
+      nil -> {:error, Validator.with_error(vdr, :type, data, type: ts)}
     end
   end
 
-  defp validate_keyword(data, {:type, t}, ctx) do
+  defp validate_keyword(data, {:type, t}, vdr) do
     case validate_type(data, t) do
-      true -> {:ok, data}
-      false -> {:error, Context.make_error(ctx, :type, data, type: t)}
-      {:swap, new_data} -> {:ok, new_data}
+      true -> {:ok, data, vdr}
+      false -> {:error, Validator.with_error(vdr, :type, data, type: t)}
+      {:swap, new_data} -> {:ok, new_data, vdr}
     end
   end
 
-  defp validate_keyword(data, {:maximum, n}, ctx) when is_number(data) do
+  defp validate_keyword(data, {:maximum, n}, vdr) when is_number(data) do
     case data <= n do
-      true -> {:ok, data}
-      false -> {:error, Context.make_error(ctx, :maximum, data, n: n)}
+      true -> {:ok, data, vdr}
+      false -> {:error, Validator.with_error(vdr, :maximum, data, n: n)}
     end
   end
 
-  pass validate_keyword(data, {:maximum, _}, _)
+  pass validate_keyword({:maximum, _})
 
-  defp validate_keyword(data, {:exclusive_maximum, n}, ctx) when is_number(data) do
+  defp validate_keyword(data, {:exclusive_maximum, n}, vdr) when is_number(data) do
     case data < n do
-      true -> {:ok, data}
-      false -> {:error, Context.make_error(ctx, :exclusive_maximum, data, n: n)}
+      true -> {:ok, data, vdr}
+      false -> {:error, Validator.with_error(vdr, :exclusive_maximum, data, n: n)}
     end
   end
 
-  pass validate_keyword(data, {:exclusive_maximum, _}, _)
+  pass validate_keyword({:exclusive_maximum, _})
 
-  defp validate_keyword(data, {:minimum, n}, ctx) when is_number(data) do
+  defp validate_keyword(data, {:minimum, n}, vdr) when is_number(data) do
     case data >= n do
-      true -> {:ok, data}
-      false -> {:error, Context.make_error(ctx, :minimum, data, n: n)}
+      true -> {:ok, data, vdr}
+      false -> {:error, Validator.with_error(vdr, :minimum, data, n: n)}
     end
   end
 
-  pass validate_keyword(data, {:minimum, _}, _)
+  pass validate_keyword({:minimum, _})
 
-  defp validate_keyword(data, {:exclusive_minimum, n}, ctx) when is_number(data) do
+  defp validate_keyword(data, {:exclusive_minimum, n}, vdr) when is_number(data) do
     case data > n do
-      true -> {:ok, data}
-      false -> {:error, Context.make_error(ctx, :exclusive_minimum, data, n: n)}
+      true -> {:ok, data, vdr}
+      false -> {:error, Validator.with_error(vdr, :exclusive_minimum, data, n: n)}
     end
   end
 
-  pass validate_keyword(data, {:exclusive_minimum, _}, _)
+  pass validate_keyword({:exclusive_minimum, _})
 
-  defp validate_keyword(data, {:max_items, max}, ctx) when is_list(data) do
+  defp validate_keyword(data, {:max_items, max}, vdr) when is_list(data) do
     len = length(data)
 
     if len <= max do
-      {:ok, data}
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :max_items, data, max_items: max, len: len)}
+      {:error, Validator.with_error(vdr, :max_items, data, max_items: max, len: len)}
     end
   end
 
-  pass validate_keyword(data, {:max_items, _}, _)
+  pass validate_keyword({:max_items, _})
 
-  defp validate_keyword(data, {:min_items, min}, ctx) when is_list(data) do
+  defp validate_keyword(data, {:min_items, min}, vdr) when is_list(data) do
     len = length(data)
 
     if len >= min do
-      {:ok, data}
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :min_items, data, min_items: min, len: len)}
+      {:error, Validator.with_error(vdr, :min_items, data, min_items: min, len: len)}
     end
   end
 
-  pass validate_keyword(data, {:min_items, _}, _)
+  pass validate_keyword({:min_items, _})
 
-  defp validate_keyword(data, {:multiple_of, n}, ctx) when is_number(data) do
+  defp validate_keyword(data, {:multiple_of, n}, vdr) when is_number(data) do
     case Helpers.fractional_is_zero?(data / n) do
-      true -> {:ok, data}
-      false -> {:error, Context.make_error(ctx, :multiple_of, data, multiple_of: n)}
+      true -> {:ok, data, vdr}
+      false -> {:error, Validator.with_error(vdr, :multiple_of, data, multiple_of: n)}
     end
   rescue
     # Rescue infinite division (huge numbers divided by float)
-    _ in ArithmeticError -> {:error, Context.make_error(ctx, :multiple_of, data, multiple_of: n)}
+    _ in ArithmeticError -> {:error, Validator.with_error(vdr, :multiple_of, data, multiple_of: n)}
   end
 
-  pass validate_keyword(data, {:multiple_of, _}, _)
+  pass validate_keyword({:multiple_of, _})
 
-  defp validate_keyword(data, {:required, keys}, ctx) when is_map(data) do
-    case keys -- Map.keys(data) do
-      [] -> {:ok, data}
-      missing -> {:error, Context.make_error(ctx, :requred, data, required: missing)}
+  defp validate_keyword(data, {:required, required_keys}, vdr) when is_map(data) do
+    case required_keys -- Map.keys(data) do
+      [] -> {:ok, data, vdr}
+      missing -> {:error, Validator.with_error(vdr, :required, data, required: missing)}
     end
   end
 
-  pass validate_keyword(data, {:required, _}, _)
+  pass validate_keyword({:required, _})
 
-  defp validate_keyword(data, {:max_length, max}, ctx) when is_binary(data) do
+  defp validate_keyword(data, {:dependent_required, map}, vdr) when is_map(data) do
+    Validator.apply_all_fun(data, map, vdr, fn
+      data, {parent_key, required_keys}, vdr when is_map_key(data, parent_key) ->
+        case required_keys -- Map.keys(data) do
+          [] ->
+            {:ok, data, vdr}
+
+          missing ->
+            {:error, Validator.with_error(vdr, :dependent_required, data, parent: parent_key, required: missing)}
+        end
+
+      data, {_, _}, vdr ->
+        {:ok, data, vdr}
+    end)
+  end
+
+  pass validate_keyword({:dependent_required, _})
+
+  defp validate_keyword(data, {:max_length, max}, vdr) when is_binary(data) do
     len = String.length(data)
 
     if len <= max do
-      {:ok, data}
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :max_length, data, max_items: max, len: len)}
+      {:error, Validator.with_error(vdr, :max_length, data, max_items: max, len: len)}
     end
   end
 
-  pass validate_keyword(data, {:max_length, _}, _)
+  pass validate_keyword({:max_length, _})
 
-  defp validate_keyword(data, {:min_length, min}, ctx) when is_binary(data) do
+  defp validate_keyword(data, {:min_length, min}, vdr) when is_binary(data) do
     len = String.length(data)
 
     if len >= min do
-      {:ok, data}
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :min_length, data, min_items: min, len: len)}
+      {:error, Validator.with_error(vdr, :min_length, data, min_items: min, len: len)}
     end
   end
 
-  pass validate_keyword(data, {:min_length, _}, _)
+  pass validate_keyword({:min_length, _})
 
-  defp validate_keyword(data, {:const, const}, ctx) do
+  defp validate_keyword(data, {:const, const}, vdr) do
     # 1 == 1.0 should be true according to JSON Schema specs
     if data == const do
-      {:ok, data}
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :const, data, const: const)}
+      {:error, Validator.with_error(vdr, :const, data, const: const)}
     end
   end
 
-  defp validate_keyword(data, {:enum, enum}, ctx) do
+  defp validate_keyword(data, {:enum, enum}, vdr) do
     # validate 1 == 1.0 or 1.0 == 1
     if Enum.any?(enum, &(&1 == data)) do
-      {:ok, data}
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :enum, data, enum: enum)}
+      {:error, Validator.with_error(vdr, :enum, data, enum: enum)}
     end
   end
 
-  defp validate_keyword(data, {:pattern, re}, ctx) when is_binary(data) do
+  defp validate_keyword(data, {:pattern, re}, vdr) when is_binary(data) do
     if Regex.match?(re, data) do
-      {:ok, data}
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :pattern, data, pattern: re.source)}
+      {:error, Validator.with_error(vdr, :pattern, data, pattern: re.source)}
     end
   end
 
-  pass validate_keyword(data, {:pattern, _}, _)
+  pass validate_keyword({:pattern, _})
 
-  defp validate_keyword(data, {:unique_items, true}, ctx) when is_list(data) do
+  defp validate_keyword(data, {:unique_items, true}, vdr) when is_list(data) do
     data
     |> Enum.with_index()
-    |> Enum.reduce({[], %{}}, fn {item, index}, {errors, seen} ->
-      if Map.has_key?(seen, item) do
-        {[Context.make_error(ctx, :unique_items_item, item, index: index) | errors], seen}
-      else
-        {errors, Map.put(seen, item, true)}
+    |> Enum.reduce({[], %{}}, fn {item, index}, {duplicate_indices, seen} ->
+      case Map.fetch(seen, item) do
+        {:ok, seen_index} -> {[{index, seen_index} | duplicate_indices], seen}
+        :error -> {duplicate_indices, Map.put(seen, item, index)}
       end
     end)
     |> case do
-      {[], _} -> {:ok, data}
-      {errors, _} -> {:error, Context.make_error(ctx, :unique_items, data, errors: errors)}
+      {[], _} -> {:ok, data, vdr}
+      {duplicates, _} -> {:error, Validator.with_error(vdr, :unique_items, data, duplicates: Map.new(duplicates))}
     end
   end
 
-  pass validate_keyword(data, {:unique_items, true}, _)
+  pass validate_keyword({:unique_items, true})
+
+  defp validate_keyword(data, {:min_properties, n}, vdr) when is_map(data) do
+    case map_size(data) do
+      size when size < n -> {:error, Validator.with_error(vdr, :min_properties, data, min_properties: n, size: size)}
+      _ -> {:ok, data, vdr}
+    end
+  end
+
+  pass validate_keyword({:min_properties, _})
+
+  defp validate_keyword(data, {:max_contains, n}, vdr) when is_list(data) do
+    raise "what should I do here"
+  end
 
   # ---------------------------------------------------------------------------
 

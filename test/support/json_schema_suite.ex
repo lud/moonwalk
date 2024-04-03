@@ -3,7 +3,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
   @test_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
   require Logger
 
-  def load_dir(suite_dir) do
+  def load_dir_no_link(suite_dir) do
     dir = Path.join(@test_dir, suite_dir)
 
     files =
@@ -12,7 +12,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
       |> Path.wildcard()
       |> Enum.map(fn path -> {Path.relative_to(path, dir), path, false} end)
 
-    {:ok, _} = Agent.start_link(fn -> %{dir: dir, files: files} end, name: __MODULE__)
+    {:ok, _} = Agent.start(fn -> %{dir: dir, files: files} end, name: __MODULE__)
   end
 
   def checkout_suite(agent, subpath) do

@@ -1,4 +1,5 @@
 defmodule Moonwalk.SchemaValidationTest do
+  alias Moonwalk.Schema.Validator
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
@@ -7,7 +8,7 @@ defmodule Moonwalk.SchemaValidationTest do
   # Each json schema "test suite" defined a series of test cases with a schema
   # and an array of "unit tests".
 
-  {:ok, agent} = JsonSchemaSuite.load_dir("draft2020-12")
+  {:ok, agent} = JsonSchemaSuite.load_dir_no_link("draft2020-12")
   # {:ok, agent} = JsonSchemaSuite.load_dir("latest")
 
   ignored = [
@@ -21,6 +22,10 @@ defmodule Moonwalk.SchemaValidationTest do
   end)
 
   suites = [
+    # {"maxContains.json", []},
+    {"uniqueItems.json", []},
+    {"dependentRequired.json", []},
+    {"dependentSchemas.json", []},
     {"contains.json", []},
     {"additionalProperties.json", []},
     {"allOf.json", []},
@@ -42,25 +47,29 @@ defmodule Moonwalk.SchemaValidationTest do
     {"maximum.json", []},
     {"maxItems.json", []},
     {"maxLength.json", []},
+    {"minLength.json", []},
     {"minimum.json", []},
     {"minItems.json", []},
     {"multipleOf.json", []},
     {"oneOf.json", []},
     {"patternProperties.json", []},
+    {"pattern.json", []},
     {"prefixItems.json", []},
     {"properties.json", []},
     {"ref.json", ignore: ["ref creates new scope when adjacent to keywords"]},
     {"refRemote.json", []},
     {"required.json", []},
     {"type.json", []},
-    {"uniqueItems.json", []},
-    {"vocabulary.json", []},
+    {"vocabulary.json", []}
 
     # Optionals
 
-    {"optional/anchor.json", []}
+    # {"optional/anchor.json", []}
 
-    # This one will require to get all
+    # This one will require to get all supported keywords from loaded
+    # vocabularies, for each document/scope, and check if a keyword is matched.
+    # This may be done simply from the leftovers.
+    #
     # {"optional/unknownKeyword.json", []}
   ]
 
@@ -79,22 +88,18 @@ defmodule Moonwalk.SchemaValidationTest do
           {:ok, %{test_case: unquote(Macro.escape(test_case))}}
         end
 
-        if validate? do
-          for %{"description" => test_descr} = unit_test <- tests do
-            @tag skip: ignore_all? or test_descr in ignored
-            test test_descr, %{test_case: test_case} do
-              # debug_infinite_loop()
-              unit_test = unquote(Macro.escape(unit_test))
-              validation_test(test_case, unit_test)
-            end
-          end
-        else
-          # If we are not testing the validation we must at least ensure that
-          # the schema can be manipulated by the library
-          @tag skip: ignore_all?
-          test "schema denormalization", %{test_case: test_case} do
+        @tag skip: ignore_all? or not validate?
+        test "schema denormalization", %{test_case: test_case} do
+          # debug_infinite_loop()
+          build_schema(Map.fetch!(test_case, "schema"), test_case["description"])
+        end
+
+        for %{"description" => test_descr} = unit_test <- tests do
+          @tag skip: ignore_all? or test_descr in ignored or not validate?
+          test test_descr, %{test_case: test_case} do
             # debug_infinite_loop()
-            build_schema(Map.fetch!(test_case, "schema"), test_case["description"])
+            unit_test = unquote(Macro.escape(unit_test))
+            validation_test(test_case, unit_test)
           end
         end
       end
@@ -134,15 +139,15 @@ defmodule Moonwalk.SchemaValidationTest do
 
     schema = build_schema(json_schema, case_descr)
 
-    {valid?, errors} =
-      case Moonwalk.Schema.validate(data, schema) do
-        {:ok, casted} ->
+    {valid?, %Validator{} = validator} =
+      case Moonwalk.Schema.validation_entrypoint(data, schema) do
+        {:ok, casted, vdr} ->
           # This may fail if we have casting during the validation.
           assert data == casted
-          {true, nil}
+          {true, vdr}
 
-        {:error, errors} ->
-          {false, errors}
+        {:error, validator} ->
+          {false, validator}
       end
 
     # assert the expected result
@@ -165,19 +170,21 @@ defmodule Moonwalk.SchemaValidationTest do
         JSON SCHEMA
         #{inspect(json_schema, pretty: true)}
 
-        SCHEMA
-        #{inspect(schema, pretty: true)}
-
         DATA
         #{inspect(data, pretty: true)}
 
+        SCHEMA
+        #{inspect(schema, pretty: true)}
+
         ERRORS
-        #{inspect(errors, pretty: true)}
+        #{inspect(validator.errors, pretty: true)}
         """)
     end
   end
 
-  JsonSchemaSuite.stop_warn_unchecked(agent)
+  setup_all do
+    on_exit(fn -> JsonSchemaSuite.stop_warn_unchecked(unquote(agent)) end)
+  end
 
   def debug_infinite_loop do
     parent = self()

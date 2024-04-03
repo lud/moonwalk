@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
+  alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary
 
   def init_validators do
@@ -19,11 +20,22 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
     Map.new(list)
   end
 
-  def validate(data, vds, ctx) do
-    run_validators(data, vds, ctx, :validate_keyword)
+  def validate(data, vds, vdr) do
+    run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-  defp validate_keyword(data, {:format, _format}, _ctx) do
-    {:ok, data}
+  IO.warn("remove validate_keyword_debug")
+
+  defp validate_keyword_debug(data, tuple, vdr) do
+    IO.puts("tuple: #{inspect(tuple)}")
+
+    case validate_keyword(data, tuple, vdr) do
+      {:ok, _, _} = ok -> ok
+      {:error, %Validator{}} = err -> err
+    end
+  end
+
+  defp validate_keyword(data, {:format, _format}, vdr) do
+    {:ok, data, vdr}
   end
 end

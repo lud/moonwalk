@@ -114,12 +114,22 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
 
   # ---------------------------------------------------------------------------
 
-  def validate(data, vds, ctx) do
-    run_validators(data, vds, ctx, :validate_keyword)
+  def validate(data, vds, vdr) do
+    run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-  defp validate_keyword(data, {:ref, ref}, ctx) do
-    subvalidators = Context.checkout_ref(ctx, ref)
-    Validator.validate_sub(data, subvalidators, ctx)
+  IO.warn("remove validate_keyword_debug")
+
+  defp validate_keyword_debug(data, tuple, vdr) do
+    IO.puts("tuple: #{inspect(tuple)}")
+
+    case validate_keyword(data, tuple, vdr) do
+      {:ok, _, _} = ok -> ok
+      {:error, %Validator{}} = err -> err
+    end
+  end
+
+  defp validate_keyword(data, {:ref, ref}, vdr) do
+    Validator.validate_ref(data, ref, vdr)
   end
 end

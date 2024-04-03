@@ -17,7 +17,7 @@ defmodule Moonwalk.Schema.Vocabulary do
     quote do
       import unquote(__MODULE__)
       @behaviour unquote(__MODULE__)
-      require Moonwalk.Schema.Validator.Context
+      require Moonwalk.Schema.Validator
     end
   end
 
@@ -58,27 +58,33 @@ defmodule Moonwalk.Schema.Vocabulary do
     end
   end
 
-  defmacro run_validators(data, validators, ctx, f) when is_atom(f) do
+  defmacro run_validators(data, validators, vdr, {:&, _, _} = f) do
+    quote bind_quoted: binding() do
+      Moonwalk.Schema.Validator.apply_all_fun(data, validators, vdr, f)
+    end
+  end
+
+  IO.warn("TODO remove this clause")
+
+  defmacro run_validators(data, validators, vdr, f) when is_atom(f) do
+    IO.warn("TODO pass fun directly")
+
     quote do
-      Helpers.reduce_ok(unquote(validators), unquote(data), fn {k, v}, data ->
-        unquote(f)(data, {k, v}, unquote(ctx))
+      Moonwalk.Schema.Validator.apply_all_fun(unquote(data), unquote(validators), unquote(vdr), fn data, item, vdr ->
+        unquote(f)(data, item, vdr)
       end)
     end
   end
 
   defmacro pass(ast) do
     case ast do
-      {:when, _, [{_fun_name, _, [data_var, _tuple, _ctx]}, _]} ->
-        quote do
-          defp unquote(ast) do
-            {:ok, unquote(data_var)}
-          end
-        end
+      {:when, _, _} ->
+        raise "unsupported guard"
 
-      {_fun_name, _, [data_var, _tuple, _ctx]} ->
+      {fun_name, _, [match_tuple]} ->
         quote do
-          defp unquote(ast) do
-            {:ok, unquote(data_var)}
+          defp unquote(fun_name)(data, unquote(match_tuple), vdr) do
+            {:ok, data, vdr}
           end
         end
     end

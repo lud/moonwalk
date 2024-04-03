@@ -12,6 +12,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   todo_take_keywords(~w(
     additionalItems
 
+
     not
   ))
 
@@ -109,6 +110,20 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
+  def take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx) do
+    dependent_schemas
+    |> Helpers.reduce_ok({%{}, ctx}, fn {k, depschema}, {acc, ctx} ->
+      case Builder.build_sub(depschema, ctx) do
+        {:ok, subvalidators, ctx} -> {:ok, {Map.put(acc, k, subvalidators), ctx}}
+        {:error, _} = err -> err
+      end
+    end)
+    |> case do
+      {:ok, {subvalidators, ctx}} -> {:ok, [{:dependent_schemas, subvalidators} | acc], ctx}
+      {:error, _} = err -> err
+    end
+  end
+
   ignore_any_keyword()
 
   # ---------------------------------------------------------------------------
@@ -144,8 +159,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     {additional_properties, validators} = Keyword.pop(validators, :additional_properties, nil)
 
     case {properties, pattern_properties, additional_properties} do
-      {nil, nil, nil} -> validators
-      some -> Keyword.put(validators, :all_properties, some)
+      {nil, nil, nil} ->
+        validators
+
+      _ ->
+        Keyword.put(validators, :all_properties, {properties, pattern_properties, additional_properties})
     end
   end
 
@@ -173,255 +191,226 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
-  def validate(data, vds, ctx) do
-    run_validators(data, vds, ctx, :validate_keyword)
+  def validate(data, vds, vdr) do
+    run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-  defp validate_keyword(data, {:all_properties, {properties, patterns, additional}}, ctx)
+  IO.warn("remove validate_keyword_debug")
+
+  defp validate_keyword_debug(data, tuple, vdr) do
+    IO.puts("tuple: #{inspect(tuple)}")
+
+    case validate_keyword(data, tuple, vdr) do
+      {:ok, _, _} = ok -> ok
+      {:error, %Validator{}} = err -> err
+    end
+  end
+
+  IO.warn("remove errors carrying. Maybe seen too?")
+
+  defp list_property_validations(data, property_schema)
+
+  defp list_property_validations(_data, nil) do
+    []
+  end
+
+  defp list_property_validations(data, properties) do
+    Enum.flat_map(properties, fn
+      {key, subschema} when is_map_key(data, key) -> [{:property, key, subschema, nil}]
+      _ -> []
+    end)
+  end
+
+  defp list_pattern_validations(data, pattern_properties)
+
+  defp list_pattern_validations(data, nil) do
+    []
+  end
+
+  defp list_pattern_validations(data, pattern_properties) do
+    for {{pattern, re}, subschema} <- pattern_properties,
+        {key, _} <- data,
+        Regex.match?(re, key) do
+      {:pattern, key, subschema, pattern}
+    end
+  end
+
+  defp validate_keyword(data, {:all_properties, {properties, pattern_properties, additional_properties}}, vdr)
        when is_map(data) do
-    errors = []
-    seen = MapSet.new()
+    key_to_propschema = list_property_validations(data, properties)
+    key_to_patternschema = list_pattern_validations(data, pattern_properties)
 
-    {data, errors, seen} = validate_properties(data, properties, ctx, errors, seen)
-    {data, errors, seen} = validate_pattern_properties(data, patterns, ctx, errors, seen)
-    {data, errors} = validate_additional_properties(data, additional, ctx, errors, seen)
+    key_to_additional =
+      case additional_properties do
+        nil ->
+          []
 
-    case errors do
-      [] -> {:ok, data}
-      _ -> {:error, Context.group_error(ctx, data, errors)}
-    end
+        _ ->
+          seen_keys =
+            Enum.map(key_to_propschema, fn {:property, key, _, _} -> key end) ++
+              Enum.map(key_to_patternschema, fn {:pattern, key, _, _} -> key end)
+
+          data
+          |> Enum.filter(fn {key, _} -> key not in seen_keys end)
+          |> Enum.map(fn {key, _} -> {:additional, key, additional_properties, nil} end)
+      end
+
+    all_validation = Enum.concat([key_to_propschema, key_to_patternschema, key_to_additional])
+
+    # Note: casted data from previous schema is evaluted by later schema. The
+    # other way would be to discard previously casted on later schema.
+
+    Validator.apply_all_fun(data, all_validation, vdr, fn
+      data, {kind, key, subschema, pattern} = propcase, vdr ->
+        case Validator.validate_nested(Map.fetch!(data, key), key, subschema, vdr) do
+          {:ok, casted, vdr} -> {:ok, Map.put(data, key, casted), vdr}
+          {:error, vdr} -> {:error, with_property_error(vdr, data, propcase)}
+        end
+    end)
   end
 
-  defp validate_keyword(data, {:all_properties, _}, _ctx) do
-    {:ok, data}
+  pass validate_keyword({:all_properties, _})
+
+  defp validate_keyword(data, {:all_items, {items, prefix_items}}, vdr) when is_list(data) do
+    all_schemas = Stream.concat(List.wrap(prefix_items), Stream.cycle([items]))
+
+    index_items = Stream.with_index(data)
+
+    zipped = Enum.zip(index_items, all_schemas)
+
+    {rev_items, vdr} =
+      Enum.reduce(zipped, {[], vdr}, fn
+        {{item, index}, nil}, {casted, vdr} ->
+          # TODO add evaluated path to validator
+          {[item | casted], vdr}
+
+        {{item, index}, subschema}, {casted, vdr} ->
+          case Validator.validate_nested(item, index, subschema, vdr) do
+            {:ok, casted_item, vdr} -> {[casted_item | casted], vdr}
+            {:error, vdr} = err -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
+          end
+      end)
+
+    Validator.return(:lists.reverse(rev_items), vdr)
   end
 
-  defp validate_keyword(data, {:all_items, {items, prefix_items}}, ctx) when is_list(data) do
-    with {:ok, casted_prefix, offset} <- validate_prefix_items(data, prefix_items, ctx),
-         rest_items = data |> Enum.drop(offset) |> Enum.with_index(offset),
-         {:ok, casted_items} <- validate_items(rest_items, items, ctx) do
-      {:ok, casted_prefix ++ casted_items}
-    end
-  end
+  pass validate_keyword({:all_items, _})
 
-  pass validate_keyword(data, {:all_items, _}, _)
+  defp validate_keyword(data, {:one_of, subvalidators}, vdr) do
+    case validate_split(subvalidators, data, vdr) do
+      {[{_, data}], _, vdr} ->
+        {:ok, data, vdr}
 
-  defp validate_keyword(data, {:one_of, subvalidators}, ctx) do
-    case validate_split(subvalidators, data, ctx) do
-      {[{_, data}], _} ->
-        {:ok, data}
+      {[], _, _} ->
+        # TODO compute branch error of all invalid
+        {:error, Validator.with_error(vdr, :one_of, data, validated_schemas: [])}
 
-      {[], _} ->
-        {:error, Context.make_error(ctx, :one_of, data, validated_schemas: [])}
-
-      {[_ | _] = too_much, _} ->
+      {[_ | _] = too_much, _, _} ->
         validated_schemas = Enum.map(too_much, &elem(&1, 0))
-        {:error, Context.make_error(ctx, :one_of, data, validated_schemas: validated_schemas)}
+        {:error, Validator.with_error(vdr, :one_of, data, validated_schemas: validated_schemas)}
     end
   end
 
-  defp validate_keyword(data, {:any_of, subvalidators}, ctx) do
-    case validate_split(subvalidators, data, ctx) do
+  defp validate_keyword(data, {:any_of, subvalidators}, vdr) do
+    case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
-      {[{_, data} | _], _} -> {:ok, data}
-      {[], _} -> {:error, Context.make_error(ctx, :any_of, data, validated_schemas: [])}
+      # TODO compute branch error of all invalid validations
+      {[{_, data} | _], _, vdr} -> {:ok, data, vdr}
+      {[], _, vdr} -> {:error, Validator.with_error(vdr, :any_of, data, validated_schemas: [])}
     end
   end
 
-  defp validate_keyword(data, {:all_of, subvalidators}, ctx) do
-    case validate_split(subvalidators, data, ctx) do
+  defp validate_keyword(data, {:all_of, subvalidators}, vdr) do
+    case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
-      {[{_, data} | _], []} -> {:ok, data}
-      {_, [_ | _] = invalid} -> {:error, Context.make_error(ctx, :all_of, data, invalidated_schemas: invalid)}
+      {[{_, data} | _], [], vdr} -> {:ok, data, vdr}
+      # TODO merge all error VDRs
+      {_, [{_, err_vdr} | _] = invalid, _vdr} -> {:error, err_vdr}
     end
   end
 
-  defp validate_keyword(data, {:if_then_else, {if_vds, then_vds, else_vds}}, ctx) do
-    case Validator.validate_sub(data, if_vds, ctx) do
-      {:ok, _} ->
+  defp validate_keyword(data, {:if_then_else, {if_vds, then_vds, else_vds}}, vdr) do
+    case Validator.validate(data, if_vds, vdr) do
+      {:ok, _, _} ->
         case then_vds do
-          nil -> {:ok, data}
-          sub -> Validator.validate_sub(data, sub, ctx)
+          nil -> {:ok, data, vdr}
+          sub -> Validator.validate(data, sub, vdr)
         end
 
       {:error, _} ->
         case else_vds do
-          nil -> {:ok, data}
-          sub -> Validator.validate_sub(data, sub, ctx)
+          nil -> {:ok, data, vdr}
+          sub -> Validator.validate(data, sub, vdr)
         end
     end
   end
 
-  defp validate_keyword(data, {:contains, subschema}, ctx) when is_list(data) do
-    any_match? =
-      Enum.any?(data, fn item ->
-        case Validator.validate_sub(item, subschema, ctx) do
-          {:ok, _} -> true
+  defp validate_keyword(data, {:contains, subschema}, vdr) when is_list(data) do
+    count =
+      Enum.count(data, fn item ->
+        case Validator.validate(item, subschema, vdr) do
+          {:ok, _, _} -> true
           {:error, _} -> false
         end
       end)
 
-    if any_match? do
-      {:ok, data}
+    if count > 0 do
+      {:ok, data, vdr}
     else
-      {:error, Context.make_error(ctx, :contains, data, [])}
+      {:error, Validator.with_error(vdr, :contains, data, count: count)}
     end
   end
 
-  pass validate_keyword(data, {:contains, _}, _)
+  pass validate_keyword({:contains, _})
+
+  defp validate_keyword(data, {:dependent_schemas, schemas_map}, vdr) when is_map(data) do
+    Validator.apply_all_fun(data, schemas_map, vdr, fn
+      data, {parent_key, subschema}, vdr when is_map_key(data, parent_key) ->
+        Validator.validate(data, subschema, vdr)
+
+      data, {_, _}, vdr ->
+        {:ok, data, vdr}
+    end)
+  end
+
+  pass validate_keyword({:dependent_schemas, _})
 
   # ---------------------------------------------------------------------------
 
-  # inversed split: we split the validators between those that validate the data
-  # and those who don't.
-  defp validate_split(validators, data, ctx) do
-    {valids, invalids} =
-      Enum.reduce(validators, {[], []}, fn vd, {valids, invalids} ->
-        case Validator.validate_sub(data, vd, ctx) do
-          {:ok, data} -> {[{vd, data} | valids], invalids}
-          {:error, reason} -> {valids, [{vd, reason} | invalids]}
+  # Split the validators between those that validate the data and those who
+  # don't.
+  IO.warn("@todo return each vdr")
+
+  defp validate_split(validators, data, vdr) do
+    # TODO return VDR for each matched or unmatched schema, do not return a
+    # global VDR
+    {valids, invalids, vdr} =
+      Enum.reduce(validators, {[], [], vdr}, fn subvalidator, {valids, invalids, vdr} ->
+        case Validator.validate(data, subvalidator, vdr) do
+          {:ok, data, vdr} -> {[{subvalidator, data} | valids], invalids, vdr}
+          # We continue with the good validator in the acc
+          {:error, err_vdr} -> {valids, [{subvalidator, err_vdr} | invalids], vdr}
         end
       end)
 
-    {:lists.reverse(valids), :lists.reverse(invalids)}
+    {:lists.reverse(valids), :lists.reverse(invalids), vdr}
   end
 
-  defp validate_properties(data, nil, _ctx, errors, seen) do
-    {data, errors, seen}
+  defp flat_map_or_empty(nil, _) do
+    []
   end
 
-  defp validate_properties(data, schema_map, ctx, errors, seen) do
-    # TODO maybe build a new map so we can diff the keys with the original map
-    # and check what was evaluated or not
-    Enum.reduce(schema_map, {data, errors, seen}, fn
-      {key, subvalidators}, {data, errors, seen} when is_map_key(data, key) ->
-        seen = MapSet.put(seen, key)
-        value = Map.fetch!(data, key)
-
-        case Validator.validate_sub(value, subvalidators, ctx) do
-          {:ok, casted} ->
-            {Map.put(data, key, casted), errors, seen}
-
-          {:error, reason} ->
-            {data, [Context.make_error(ctx, :properties, value, key: key, reason: reason) | errors], seen}
-        end
-
-      _, acc ->
-        acc
-    end)
+  defp flat_map_or_empty(enum, f) do
+    Enum.flat_map(enum, f)
   end
 
-  defp validate_pattern_properties(data, nil, _ctx, errors, seen) do
-    {data, errors, seen}
-  end
-
-  defp validate_pattern_properties(data, schema_map, ctx, errors, seen) do
-    for {{pattern, regex}, subvalidators} <- schema_map,
-        {key, value} <- data,
-        Regex.match?(regex, key),
-        reduce: {data, errors, seen} do
-      {data, errors, seen} ->
-        seen = MapSet.put(seen, key)
-
-        case Validator.validate_sub(value, subvalidators, ctx) do
-          {:ok, casted} ->
-            {Map.put(data, key, casted), errors, seen}
-
-          {:error, reason} ->
-            error =
-              Context.make_error(ctx, :pattern_properties, value,
-                key: key,
-                pattern: pattern,
-                reason: reason
-              )
-
-            {data, [error | errors], seen}
-        end
+  defp with_property_error(vdr, data, {kind, key, _, pattern}) do
+    case kind do
+      :property -> Validator.with_error(vdr, :property, data, key: key)
+      :pattern -> Validator.with_error(vdr, :pattern_property, data, pattern: pattern, key: key)
+      :additional -> Validator.with_error(vdr, :additional_property, data, key: key)
     end
-  end
-
-  defp validate_additional_properties(data, nil, _ctx, errors, _seen) do
-    {data, errors}
-  end
-
-  defp validate_additional_properties(data, subvalidators, ctx, errors, seen) do
-    for {key, value} <- data, not MapSet.member?(seen, key), reduce: {data, errors} do
-      {data, errors} ->
-        case Validator.validate_sub(value, subvalidators, ctx) do
-          {:ok, casted} ->
-            {Map.put(data, key, casted), errors}
-
-          {:error, reason} ->
-            error =
-              Context.make_error(ctx, :additional_properties, value,
-                key: key,
-                reason: reason
-              )
-
-            {data, [error | errors]}
-        end
-    end
-  end
-
-  defp validate_items(items_with_index, nil = _items_chema, _ctx) do
-    {:ok, Enum.map(items_with_index, fn {item, _index} -> item end)}
-  end
-
-  defp validate_items(items_with_index, validators, ctx) do
-    items_with_index
-    |> Enum.reduce({[], []}, fn {item, index}, {items, errors} ->
-      case Validator.validate_sub(item, validators, ctx) do
-        {:ok, casted} ->
-          {[casted | items], errors}
-
-        {:error, reason} ->
-          {items, [Context.make_error(ctx, :items, item, index: index, reason: reason) | errors]}
-      end
-    end)
-    |> case do
-      {items, []} -> {:ok, :lists.reverse(items)}
-      {_, errors} -> {:error, Context.group_error(ctx, nil, errors)}
-    end
-  end
-
-  defp validate_prefix_items(_values, nil = _prefix_schemas, _ctx) do
-    {:ok, [], 0}
-  end
-
-  defp validate_prefix_items(values, schemas, ctx) do
-    validate_prefix_items(values, schemas, ctx, 0, [], [])
-  end
-
-  defp validate_prefix_items([vh | vt], [sh | st], ctx, index, validated, errors) do
-    case Validator.validate_sub(vh, sh, ctx) do
-      {:ok, data} ->
-        validate_prefix_items(vt, st, ctx, index + 1, [data | validated], errors)
-
-      {:error, reason} ->
-        validate_prefix_items(vt, st, ctx, index + 1, validated, [
-          Context.make_error(ctx, :prefix_items, vh, index: index, reason: reason) | errors
-        ])
-    end
-  end
-
-  # No more schemas to validate
-  defp validate_prefix_items(_vt, [], ctx, offset, validated, errors) do
-    # we do not return the tail
-    case errors do
-      [] -> {:ok, :lists.reverse(validated), offset}
-      errors -> {:error, Context.group_error(ctx, :prefix_items, errors)}
-    end
-  end
-
-  # defp validate_prefix_items(_vt, _, _ctx, _, _, [_ | _] = errors) do
-  #   # we do not return the tail
-  #   {:error, Error.group(errors)}
-  # end
-
-  defp validate_prefix_items([], [_schema | _], _ctx, offset, validated, []) do
-    # fewer items than prefix is valid
-    {:ok, :lists.reverse(validated), offset}
   end
 end
