@@ -11,9 +11,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   @impl true
   todo_take_keywords(~w(
     additionalItems
-
-
-    not
   ))
 
   def take_keyword({"properties", properties}, acc, ctx) do
@@ -136,6 +133,13 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end)
     |> case do
       {:ok, {subvalidators, ctx}} -> {:ok, [{:dependent_schemas, subvalidators} | acc], ctx}
+      {:error, _} = err -> err
+    end
+  end
+
+  def take_keyword({"not", subschema}, acc, ctx) do
+    case Builder.build_sub(subschema, ctx) do
+      {:ok, subvalidators, ctx} -> {:ok, [{:not, subvalidators} | acc], ctx}
       {:error, _} = err -> err
     end
   end
@@ -400,6 +404,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   pass validate_keyword({:dependent_schemas, _})
+
+  defp validate_keyword(data, {:not, schema}, vdr) do
+    case Validator.validate(data, schema, vdr) do
+      {:ok, data, vdr} -> {:error, Validator.with_error(vdr, :not, data, subschema: schema)}
+      # TODO maybe we need to merge "evaluted" properties
+      {:error, _} -> {:ok, data, vdr}
+    end
+  end
 
   # ---------------------------------------------------------------------------
 
