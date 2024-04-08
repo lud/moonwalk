@@ -21,12 +21,12 @@ defmodule Moonwalk.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test) do
-    ["lib", "test/support"]
+  defp elixirc_paths(:prod) do
+    ["lib"]
   end
 
   defp elixirc_paths(_) do
-    ["lib"]
+    ["lib", "test/support"]
   end
 
   defp deps do
@@ -45,7 +45,9 @@ defmodule Moonwalk.MixProject do
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.18.0"}
+      {:excoveralls, "~> 0.18.0"},
+      {:cli_mate, "~> 0.3.0", only: [:dev, :test]},
+      {:modkit, "~> 0.5.1", only: [:dev, :test]}
     ]
   end
 

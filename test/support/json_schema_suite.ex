@@ -1,78 +1,161 @@
 defmodule Moonwalk.Test.JsonSchemaSuite do
+  alias Moonwalk.Schema.Validator
   use ExUnit.CaseTemplate
-  @test_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
+  @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
   require Logger
+  import ExUnit.Assertions
 
-  def load_dir_no_link(suite_dir) do
-    dir = Path.join(@test_dir, suite_dir)
+  def stream_cases(suite, config) do
+    suite_dir = suite_dir!(suite)
 
-    files =
-      dir
-      |> Path.join("**/*.json")
-      |> Path.wildcard()
-      |> Enum.map(fn path -> {Path.relative_to(path, dir), path, false} end)
+    suite_dir
+    |> Path.join("**/**.json")
+    |> Path.wildcard()
+    |> Stream.transform(
+      fn -> [] end,
+      fn path, discarded ->
+        rel_path = Path.relative_to(path, suite_dir)
 
-    {:ok, _} = Agent.start(fn -> %{dir: dir, files: files} end, name: __MODULE__)
-  end
-
-  def checkout_suite(agent, subpath) do
-    Agent.get_and_update(agent, fn state ->
-      %{files: files} = state
-
-      found =
-        case List.keyfind(files, subpath, 0) do
-          {^subpath, path, false} ->
-            {:ok, path}
-
-          {^subpath, path, true} ->
-            IO.warn("File #{path} already checked out")
-            {:ok, path}
-
-          nil ->
-            {:error, :not_found}
+        case Map.fetch(config, rel_path) do
+          {:ok, cfg} -> {[%{path: path, rel_path: rel_path, config: cfg}], discarded}
+          :error -> {[], [rel_path | discarded]}
         end
+      end,
+      &print_unchecked(suite, &1)
+    )
+    |> Stream.map(fn item ->
+      %{path: path, config: config} = item
 
-      case found do
-        {:ok, path} ->
-          suite = path |> File.read!() |> Jason.decode!()
-          {suite, %{state | files: List.keyreplace(files, subpath, 0, {subpath, path, true})}}
-
-        {:error, :not_found} ->
-          raise "Test case not found: #{subpath}"
-      end
+      Map.put(item, :test_cases, mashall_file(path, config))
     end)
   end
 
-  def stop_warn_unchecked(agent) do
-    {unchecked, dir} =
-      Agent.get(agent, fn state ->
-        {Enum.filter(state.files, fn {_subpath, _path, checked?} -> not checked? end), state.dir}
-      end)
+  defp mashall_file(source_path, config) do
+    # If validate is false, all tests in the file are skipped
+    validate = Keyword.get(config, :validate, true)
+    ignored = Keyword.get(config, :ignore, [])
 
-    Agent.stop(agent)
+    source_path
+    |> File.read!()
+    |> Jason.decode!()
+    |> Enum.map(fn tcase ->
+      %{"description" => tc_descr, "schema" => schema, "tests" => tests} = tcase
+      tcase_ignored = tc_descr in ignored
 
-    if unchecked != [] do
-      total = length(unchecked)
-      maxprint = 10
-      more? = total > maxprint
+      tests =
+        Enum.map(tests, fn ttest ->
+          %{"description" => tt_descr, "data" => data, "valid" => valid} = ttest
+          ttest_ignored = tt_descr in ignored
 
-      print_list =
-        unchecked
-        |> Enum.sort_by(fn
-          {"optional/" <> _ = subpath, _, _} -> {1, subpath}
-          {subpath, _, _} -> {0, subpath}
-        end)
-        |> Enum.take(maxprint)
-        |> Enum.map_intersperse(?\n, fn {filename, _, false} ->
-          "- #{filename}"
+          %{description: tt_descr, data: data, valid?: valid, skip?: ttest_ignored or tcase_ignored or not validate}
         end)
 
-      """
-      Unchecked test cases in #{dir}:
-      #{print_list}
-      #{(more? && "... (#{total - maxprint} more)") || ""}
-      """
-      |> IO.warn([])
+      %{description: tc_descr, schema: schema, tests: tests}
+    end)
+  end
+
+  def suite_dir!(suite) do
+    path = Path.join(@root_suites_dir, suite)
+
+    case File.dir?(path) do
+      true -> path
+      false -> raise ArgumentError, "unknown suite #{suite}, could not find directory #{path}"
     end
+  end
+
+  def run_test(json_schema, data, expected_valid) do
+    schema = build_schema(json_schema)
+
+    {valid?, %Validator{} = validator} =
+      case Moonwalk.Schema.validation_entrypoint(data, schema) do
+        {:ok, casted, vdr} ->
+          # This may fail if we have casting during the validation.
+          assert data == casted
+          {true, vdr}
+
+        {:error, validator} ->
+          {false, validator}
+      end
+
+    # assert the expected result
+
+    case valid? do
+      ^expected_valid ->
+        :ok
+
+      _ ->
+        flunk("""
+        #{if expected_valid do
+          "Expected valid, got errors"
+        else
+          "Expected errors, got valid"
+        end}
+
+        JSON SCHEMA
+        #{inspect(json_schema, pretty: true)}
+
+        DATA
+        #{inspect(data, pretty: true)}
+
+        SCHEMA
+        #{inspect(schema, pretty: true)}
+
+        ERRORS
+        #{inspect(validator.errors, pretty: true)}
+        """)
+    end
+  end
+
+  defp build_schema(json_schema) do
+    case Moonwalk.Schema.build(json_schema, resolver: Moonwalk.Test.TestResolver) do
+      {:ok, schema} -> schema
+      {:error, reason} -> flunk(denorm_failure(json_schema, reason, []))
+    end
+  rescue
+    e in FunctionClauseError ->
+      IO.puts(denorm_failure(json_schema, e, __STACKTRACE__))
+      reraise e, __STACKTRACE__
+  end
+
+  defp denorm_failure(json_schema, reason, stacktrace) do
+    """
+    Failed to denormalize schema.
+
+    SCHEMA
+    #{inspect(json_schema, pretty: true)}
+
+    ERROR
+    #{if is_exception(reason) do
+      Exception.format(:error, reason, stacktrace)
+    else
+      inspect(reason, pretty: true)
+    end}
+    """
+  end
+
+  defp print_unchecked(suite, []) do
+    IO.puts("All cases checked out for #{suite}")
+  end
+
+  defp print_unchecked(suite, paths) do
+    total = length(paths)
+    maxprint = 10
+    more? = total > maxprint
+
+    print_list =
+      paths
+      |> Enum.sort_by(fn
+        "optional/" <> _ = rel_path -> {1, rel_path}
+        rel_path -> {0, rel_path}
+      end)
+      |> Enum.take(maxprint)
+      |> Enum.map_intersperse(?\n, fn filename -> "- #{filename}" end)
+
+    """
+    Unchecked test cases in #{suite}:
+    #{print_list}
+    #{(more? && "... (#{total - maxprint} more)") || ""}
+    """
+    |> IO.warn([])
   end
 end
