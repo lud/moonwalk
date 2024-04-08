@@ -48,7 +48,7 @@ defmodule Moonwalk.Schema.Vocabulary do
           []
 
         {:ok, other} ->
-          raise ArgumentError, "expected :priority option to be given as a positive integer literal"
+          raise ArgumentError, "expected :priority option to be given as a positive integer literal, got: #{inspect other}"
       end
 
     quote do
@@ -61,6 +61,7 @@ defmodule Moonwalk.Schema.Vocabulary do
 
   @doc false
   defmacro todo_take_keywords(bin_keys) do
+    IO.warn "called todo_take_keywords from #{inspect __CALLER__.module}"
     quote bind_quoted: binding() do
       Enum.each(bin_keys, fn k ->
         def take_keyword({unquote(k) = k, _}, _, _) do
@@ -88,7 +89,7 @@ defmodule Moonwalk.Schema.Vocabulary do
     end
   end
 
-  defmacro skip_keyword(kw) do
+  defmacro consume_keyword(kw) do
     quote do
       def take_keyword({unquote(kw), _}, acc, ctx) do
         {:ok, acc, ctx}

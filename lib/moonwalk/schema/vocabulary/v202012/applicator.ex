@@ -8,6 +8,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     []
   end
 
+  @impl true
   todo_take_keywords(~w(
     additionalItems
 
@@ -222,39 +223,30 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-  IO.warn("remove validate_keyword_debug")
 
-  defp validate_keyword_debug(data, tuple, vdr) do
-    IO.puts("tuple: #{inspect(tuple)}")
 
-    case validate_keyword(data, tuple, vdr) do
-      {:ok, _, _} = ok -> ok
-      {:error, %Validator{}} = err -> err
-    end
-  end
+  IO.warn("remove errors carrying. Maybe seen keys too?")
 
-  IO.warn("remove errors carrying. Maybe seen too?")
+  defp property_validations(data, property_schema)
 
-  defp list_property_validations(data, property_schema)
-
-  defp list_property_validations(_data, nil) do
+  defp property_validations(_data, nil) do
     []
   end
 
-  defp list_property_validations(data, properties) do
+  defp property_validations(data, properties) do
     Enum.flat_map(properties, fn
       {key, subschema} when is_map_key(data, key) -> [{:property, key, subschema, nil}]
       _ -> []
     end)
   end
 
-  defp list_pattern_validations(data, pattern_properties)
+  defp pattern_validations(data, pattern_properties)
 
-  defp list_pattern_validations(data, nil) do
+  defp pattern_validations(_data, nil) do
     []
   end
 
-  defp list_pattern_validations(data, pattern_properties) do
+  defp pattern_validations(data, pattern_properties) do
     for {{pattern, re}, subschema} <- pattern_properties,
         {key, _} <- data,
         Regex.match?(re, key) do
@@ -264,8 +256,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp validate_keyword(data, {:all_properties, {properties, pattern_properties, additional_properties}}, vdr)
        when is_map(data) do
-    key_to_propschema = list_property_validations(data, properties)
-    key_to_patternschema = list_pattern_validations(data, pattern_properties)
+    key_to_propschema = property_validations(data, properties)
+    key_to_patternschema = pattern_validations(data, pattern_properties)
 
     key_to_additional =
       case additional_properties do
@@ -288,7 +280,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     # other way would be to discard previously casted on later schema.
 
     Validator.apply_all_fun(data, all_validation, vdr, fn
-      data, {kind, key, subschema, pattern} = propcase, vdr ->
+      data, {_kind, key, subschema, _pattern} = propcase, vdr ->
         case Validator.validate_nested(Map.fetch!(data, key), key, subschema, vdr) do
           {:ok, casted, vdr} -> {:ok, Map.put(data, key, casted), vdr}
           {:error, vdr} -> {:error, with_property_error(vdr, data, propcase)}
@@ -307,14 +299,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
     {rev_items, vdr} =
       Enum.reduce(zipped, {[], vdr}, fn
-        {{item, index}, nil}, {casted, vdr} ->
+        {{item, _index}, nil}, {casted, vdr} ->
           # TODO add evaluated path to validator
           {[item | casted], vdr}
 
         {{item, index}, subschema}, {casted, vdr} ->
           case Validator.validate_nested(item, index, subschema, vdr) do
             {:ok, casted_item, vdr} -> {[casted_item | casted], vdr}
-            {:error, vdr} = err -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
+            {:error, vdr}  -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
           end
       end)
 
@@ -354,7 +346,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
       # first one, arbitrarily.
       {[{_, data} | _], [], vdr} -> {:ok, data, vdr}
       # TODO merge all error VDRs
-      {_, [{_, err_vdr} | _] = invalid, _vdr} -> {:error, err_vdr}
+      {_, [{_, err_vdr} | _] = _invalid, _vdr} -> {:error, err_vdr}
     end
   end
 
@@ -432,13 +424,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     {:lists.reverse(valids), :lists.reverse(invalids), vdr}
   end
 
-  defp flat_map_or_empty(nil, _) do
-    []
-  end
-
-  defp flat_map_or_empty(enum, f) do
-    Enum.flat_map(enum, f)
-  end
 
   defp with_property_error(vdr, data, {kind, key, _, pattern}) do
     case kind do

@@ -2,6 +2,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefaultTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
+  @moduledoc """
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/default.json
+  """
+
   describe "invalid type for default" do
     setup do
       schema = %{

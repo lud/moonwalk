@@ -5,6 +5,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
     []
   end
 
+  @impl true
   todo_take_keywords(~w(
     unevaluatedItems
     unevaluatedProperties

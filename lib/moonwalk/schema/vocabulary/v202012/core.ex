@@ -2,7 +2,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Builder
-  alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.Ref
   use Moonwalk.Schema.Vocabulary, priority: 100
 
@@ -48,9 +47,9 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     {:ok, acc, bld}
   end
 
-  skip_keyword("$comment")
-  skip_keyword("$id")
-  skip_keyword("$schema")
+  consume_keyword("$comment")
+  consume_keyword("$id")
+  consume_keyword("$schema")
   ignore_any_keyword()
 
   def finalize_validators([]) do
@@ -118,16 +117,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-  IO.warn("remove validate_keyword_debug")
 
-  defp validate_keyword_debug(data, tuple, vdr) do
-    IO.puts("tuple: #{inspect(tuple)}")
-
-    case validate_keyword(data, tuple, vdr) do
-      {:ok, _, _} = ok -> ok
-      {:error, %Validator{}} = err -> err
-    end
-  end
 
   defp validate_keyword(data, {:ref, ref}, vdr) do
     Validator.validate_ref(data, ref, vdr)

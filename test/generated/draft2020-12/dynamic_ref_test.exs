@@ -2,6 +2,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
+  @moduledoc """
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/dynamicRef.json
+  """
+
   describe "A $dynamicRef to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor" do
     setup do
       schema = %{

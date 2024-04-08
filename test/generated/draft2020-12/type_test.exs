@@ -2,6 +2,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
+  @moduledoc """
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/type.json
+  """
+
   describe "integer type matches integers" do
     setup do
       schema = %{

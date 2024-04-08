@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
   @enabled %{
     "draft2020-12" => [
+      {"format.json", []},
       {"minContains.json", []},
       {"maxContains.json", []},
       {"uniqueItems.json", []},
@@ -72,6 +73,11 @@ defmodule Mix.Tasks.Gen.Test.Suite do
       alias Moonwalk.Test.JsonSchemaSuite
       use ExUnit.Case, async: true
 
+      @moduledoc \"""
+      Test generated from <%= Path.relative_to_cwd(@source_path) %>
+      \"""
+
+
       <%= for tcase <- @test_cases do %>
         describe <%= inspect(tcase.description) %> do
 
@@ -121,7 +127,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
   defp gen_test_mod(file_info, test_directory, namespace) do
     module_name = module_name(file_info, namespace)
-    assigns = %{module_name: module_name, test_cases: file_info.test_cases}
+    assigns = %{module_name: module_name, test_cases: file_info.test_cases, source_path: file_info.path}
     module_contents = module_template(assigns)
     module_path = module_path(test_directory, namespace, module_name)
 

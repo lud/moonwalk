@@ -7,6 +7,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     []
   end
 
+  @impl true
   todo_take_keywords ~w(
 
     maxProperties
@@ -89,7 +90,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  def take_keyword({keyword, _}, acc, ctx) when keyword in ["minContains", "maxContains"] do
+  def take_keyword({keyword, _}, _acc, _ctx) when keyword in ["minContains", "maxContains"] do
     # This is handled by the Applicator module IF the validation vocabulary is
     # enabled
     :ignore
@@ -147,17 +148,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   def validate(data, vds, vdr) do
     run_validators(data, vds, vdr, &validate_keyword/3)
-  end
-
-  IO.warn("remove validate_keyword_debug")
-
-  defp validate_keyword_debug(data, tuple, vdr) do
-    IO.puts("tuple: #{inspect(tuple)}")
-
-    case validate_keyword(data, tuple, vdr) do
-      {:ok, _, _} = ok -> ok
-      {:error, %Validator{}} = err -> err
-    end
   end
 
   defp validate_keyword(data, {:type, ts}, vdr) when is_list(ts) do

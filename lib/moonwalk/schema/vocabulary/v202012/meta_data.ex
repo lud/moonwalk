@@ -5,13 +5,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
     []
   end
 
-  skip_keyword("deprecated")
-  skip_keyword("description")
-  skip_keyword("default")
-  skip_keyword("title")
-  skip_keyword("readOnly")
-  skip_keyword("writeOnly")
-  skip_keyword("examples")
+  @impl true
+  consume_keyword("deprecated")
+  consume_keyword("description")
+  consume_keyword("default")
+  consume_keyword("title")
+  consume_keyword("readOnly")
+  consume_keyword("writeOnly")
+  consume_keyword("examples")
 
   ignore_any_keyword()
 

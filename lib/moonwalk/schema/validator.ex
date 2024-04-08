@@ -12,10 +12,8 @@ end
 defmodule Moonwalk.Schema.Validator do
   alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Dialect
-  alias Moonwalk.Helpers
   alias Moonwalk.Schema
   alias Moonwalk.Schema.BooleanSchema
-  alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.Validator.Error
 
   # TODO remove `%__MODULE__{}=`
@@ -223,19 +221,7 @@ defmodule Moonwalk.Schema.Validator do
     %__MODULE__{vdr | errors: [{path, error} | errors]}
   end
 
-  IO.warn("remove make_error")
 
-  defmacro make_error(vdr, kind, data, args) do
-    IO.warn("deprecated make_error")
-
-    quote bind_quoted: binding() do
-      Moonwalk.Schema.Validator.Context.__make_error__(vdr, kind, data, __MODULE__, args)
-    end
-  end
-
-  def __make_error__(_vdr, kind, data, formatter, args) do
-    Error.new(kind, data, formatter, args)
-  end
 
   # def put_path_meta(%__MODULE__{} = vdr, key, value) do
   #   %{path: path, public: public} = vdr

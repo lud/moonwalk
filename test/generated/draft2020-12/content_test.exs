@@ -2,6 +2,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
+  @moduledoc """
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/content.json
+  """
+
   describe "validation of string-encoded content based on media type" do
     setup do
       schema = %{

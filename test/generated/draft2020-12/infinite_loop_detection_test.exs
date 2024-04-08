@@ -2,6 +2,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.InfiniteLoopDetectionTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
+  @moduledoc """
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/infinite-loop-detection.json
+  """
+
   describe "evaluating the same schema location against the same data location twice is not a sign of an infinite loop" do
     setup do
       schema = %{

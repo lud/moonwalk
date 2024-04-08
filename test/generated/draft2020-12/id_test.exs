@@ -2,6 +2,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IdTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
+  @moduledoc """
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/id.json
+  """
+
   describe "Invalid use of fragments in location-independent $id" do
     setup do
       schema = %{
