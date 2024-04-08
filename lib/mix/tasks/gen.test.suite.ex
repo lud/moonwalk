@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
   @enabled %{
     "draft2020-12" => [
+      {"minProperties.json", []},
       {"maxProperties.json", []},
       {"format.json", []},
       {"minContains.json", []},
