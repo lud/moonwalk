@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/dynamicRef.json
   """
 
-  describe "A $dynamicRef to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor" do
+  describe "A $dynamicRef to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor ⋅" do
     setup do
       schema = %{
         "$defs" => %{"foo" => %{"$dynamicAnchor" => "items", "type" => "string"}},
@@ -32,7 +32,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef to an $anchor in the same schema resource behaves like a normal $ref to an $anchor" do
+  describe "A $dynamicRef to an $anchor in the same schema resource behaves like a normal $ref to an $anchor ⋅" do
     setup do
       schema = %{
         "$defs" => %{"foo" => %{"$anchor" => "items", "type" => "string"}},
@@ -58,7 +58,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $ref to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor" do
+  describe "A $ref to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor ⋅" do
     setup do
       schema = %{
         "$defs" => %{"foo" => %{"$dynamicAnchor" => "items", "type" => "string"}},
@@ -84,7 +84,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef resolves to the first $dynamicAnchor still in scope that is encountered when the schema is evaluated" do
+  describe "A $dynamicRef resolves to the first $dynamicAnchor still in scope that is encountered when the schema is evaluated ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -122,7 +122,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef without anchor in fragment behaves identical to $ref" do
+  describe "A $dynamicRef without anchor in fragment behaves identical to $ref ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -161,7 +161,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef with intermediate scopes that don't include a matching $dynamicAnchor does not affect dynamic scope resolution" do
+  describe "A $dynamicRef with intermediate scopes that don't include a matching $dynamicAnchor does not affect dynamic scope resolution ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -200,7 +200,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "An $anchor with the same name as a $dynamicAnchor is not used for dynamic scope resolution" do
+  describe "An $anchor with the same name as a $dynamicAnchor is not used for dynamic scope resolution ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -232,7 +232,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef without a matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor" do
+  describe "A $dynamicRef without a matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -265,7 +265,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef with a non-matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor" do
+  describe "A $dynamicRef with a non-matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -299,7 +299,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef that initially resolves to a schema with a matching $dynamicAnchor resolves to the first $dynamicAnchor in the dynamic scope" do
+  describe "A $dynamicRef that initially resolves to a schema with a matching $dynamicAnchor resolves to the first $dynamicAnchor in the dynamic scope ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -339,7 +339,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "A $dynamicRef that initially resolves to a schema without a matching $dynamicAnchor behaves like a normal $ref to $anchor" do
+  describe "A $dynamicRef that initially resolves to a schema without a matching $dynamicAnchor behaves like a normal $ref to $anchor ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -373,7 +373,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "multiple dynamic paths to the $dynamicRef keyword" do
+  describe "multiple dynamic paths to the $dynamicRef keyword ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -440,7 +440,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "after leaving a dynamic scope, it is not used by a $dynamicRef" do
+  describe "after leaving a dynamic scope, it is not used by a $dynamicRef ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -503,7 +503,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "strict-tree schema, guards against misspelled properties" do
+  describe "strict-tree schema, guards against misspelled properties ⋅" do
     setup do
       schema = %{
         "$dynamicAnchor" => "node",
@@ -531,7 +531,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "tests for implementation dynamic anchor and reference link" do
+  describe "tests for implementation dynamic anchor and reference link ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -569,7 +569,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "$ref and $dynamicAnchor are independent of order - $defs first" do
+  describe "$ref and $dynamicAnchor are independent of order - $defs first ⋅" do
     setup do
       schema = %{
         "$id" => "http://localhost:1234/draft2020-12/strict-extendible-allof-defs-first.json",
@@ -611,7 +611,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "$ref and $dynamicAnchor are independent of order - $ref first" do
+  describe "$ref and $dynamicAnchor are independent of order - $ref first ⋅" do
     setup do
       schema = %{
         "$id" => "http://localhost:1234/draft2020-12/strict-extendible-allof-ref-first.json",
@@ -653,7 +653,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "$ref to $dynamicRef finds detached $dynamicAnchor" do
+  describe "$ref to $dynamicRef finds detached $dynamicAnchor ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/draft2020-12/detached-dynamicref.json#/$defs/foo"
@@ -675,7 +675,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DynamicRefTest do
     end
   end
 
-  describe "$dynamicRef points to a boolean schema" do
+  describe "$dynamicRef points to a boolean schema ⋅" do
     setup do
       schema = %{
         "$defs" => %{"false" => false, "true" => true},

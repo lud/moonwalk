@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/allOf.json
   """
 
-  describe "allOf" do
+  describe "allOf ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -44,7 +44,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with base schema" do
+  describe "allOf with base schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -90,7 +90,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf simple types" do
+  describe "allOf simple types ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -113,7 +113,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with boolean schemas, all true" do
+  describe "allOf with boolean schemas, all true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -130,7 +130,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with boolean schemas, some false" do
+  describe "allOf with boolean schemas, some false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -147,7 +147,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with boolean schemas, all false" do
+  describe "allOf with boolean schemas, all false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -164,7 +164,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with one empty schema" do
+  describe "allOf with one empty schema ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "allOf" => [%{}]}
       {:ok, schema: schema}
@@ -177,7 +177,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with two empty schemas" do
+  describe "allOf with two empty schemas ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -194,7 +194,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with the first empty schema" do
+  describe "allOf with the first empty schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -217,7 +217,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf with the last empty schema" do
+  describe "allOf with the last empty schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -240,7 +240,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "nested allOf, to check validation semantics" do
+  describe "nested allOf, to check validation semantics ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -263,7 +263,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
     end
   end
 
-  describe "allOf combined with anyOf, oneOf" do
+  describe "allOf combined with anyOf, oneOf ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

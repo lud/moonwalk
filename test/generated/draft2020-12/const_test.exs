@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/const.json
   """
 
-  describe "const validation" do
+  describe "const validation ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => 2}
       {:ok, schema: schema}
@@ -31,7 +31,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with object" do
+  describe "const with object ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -66,7 +66,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with array" do
+  describe "const with array ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -95,7 +95,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with null" do
+  describe "const with null ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => nil}
       {:ok, schema: schema}
@@ -114,7 +114,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with false does not match 0" do
+  describe "const with false does not match 0 ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => false}
       {:ok, schema: schema}
@@ -139,7 +139,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with true does not match 1" do
+  describe "const with true does not match 1 ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => true}
       {:ok, schema: schema}
@@ -164,7 +164,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with [false] does not match [0]" do
+  describe "const with [false] does not match [0] ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -193,7 +193,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with [true] does not match [1]" do
+  describe "const with [true] does not match [1] ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -222,7 +222,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with {\"a\": false} does not match {\"a\": 0}" do
+  describe "const with {\"a\": false} does not match {\"a\": 0} ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -251,7 +251,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with {\"a\": true} does not match {\"a\": 1}" do
+  describe "const with {\"a\": true} does not match {\"a\": 1} ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -280,7 +280,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with 0 does not match other zero-like types" do
+  describe "const with 0 does not match other zero-like types ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => 0}
       {:ok, schema: schema}
@@ -323,7 +323,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with 1 does not match true" do
+  describe "const with 1 does not match true ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => 1}
       {:ok, schema: schema}
@@ -348,7 +348,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "const with -2.0 matches integer and float types" do
+  describe "const with -2.0 matches integer and float types ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => -2.0}
       {:ok, schema: schema}
@@ -385,7 +385,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "float and integers are equal up to 64-bit representation limits" do
+  describe "float and integers are equal up to 64-bit representation limits ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -420,7 +420,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
     end
   end
 
-  describe "nul characters in strings" do
+  describe "nul characters in strings ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

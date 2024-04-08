@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/contains.json
   """
 
-  describe "contains keyword validation" do
+  describe "contains keyword validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -53,7 +53,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
     end
   end
 
-  describe "contains keyword with const keyword" do
+  describe "contains keyword with const keyword ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -82,7 +82,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
     end
   end
 
-  describe "contains keyword with boolean schema true" do
+  describe "contains keyword with boolean schema true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -105,7 +105,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
     end
   end
 
-  describe "contains keyword with boolean schema false" do
+  describe "contains keyword with boolean schema false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -134,7 +134,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
     end
   end
 
-  describe "items + contains" do
+  describe "items + contains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -170,7 +170,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
     end
   end
 
-  describe "contains with false if subschema" do
+  describe "contains with false if subschema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -193,7 +193,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
     end
   end
 
-  describe "contains with null instance elements" do
+  describe "contains with null instance elements ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

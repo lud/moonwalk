@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/defs.json
   """
 
-  describe "validate definition against metaschema" do
+  describe "validate definition against metaschema ⋅" do
     setup do
       schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",

@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ExclusiveMinimumTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/exclusiveMinimum.json
   """
 
-  describe "exclusiveMinimum validation" do
+  describe "exclusiveMinimum validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

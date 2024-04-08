@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.InfiniteLoopDetectionTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/infinite-loop-detection.json
   """
 
-  describe "evaluating the same schema location against the same data location twice is not a sign of an infinite loop" do
+  describe "evaluating the same schema location against the same data location twice is not a sign of an infinite loop ⋅" do
     setup do
       schema = %{
         "$defs" => %{"int" => %{"type" => "integer"}},

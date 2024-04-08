@@ -223,8 +223,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-
-
   IO.warn("remove errors carrying. Maybe seen keys too?")
 
   defp property_validations(data, property_schema)
@@ -306,7 +304,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
         {{item, index}, subschema}, {casted, vdr} ->
           case Validator.validate_nested(item, index, subschema, vdr) do
             {:ok, casted_item, vdr} -> {[casted_item | casted], vdr}
-            {:error, vdr}  -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
+            {:error, vdr} -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
           end
       end)
 
@@ -423,7 +421,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
     {:lists.reverse(valids), :lists.reverse(invalids), vdr}
   end
-
 
   defp with_property_error(vdr, data, {kind, key, _, pattern}) do
     case kind do

@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefaultTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/default.json
   """
 
-  describe "invalid type for default" do
+  describe "invalid type for default ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -29,7 +29,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefaultTest do
     end
   end
 
-  describe "invalid string value for default" do
+  describe "invalid string value for default ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -54,7 +54,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefaultTest do
     end
   end
 
-  describe "the default keyword does not do anything if the property is missing" do
+  describe "the default keyword does not do anything if the property is missing ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

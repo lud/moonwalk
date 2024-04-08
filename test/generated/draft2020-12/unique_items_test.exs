@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/uniqueItems.json
   """
 
-  describe "uniqueItems validation" do
+  describe "uniqueItems validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -193,7 +193,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
     end
   end
 
-  describe "uniqueItems with an array of items" do
+  describe "uniqueItems with an array of items ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -253,7 +253,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
     end
   end
 
-  describe "uniqueItems with an array of items and additionalItems=false" do
+  describe "uniqueItems with an array of items and additionalItems=false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -296,7 +296,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
     end
   end
 
-  describe "uniqueItems=false validation" do
+  describe "uniqueItems=false validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -405,7 +405,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
     end
   end
 
-  describe "uniqueItems=false with an array of items" do
+  describe "uniqueItems=false with an array of items ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -465,7 +465,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
     end
   end
 
-  describe "uniqueItems=false with an array of items and additionalItems=false" do
+  describe "uniqueItems=false with an array of items and additionalItems=false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

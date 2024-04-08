@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/required.json
   """
 
-  describe "required validation" do
+  describe "required validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -48,7 +48,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
     end
   end
 
-  describe "required default validation" do
+  describe "required default validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -65,7 +65,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
     end
   end
 
-  describe "required with empty array" do
+  describe "required with empty array ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -83,7 +83,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
     end
   end
 
-  describe "required with escaped characters" do
+  describe "required with escaped characters ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -114,7 +114,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
     end
   end
 
-  describe "required properties whose names are Javascript object property names" do
+  describe "required properties whose names are Javascript object property names ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

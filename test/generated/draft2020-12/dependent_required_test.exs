@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/dependentRequired.json
   """
 
-  describe "single dependency" do
+  describe "single dependency ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -59,7 +59,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
     end
   end
 
-  describe "empty dependents" do
+  describe "empty dependents ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -88,7 +88,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
     end
   end
 
-  describe "multiple dependents required" do
+  describe "multiple dependents required ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -135,7 +135,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
     end
   end
 
-  describe "dependencies with escaped characters" do
+  describe "dependencies with escaped characters ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

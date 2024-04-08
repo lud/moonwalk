@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.BooleanSchemaTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/boolean_schema.json
   """
 
-  describe "boolean schema 'true'" do
+  describe "boolean schema 'true' ⋅" do
     setup do
       schema = true
       {:ok, schema: schema}
@@ -67,7 +67,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.BooleanSchemaTest do
     end
   end
 
-  describe "boolean schema 'false'" do
+  describe "boolean schema 'false' ⋅" do
     setup do
       schema = false
       {:ok, schema: schema}

@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/content.json
   """
 
-  describe "validation of string-encoded content based on media type" do
+  describe "validation of string-encoded content based on media type ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -38,7 +38,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
     end
   end
 
-  describe "validation of binary string-encoding" do
+  describe "validation of binary string-encoding ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -70,7 +70,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
     end
   end
 
-  describe "validation of binary-encoded media type documents" do
+  describe "validation of binary-encoded media type documents ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -110,7 +110,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
     end
   end
 
-  describe "validation of binary-encoded media type documents with schema" do
+  describe "validation of binary-encoded media type documents with schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

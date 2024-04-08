@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/pattern.json
   """
 
-  describe "pattern validation" do
+  describe "pattern validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -65,7 +65,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternTest do
     end
   end
 
-  describe "pattern is not anchored" do
+  describe "pattern is not anchored ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

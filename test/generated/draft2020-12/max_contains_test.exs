@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaxContainsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/maxContains.json
   """
 
-  describe "maxContains without contains is ignored" do
+  describe "maxContains without contains is ignored ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -29,7 +29,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaxContainsTest do
     end
   end
 
-  describe "maxContains with contains" do
+  describe "maxContains with contains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -71,7 +71,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaxContainsTest do
     end
   end
 
-  describe "maxContains with contains, value with a decimal" do
+  describe "maxContains with contains, value with a decimal ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -95,7 +95,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaxContainsTest do
     end
   end
 
-  describe "minContains < maxContains" do
+  describe "minContains < maxContains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

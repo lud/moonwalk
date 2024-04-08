@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/oneOf.json
   """
 
-  describe "oneOf" do
+  describe "oneOf ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -41,7 +41,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with base schema" do
+  describe "oneOf with base schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -71,7 +71,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with boolean schemas, all true" do
+  describe "oneOf with boolean schemas, all true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -88,7 +88,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with boolean schemas, one true" do
+  describe "oneOf with boolean schemas, one true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -105,7 +105,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with boolean schemas, more than one true" do
+  describe "oneOf with boolean schemas, more than one true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -122,7 +122,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with boolean schemas, all false" do
+  describe "oneOf with boolean schemas, all false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -139,7 +139,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf complex types" do
+  describe "oneOf complex types ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -177,7 +177,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with empty schema" do
+  describe "oneOf with empty schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -200,7 +200,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with required" do
+  describe "oneOf with required ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -236,7 +236,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "oneOf with missing optional property" do
+  describe "oneOf with missing optional property ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -274,7 +274,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
     end
   end
 
-  describe "nested oneOf, to check validation semantics" do
+  describe "nested oneOf, to check validation semantics ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

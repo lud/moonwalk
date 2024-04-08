@@ -23,8 +23,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
     run_validators(data, vds, vdr, &validate_keyword/3)
   end
 
-
-
   defp validate_keyword(data, {:format, _format}, vdr) do
     {:ok, data, vdr}
   end

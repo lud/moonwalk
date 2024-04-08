@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IdTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/id.json
   """
 
-  describe "Invalid use of fragments in location-independent $id" do
+  describe "Invalid use of fragments in location-independent $id ⋅" do
     setup do
       schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",
@@ -105,7 +105,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IdTest do
     end
   end
 
-  describe "Valid use of empty fragments in location-independent $id" do
+  describe "Valid use of empty fragments in location-independent $id ⋅" do
     setup do
       schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",
@@ -147,7 +147,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IdTest do
     end
   end
 
-  describe "Unnormalized $ids are allowed but discouraged" do
+  describe "Unnormalized $ids are allowed but discouraged ⋅" do
     setup do
       schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",

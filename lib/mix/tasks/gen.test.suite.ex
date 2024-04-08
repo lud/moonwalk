@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
   @enabled %{
     "draft2020-12" => [
+      {"maxProperties.json", []},
       {"format.json", []},
       {"minContains.json", []},
       {"maxContains.json", []},
@@ -79,7 +80,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
 
       <%= for tcase <- @test_cases do %>
-        describe <%= inspect(tcase.description) %> do
+        describe <%= inspect(tcase.description <> " ⋅") %> do
 
           setup do
             schema = <%= inspect(tcase.schema, limit: :infinity, pretty: true) %>

@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/refRemote.json
   """
 
-  describe "remote ref" do
+  describe "remote ref ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/draft2020-12/integer.json",
@@ -29,7 +29,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "fragment within remote ref" do
+  describe "fragment within remote ref ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/draft2020-12/subSchemas.json#/$defs/integer",
@@ -52,7 +52,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "anchor within remote ref" do
+  describe "anchor within remote ref ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/draft2020-12/locationIndependentIdentifier.json#foo",
@@ -75,7 +75,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "ref within remote ref" do
+  describe "ref within remote ref ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/draft2020-12/subSchemas.json#/$defs/refToInteger",
@@ -98,7 +98,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "base URI change" do
+  describe "base URI change ⋅" do
     setup do
       schema = %{
         "$id" => "http://localhost:1234/draft2020-12/",
@@ -125,7 +125,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "base URI change - change folder" do
+  describe "base URI change - change folder ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -157,7 +157,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "base URI change - change folder in subschema" do
+  describe "base URI change - change folder in subschema ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -195,7 +195,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "root ref in remote ref" do
+  describe "root ref in remote ref ⋅" do
     setup do
       schema = %{
         "$id" => "http://localhost:1234/draft2020-12/object",
@@ -226,7 +226,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "remote ref with ref to defs" do
+  describe "remote ref with ref to defs ⋅" do
     setup do
       schema = %{
         "$id" => "http://localhost:1234/draft2020-12/schema-remote-ref-ref-defs1.json",
@@ -250,7 +250,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "Location-independent identifier in remote ref" do
+  describe "Location-independent identifier in remote ref ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/draft2020-12/locationIndependentIdentifier.json#/$defs/refToInteger",
@@ -273,7 +273,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "retrieved nested refs resolve relative to their URI not $id" do
+  describe "retrieved nested refs resolve relative to their URI not $id ⋅" do
     setup do
       schema = %{
         "$id" => "http://localhost:1234/draft2020-12/some-id",
@@ -297,7 +297,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "remote HTTP ref with different $id" do
+  describe "remote HTTP ref with different $id ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/different-id-ref-string.json",
@@ -320,7 +320,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "remote HTTP ref with different URN $id" do
+  describe "remote HTTP ref with different URN $id ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/urn-ref-string.json",
@@ -343,7 +343,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "remote HTTP ref with nested absolute ref" do
+  describe "remote HTTP ref with nested absolute ref ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/nested-absolute-ref-to-string.json",
@@ -366,7 +366,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefRemoteTest do
     end
   end
 
-  describe "$ref to $ref finds detached $anchor" do
+  describe "$ref to $ref finds detached $anchor ⋅" do
     setup do
       schema = %{
         "$ref" => "http://localhost:1234/draft2020-12/detached-ref.json#/$defs/foo",

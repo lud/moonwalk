@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/multipleOf.json
   """
 
-  describe "by int" do
+  describe "by int ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -35,7 +35,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
     end
   end
 
-  describe "by number" do
+  describe "by number ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -64,7 +64,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
     end
   end
 
-  describe "by small number" do
+  describe "by small number ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -87,7 +87,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
     end
   end
 
-  describe "float division = inf" do
+  describe "float division = inf ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -105,7 +105,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
     end
   end
 
-  describe "small multiple of large integer" do
+  describe "small multiple of large integer ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

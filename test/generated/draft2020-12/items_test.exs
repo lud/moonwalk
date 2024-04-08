@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/items.json
   """
 
-  describe "a schema given for items" do
+  describe "a schema given for items ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -42,7 +42,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "items with boolean schema (true)" do
+  describe "items with boolean schema (true) ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "items" => true}
       {:ok, schema: schema}
@@ -61,7 +61,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "items with boolean schema (false)" do
+  describe "items with boolean schema (false) ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "items" => false}
       {:ok, schema: schema}
@@ -80,7 +80,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "items and subitems" do
+  describe "items and subitems ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -170,7 +170,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "nested items" do
+  describe "nested items ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -206,7 +206,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "prefixItems with no additional items allowed" do
+  describe "prefixItems with no additional items allowed ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -248,7 +248,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "items does not look in applicators, valid case" do
+  describe "items does not look in applicators, valid case ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -272,7 +272,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "prefixItems validation adjusts the starting index for items" do
+  describe "prefixItems validation adjusts the starting index for items ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -296,7 +296,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "items with heterogeneous array" do
+  describe "items with heterogeneous array ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -320,7 +320,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
     end
   end
 
-  describe "items with null instance elements" do
+  describe "items with null instance elements ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/properties.json
   """
 
-  describe "object properties validation" do
+  describe "object properties validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -56,7 +56,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
     end
   end
 
-  describe "properties, patternProperties, additionalProperties interaction" do
+  describe "properties, patternProperties, additionalProperties interaction ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -120,7 +120,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
     end
   end
 
-  describe "properties with boolean schema" do
+  describe "properties with boolean schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -155,7 +155,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
     end
   end
 
-  describe "properties with escaped characters" do
+  describe "properties with escaped characters ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -201,7 +201,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
     end
   end
 
-  describe "properties with null valued instance properties" do
+  describe "properties with null valued instance properties ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -218,7 +218,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
     end
   end
 
-  describe "properties whose names are Javascript object property names" do
+  describe "properties whose names are Javascript object property names ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

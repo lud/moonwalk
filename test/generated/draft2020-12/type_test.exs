@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/type.json
   """
 
-  describe "integer type matches integers" do
+  describe "integer type matches integers ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -71,7 +71,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "number type matches numbers" do
+  describe "number type matches numbers ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -136,7 +136,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "string type matches strings" do
+  describe "string type matches strings ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -201,7 +201,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "object type matches objects" do
+  describe "object type matches objects ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -254,7 +254,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "array type matches arrays" do
+  describe "array type matches arrays ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -307,7 +307,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "boolean type matches booleans" do
+  describe "boolean type matches booleans ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -378,7 +378,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "null type matches only the null object" do
+  describe "null type matches only the null object ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "type" => "null"}
       {:ok, schema: schema}
@@ -445,7 +445,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "multiple types can be specified in an array" do
+  describe "multiple types can be specified in an array ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -498,7 +498,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "type as array with one item" do
+  describe "type as array with one item ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -521,7 +521,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "type: array or object" do
+  describe "type: array or object ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -562,7 +562,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
     end
   end
 
-  describe "type: array, object or null" do
+  describe "type: array, object or null ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

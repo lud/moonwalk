@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/anyOf.json
   """
 
-  describe "anyOf" do
+  describe "anyOf ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -41,7 +41,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
     end
   end
 
-  describe "anyOf with base schema" do
+  describe "anyOf with base schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -71,7 +71,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
     end
   end
 
-  describe "anyOf with boolean schemas, all true" do
+  describe "anyOf with boolean schemas, all true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -88,7 +88,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
     end
   end
 
-  describe "anyOf with boolean schemas, some true" do
+  describe "anyOf with boolean schemas, some true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -105,7 +105,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
     end
   end
 
-  describe "anyOf with boolean schemas, all false" do
+  describe "anyOf with boolean schemas, all false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -122,7 +122,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
     end
   end
 
-  describe "anyOf complex types" do
+  describe "anyOf complex types ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -160,7 +160,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
     end
   end
 
-  describe "anyOf with one empty schema" do
+  describe "anyOf with one empty schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -183,7 +183,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
     end
   end
 
-  describe "nested anyOf, to check validation semantics" do
+  describe "nested anyOf, to check validation semantics ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

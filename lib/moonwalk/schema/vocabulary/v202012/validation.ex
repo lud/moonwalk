@@ -3,17 +3,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   alias Moonwalk.Helpers
   use Moonwalk.Schema.Vocabulary, priority: 300
 
+  @impl true
   def init_validators do
     []
   end
 
   @impl true
-  todo_take_keywords ~w(
-
-    maxProperties
-
-
-  )
 
   def take_keyword({"type", t}, vds, ctx) do
     {:ok, [{:type, valid_type!(t)} | vds], ctx}
@@ -71,6 +66,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     take_integer(:min_properties, min_properties, acc, ctx)
   end
 
+  def take_keyword({"maxProperties", max_properties}, acc, ctx) do
+    take_integer(:max_properties, max_properties, acc, ctx)
+  end
+
   def take_keyword({"enum", enum}, acc, ctx) do
     {:ok, [{:enum, enum} | acc], ctx}
   end
@@ -104,6 +103,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   # ---------------------------------------------------------------------------
 
+  @impl true
   def finalize_validators([]) do
     :ignore
   end
@@ -146,6 +146,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     :number
   end
 
+  @impl true
   def validate(data, vds, vdr) do
     run_validators(data, vds, vdr, &validate_keyword/3)
   end
@@ -348,6 +349,15 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   pass validate_keyword({:min_properties, _})
+
+  defp validate_keyword(data, {:max_properties, n}, vdr) when is_map(data) do
+    case map_size(data) do
+      size when size > n -> {:error, Validator.with_error(vdr, :max_properties, data, max_properties: n, size: size)}
+      _ -> {:ok, data, vdr}
+    end
+  end
+
+  pass validate_keyword({:max_properties, _})
 
   # ---------------------------------------------------------------------------
 

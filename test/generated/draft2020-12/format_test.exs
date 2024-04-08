@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/format.json
   """
 
-  describe "email format" do
+  describe "email format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -59,7 +59,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "idn-email format" do
+  describe "idn-email format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -112,7 +112,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "regex format" do
+  describe "regex format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -165,7 +165,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "ipv4 format" do
+  describe "ipv4 format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -218,7 +218,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "ipv6 format" do
+  describe "ipv6 format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -271,7 +271,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "idn-hostname format" do
+  describe "idn-hostname format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -324,7 +324,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "hostname format" do
+  describe "hostname format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -377,7 +377,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "date format" do
+  describe "date format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -430,7 +430,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "date-time format" do
+  describe "date-time format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -483,7 +483,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "time format" do
+  describe "time format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -536,7 +536,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "json-pointer format" do
+  describe "json-pointer format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -589,7 +589,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "relative-json-pointer format" do
+  describe "relative-json-pointer format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -642,7 +642,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "iri format" do
+  describe "iri format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -695,7 +695,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "iri-reference format" do
+  describe "iri-reference format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -748,7 +748,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "uri format" do
+  describe "uri format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -801,7 +801,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "uri-reference format" do
+  describe "uri-reference format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -854,7 +854,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "uri-template format" do
+  describe "uri-template format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -907,7 +907,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "uuid format" do
+  describe "uuid format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -960,7 +960,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
     end
   end
 
-  describe "duration format" do
+  describe "duration format ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

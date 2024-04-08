@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/prefixItems.json
   """
 
-  describe "a schema given for prefixItems" do
+  describe "a schema given for prefixItems ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -53,7 +53,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
     end
   end
 
-  describe "prefixItems with boolean schemas" do
+  describe "prefixItems with boolean schemas ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -82,7 +82,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
     end
   end
 
-  describe "additional items are allowed by default" do
+  describe "additional items are allowed by default ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -99,7 +99,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
     end
   end
 
-  describe "prefixItems with null instance elements" do
+  describe "prefixItems with null instance elements ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

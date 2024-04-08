@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/additionalProperties.json
   """
 
-  describe "additionalProperties being false does not allow other properties" do
+  describe "additionalProperties being false does not allow other properties ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -55,7 +55,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
     end
   end
 
-  describe "non-ASCII pattern with additionalProperties" do
+  describe "non-ASCII pattern with additionalProperties ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -79,7 +79,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
     end
   end
 
-  describe "additionalProperties with schema" do
+  describe "additionalProperties with schema ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -109,7 +109,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
     end
   end
 
-  describe "additionalProperties can exist by itself" do
+  describe "additionalProperties can exist by itself ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -132,7 +132,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
     end
   end
 
-  describe "additionalProperties are allowed by default" do
+  describe "additionalProperties are allowed by default ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -149,7 +149,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
     end
   end
 
-  describe "additionalProperties does not look in applicators" do
+  describe "additionalProperties does not look in applicators ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -167,7 +167,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
     end
   end
 
-  describe "additionalProperties with null valued instance properties" do
+  describe "additionalProperties with null valued instance properties ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

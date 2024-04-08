@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaximumTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/maximum.json
   """
 
-  describe "maximum validation" do
+  describe "maximum validation ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "maximum" => 3.0}
       {:ok, schema: schema}
@@ -37,7 +37,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaximumTest do
     end
   end
 
-  describe "maximum validation with unsigned integer" do
+  describe "maximum validation with unsigned integer ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "maximum" => 300}
       {:ok, schema: schema}

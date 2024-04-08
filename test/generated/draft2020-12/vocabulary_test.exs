@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.VocabularyTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/vocabulary.json
   """
 
-  describe "schema that uses custom metaschema with with no validation vocabulary" do
+  describe "schema that uses custom metaschema with with no validation vocabulary ⋅" do
     setup do
       schema = %{
         "$id" => "https://schema/using/no/validation",
@@ -39,7 +39,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.VocabularyTest do
     end
   end
 
-  describe "ignore unrecognized optional vocabulary" do
+  describe "ignore unrecognized optional vocabulary ⋅" do
     setup do
       schema = %{
         "$schema" => "http://localhost:1234/draft2020-12/metaschema-optional-vocabulary.json",

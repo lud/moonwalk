@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/if-then-else.json
   """
 
-  describe "ignore if without then or else" do
+  describe "ignore if without then or else ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -29,7 +29,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "ignore then without if" do
+  describe "ignore then without if ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -52,7 +52,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "ignore else without if" do
+  describe "ignore else without if ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -75,7 +75,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "if and then without else" do
+  describe "if and then without else ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -105,7 +105,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "if and else without then" do
+  describe "if and else without then ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -135,7 +135,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "validate against correct branch, then vs else" do
+  describe "validate against correct branch, then vs else ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -172,7 +172,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "non-interference across combined schemas" do
+  describe "non-interference across combined schemas ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -199,7 +199,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "if with boolean schema true" do
+  describe "if with boolean schema true ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -224,7 +224,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "if with boolean schema false" do
+  describe "if with boolean schema false ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -249,7 +249,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.IfThenElseTest do
     end
   end
 
-  describe "if appears at the end when serialized (keyword processing sequence)" do
+  describe "if appears at the end when serialized (keyword processing sequence) ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

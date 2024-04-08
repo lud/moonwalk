@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/anchor.json
   """
 
-  describe "Location-independent identifier" do
+  describe "Location-independent identifier ⋅" do
     setup do
       schema = %{
         "$defs" => %{"A" => %{"$anchor" => "foo", "type" => "integer"}},
@@ -30,7 +30,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
     end
   end
 
-  describe "Location-independent identifier with absolute URI" do
+  describe "Location-independent identifier with absolute URI ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -60,7 +60,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
     end
   end
 
-  describe "Location-independent identifier with base URI change in subschema" do
+  describe "Location-independent identifier with base URI change in subschema ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -90,7 +90,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
     end
   end
 
-  describe "same $anchor with different base uri" do
+  describe "same $anchor with different base uri ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -123,7 +123,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
     end
   end
 
-  describe "invalid anchors" do
+  describe "invalid anchors ⋅" do
     setup do
       schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",

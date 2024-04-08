@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/ref.json
   """
 
-  describe "root pointer ref" do
+  describe "root pointer ref ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -42,7 +42,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "relative pointer ref to object" do
+  describe "relative pointer ref to object ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -68,7 +68,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "relative pointer ref to array" do
+  describe "relative pointer ref to array ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -91,7 +91,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "escaped pointer ref" do
+  describe "escaped pointer ref ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -147,7 +147,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "nested refs" do
+  describe "nested refs ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -175,7 +175,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "ref applies alongside sibling keywords" do
+  describe "ref applies alongside sibling keywords ⋅" do
     setup do
       schema = %{
         "$defs" => %{"reffed" => %{"type" => "array"}},
@@ -205,7 +205,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "remote ref, containing refs itself" do
+  describe "remote ref, containing refs itself ⋅" do
     setup do
       schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",
@@ -228,7 +228,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "property named $ref that is not a reference" do
+  describe "property named $ref that is not a reference ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -251,7 +251,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "property named $ref, containing an actual $ref" do
+  describe "property named $ref, containing an actual $ref ⋅" do
     setup do
       schema = %{
         "$defs" => %{"is-string" => %{"type" => "string"}},
@@ -275,7 +275,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "$ref to boolean schema true" do
+  describe "$ref to boolean schema true ⋅" do
     setup do
       schema = %{
         "$defs" => %{"bool" => true},
@@ -293,7 +293,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "$ref to boolean schema false" do
+  describe "$ref to boolean schema false ⋅" do
     setup do
       schema = %{
         "$defs" => %{"bool" => false},
@@ -311,7 +311,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "Recursive references between schemas" do
+  describe "Recursive references between schemas ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -391,7 +391,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "refs with quote" do
+  describe "refs with quote ⋅" do
     setup do
       schema = %{
         "$defs" => %{"foo\"bar" => %{"type" => "number"}},
@@ -415,7 +415,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "ref creates new scope when adjacent to keywords" do
+  describe "ref creates new scope when adjacent to keywords ⋅" do
     setup do
       schema = %{
         "$defs" => %{"A" => %{"unevaluatedProperties" => false}},
@@ -435,7 +435,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "naive replacement of $ref with its destination is not correct" do
+  describe "naive replacement of $ref with its destination is not correct ⋅" do
     setup do
       schema = %{
         "$defs" => %{"a_string" => %{"type" => "string"}},
@@ -465,7 +465,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "refs with relative uris and defs" do
+  describe "refs with relative uris and defs ⋅" do
     setup do
       schema = %{
         "$id" => "http://example.com/schema-relative-uri-defs1.json",
@@ -504,7 +504,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "relative refs with absolute uris and defs" do
+  describe "relative refs with absolute uris and defs ⋅" do
     setup do
       schema = %{
         "$id" => "http://example.com/schema-refs-absolute-uris-defs1.json",
@@ -543,7 +543,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "$id must be resolved against nearest parent, not just immediate parent" do
+  describe "$id must be resolved against nearest parent, not just immediate parent ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -573,7 +573,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "order of evaluation: $id and $ref" do
+  describe "order of evaluation: $id and $ref ⋅" do
     setup do
       schema = %{
         "$comment" => "$id must be evaluated before $ref to get the proper $ref destination",
@@ -610,7 +610,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "order of evaluation: $id and $anchor and $ref" do
+  describe "order of evaluation: $id and $anchor and $ref ⋅" do
     setup do
       schema = %{
         "$comment" => "$id must be evaluated before $ref to get the proper $ref destination",
@@ -650,7 +650,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "simple URN base URI with $ref via the URN" do
+  describe "simple URN base URI with $ref via the URN ⋅" do
     setup do
       schema = %{
         "$comment" => "URIs do not have to have HTTP(s) schemes",
@@ -678,7 +678,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "simple URN base URI with JSON pointer" do
+  describe "simple URN base URI with JSON pointer ⋅" do
     setup do
       schema = %{
         "$comment" => "URIs do not have to have HTTP(s) schemes",
@@ -704,7 +704,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN base URI with NSS" do
+  describe "URN base URI with NSS ⋅" do
     setup do
       schema = %{
         "$comment" => "RFC 8141 §2.2",
@@ -730,7 +730,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN base URI with r-component" do
+  describe "URN base URI with r-component ⋅" do
     setup do
       schema = %{
         "$comment" => "RFC 8141 §2.3.1",
@@ -756,7 +756,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN base URI with q-component" do
+  describe "URN base URI with q-component ⋅" do
     setup do
       schema = %{
         "$comment" => "RFC 8141 §2.3.2",
@@ -782,7 +782,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN base URI with f-component" do
+  describe "URN base URI with f-component ⋅" do
     setup do
       schema = %{
         "$comment" => "RFC 8141 §2.3.3, but we don't allow fragments",
@@ -800,7 +800,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN base URI with URN and JSON pointer ref" do
+  describe "URN base URI with URN and JSON pointer ref ⋅" do
     setup do
       schema = %{
         "$defs" => %{"bar" => %{"type" => "string"}},
@@ -829,7 +829,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN base URI with URN and anchor ref" do
+  describe "URN base URI with URN and anchor ref ⋅" do
     setup do
       schema = %{
         "$defs" => %{"bar" => %{"$anchor" => "something", "type" => "string"}},
@@ -858,7 +858,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN ref with nested pointer ref" do
+  describe "URN ref with nested pointer ref ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -888,7 +888,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "ref to if" do
+  describe "ref to if ⋅" do
     setup do
       schema = %{
         "$ref" => "http://example.com/ref/if",
@@ -912,7 +912,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "ref to then" do
+  describe "ref to then ⋅" do
     setup do
       schema = %{
         "$ref" => "http://example.com/ref/then",
@@ -936,7 +936,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "ref to else" do
+  describe "ref to else ⋅" do
     setup do
       schema = %{
         "$ref" => "http://example.com/ref/else",
@@ -960,7 +960,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "ref with absolute-path-reference" do
+  describe "ref with absolute-path-reference ⋅" do
     setup do
       schema = %{
         "$defs" => %{
@@ -994,7 +994,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "$id with file URI still resolves pointers - *nix" do
+  describe "$id with file URI still resolves pointers - *nix ⋅" do
     setup do
       schema = %{
         "$defs" => %{"foo" => %{"type" => "number"}},
@@ -1019,7 +1019,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "$id with file URI still resolves pointers - windows" do
+  describe "$id with file URI still resolves pointers - windows ⋅" do
     setup do
       schema = %{
         "$defs" => %{"foo" => %{"type" => "number"}},
@@ -1044,7 +1044,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "empty tokens in $ref json-pointer" do
+  describe "empty tokens in $ref json-pointer ⋅" do
     setup do
       schema = %{
         "$defs" => %{"" => %{"$defs" => %{"" => %{"type" => "number"}}}},

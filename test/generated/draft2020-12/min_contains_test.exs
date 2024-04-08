@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/minContains.json
   """
 
-  describe "minContains without contains is ignored" do
+  describe "minContains without contains is ignored ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -29,7 +29,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
     end
   end
 
-  describe "minContains=1 with contains" do
+  describe "minContains=1 with contains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -71,7 +71,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
     end
   end
 
-  describe "minContains=2 with contains" do
+  describe "minContains=2 with contains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -119,7 +119,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
     end
   end
 
-  describe "minContains=2 with contains with a decimal value" do
+  describe "minContains=2 with contains with a decimal value ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -143,7 +143,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
     end
   end
 
-  describe "maxContains = minContains" do
+  describe "maxContains = minContains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -180,7 +180,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
     end
   end
 
-  describe "maxContains < minContains" do
+  describe "maxContains < minContains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -217,7 +217,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
     end
   end
 
-  describe "minContains = 0" do
+  describe "minContains = 0 ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -241,7 +241,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinContainsTest do
     end
   end
 
-  describe "minContains = 0 with maxContains" do
+  describe "minContains = 0 with maxContains ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

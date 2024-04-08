@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinLengthTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/minLength.json
   """
 
-  describe "minLength validation" do
+  describe "minLength validation ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "minLength" => 2}
       {:ok, schema: schema}
@@ -43,7 +43,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinLengthTest do
     end
   end
 
-  describe "minLength validation with a decimal" do
+  describe "minLength validation with a decimal ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

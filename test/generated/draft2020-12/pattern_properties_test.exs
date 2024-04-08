@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/patternProperties.json
   """
 
-  describe "patternProperties validates properties matching a regex" do
+  describe "patternProperties validates properties matching a regex ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -59,7 +59,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
     end
   end
 
-  describe "multiple simultaneous patternProperties are validated" do
+  describe "multiple simultaneous patternProperties are validated ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -109,7 +109,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
     end
   end
 
-  describe "regexes are not anchored by default and are case sensitive" do
+  describe "regexes are not anchored by default and are case sensitive ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -147,7 +147,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
     end
   end
 
-  describe "patternProperties with boolean schemas" do
+  describe "patternProperties with boolean schemas ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -188,7 +188,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
     end
   end
 
-  describe "patternProperties with null valued instance properties" do
+  describe "patternProperties with null valued instance properties ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/enum.json
   """
 
-  describe "simple enum validation" do
+  describe "simple enum validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -29,7 +29,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "heterogeneous enum validation" do
+  describe "heterogeneous enum validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -70,7 +70,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "heterogeneous enum-with-null validation" do
+  describe "heterogeneous enum-with-null validation ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -99,7 +99,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enums in properties" do
+  describe "enums in properties ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -151,7 +151,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with escaped characters" do
+  describe "enum with escaped characters ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -180,7 +180,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with false does not match 0" do
+  describe "enum with false does not match 0 ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -209,7 +209,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with [false] does not match [0]" do
+  describe "enum with [false] does not match [0] ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -238,7 +238,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with true does not match 1" do
+  describe "enum with true does not match 1 ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "enum" => [true]}
       {:ok, schema: schema}
@@ -263,7 +263,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with [true] does not match [1]" do
+  describe "enum with [true] does not match [1] ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -292,7 +292,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with 0 does not match false" do
+  describe "enum with 0 does not match false ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "enum" => [0]}
       {:ok, schema: schema}
@@ -317,7 +317,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with [0] does not match [false]" do
+  describe "enum with [0] does not match [false] ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "enum" => [[0]]}
       {:ok, schema: schema}
@@ -342,7 +342,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with 1 does not match true" do
+  describe "enum with 1 does not match true ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "enum" => [1]}
       {:ok, schema: schema}
@@ -367,7 +367,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "enum with [1] does not match [true]" do
+  describe "enum with [1] does not match [true] ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "enum" => [[1]]}
       {:ok, schema: schema}
@@ -392,7 +392,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.EnumTest do
     end
   end
 
-  describe "nul characters in strings" do
+  describe "nul characters in strings ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

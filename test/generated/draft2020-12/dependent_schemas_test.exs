@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/dependentSchemas.json
   """
 
-  describe "single dependency" do
+  describe "single dependency ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -72,7 +72,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
     end
   end
 
-  describe "boolean subschemas" do
+  describe "boolean subschemas ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -107,7 +107,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
     end
   end
 
-  describe "dependencies with escaped characters" do
+  describe "dependencies with escaped characters ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -145,7 +145,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
     end
   end
 
-  describe "dependent subschema incompatible with root" do
+  describe "dependent subschema incompatible with root ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",

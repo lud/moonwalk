@@ -221,8 +221,6 @@ defmodule Moonwalk.Schema.Validator do
     %__MODULE__{vdr | errors: [{path, error} | errors]}
   end
 
-
-
   # def put_path_meta(%__MODULE__{} = vdr, key, value) do
   #   %{path: path, public: public} = vdr
   #   full_key = {path, key}

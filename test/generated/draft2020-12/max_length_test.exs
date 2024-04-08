@@ -6,7 +6,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaxLengthTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/maxLength.json
   """
 
-  describe "maxLength validation" do
+  describe "maxLength validation ⋅" do
     setup do
       schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "maxLength" => 2}
       {:ok, schema: schema}
@@ -43,7 +43,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaxLengthTest do
     end
   end
 
-  describe "maxLength validation with a decimal" do
+  describe "maxLength validation with a decimal ⋅" do
     setup do
       schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
