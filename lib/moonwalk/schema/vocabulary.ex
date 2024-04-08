@@ -13,11 +13,49 @@ defmodule Moonwalk.Schema.Vocabulary do
   @callback finalize_validators(validators) :: :ignore | validators
   @callback validate(data, validators, ctx :: Context.t()) :: {:ok, data} | {:error, Error.t()}
 
-  defmacro __using__(_) do
+  @doc """
+  Returns the priority for applyting this module to the data.
+
+  Lower values (close to zero) will be applied first. You can think "order"
+  instead of "priority" but several modules can share the same priority value.
+
+  This can be useful to define vocabularies that depend on other vocabularies.
+  For instance, the `max_contains` keyword in the validation vocabulary has
+  lower priority (higher number) as the applicator vocabulary that defines
+  `contains`. So when validating `max_contains`, the validator for `contains`
+  will have registered the matched number of items in the validator `public`
+  state.
+
+  Modules shipped in this library have priority of 100, 200, etc. up to 900 so
+  you can interleave your own vocabularies. Casting values to non-validable
+  terms (such as structs or dates) should be done by vocabularies with a
+  priority of 1000 and above.
+  """
+  @callback priority() :: pos_integer()
+
+  defmacro __using__(opts) do
+    priority_callback =
+      case Keyword.fetch(opts, :priority) do
+        {:ok, n} when is_integer(n) and n > 0 ->
+          quote bind_quoted: [n: n] do
+            @impl true
+            def priority do
+              unquote(n)
+            end
+          end
+
+        :error ->
+          []
+
+        {:ok, other} ->
+          raise ArgumentError, "expected :priority option to be given as a positive integer literal"
+      end
+
     quote do
       import unquote(__MODULE__)
       @behaviour unquote(__MODULE__)
       require Moonwalk.Schema.Validator
+      unquote(priority_callback)
     end
   end
 

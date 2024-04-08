@@ -1,8 +1,7 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   alias Moonwalk.Schema.Validator
   alias Moonwalk.Helpers
-  alias Moonwalk.Schema.Validator.Context
-  use Moonwalk.Schema.Vocabulary
+  use Moonwalk.Schema.Vocabulary, priority: 300
 
   def init_validators do
     []
@@ -11,7 +10,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   todo_take_keywords ~w(
 
     maxProperties
-    minContains
+
 
   )
 
@@ -90,8 +89,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  def take_keyword({"maxContains", max_contains}, acc, ctx) do
-    {:ok, [{:max_contains, max_contains} | acc], ctx}
+  def take_keyword({keyword, _}, acc, ctx) when keyword in ["minContains", "maxContains"] do
+    # This is handled by the Applicator module IF the validation vocabulary is
+    # enabled
+    :ignore
   end
 
   def take_keyword({"dependentRequired", dependent_required}, acc, ctx) do
@@ -357,10 +358,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   end
 
   pass validate_keyword({:min_properties, _})
-
-  defp validate_keyword(data, {:max_contains, n}, vdr) when is_list(data) do
-    raise "what should I do here"
-  end
 
   # ---------------------------------------------------------------------------
 

@@ -47,6 +47,7 @@ defmodule Moonwalk.Schema.Validator do
     do_validate(data, validators, vdr)
   end
 
+  IO.warn("should set the scope from the ref, useless in validators")
   # Executes all validators with the given data, collecting errors on the way,
   # then return either ok or error with all errors.
   defp do_validate(data, %Dialect{} = dialect, vdr) do
@@ -72,10 +73,15 @@ defmodule Moonwalk.Schema.Validator do
         case fun.(data, validation_item, vdr) do
           # When returning :ok, the errors may be empty or not, depending on
           # previous iterations.
-          {:ok, new_data, %__MODULE__{} = new_vdr} -> {new_data, new_vdr}
+          {:ok, new_data, %__MODULE__{} = new_vdr} ->
+            {new_data, new_vdr}
+
           # When returning :error, an error MUST be set
-          {:error, %__MODULE__{errors: [_ | _]} = new_vdr} -> {data, new_vdr}
-          other -> raise "Invalid return from #{inspect(fun)}: #{inspect(other)}"
+          {:error, %__MODULE__{errors: [_ | _]} = new_vdr} ->
+            {data, new_vdr}
+
+          other ->
+            raise "Invalid return from #{inspect(fun)} called with #{inspect(validation_item)}: #{inspect(other)}"
         end
       end)
 
@@ -101,6 +107,8 @@ defmodule Moonwalk.Schema.Validator do
       {:error, %__MODULE__{errors: [_ | _]} = sub_vdr} -> {:error, merge_sub(vdr, sub_vdr)}
     end
   end
+
+  IO.warn("should set the scope from the ref, useless in validators")
 
   def validate_ref(data, ref, vdr) do
     subvalidators = checkout_ref(vdr, ref)
@@ -149,10 +157,6 @@ defmodule Moonwalk.Schema.Validator do
     {:error, vdr}
   end
 
-  defp downpath(%{path: path} = vdr, key) do
-    %__MODULE__{vdr | path: [key | path]}
-  end
-
   def checkout_ref(%{scope: scope} = vdr, {:dynamic_anchor, ns, anchor}) do
     case checkout_dynamic_ref(scope, vdr, anchor) do
       :error -> checkout_ref(vdr, {:anchor, ns, anchor})
@@ -176,10 +180,6 @@ defmodule Moonwalk.Schema.Validator do
 
   defp checkout_dynamic_ref([], _, _) do
     :error
-  end
-
-  def append_scope(%__MODULE__{scope: scope} = vdr, segment) do
-    %__MODULE__{vdr | scope: [segment | scope]}
   end
 
   @deprecated "use make_error"
@@ -236,4 +236,17 @@ defmodule Moonwalk.Schema.Validator do
   def __make_error__(_vdr, kind, data, formatter, args) do
     Error.new(kind, data, formatter, args)
   end
+
+  # def put_path_meta(%__MODULE__{} = vdr, key, value) do
+  #   %{path: path, public: public} = vdr
+  #   full_key = {path, key}
+  #   public = Map.put(public, full_key, value)
+  #   %__MODULE__{vdr | public: public}
+  # end
+
+  # def get_path_meta(%__MODULE__{} = vdr, key) do
+  #   %{path: path, public: public} = vdr
+  #   full_key = {path, key}
+  #   Map.fetch(public, full_key)
+  # end
 end

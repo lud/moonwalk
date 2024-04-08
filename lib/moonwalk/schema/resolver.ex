@@ -327,7 +327,7 @@ defmodule Moonwalk.Schema.Resolver do
 
   defp check_fetched(rsv, id) when is_binary(id) do
     case rsv do
-      %{resolved: %{^id => _}} -> :already_fetched
+      %{resolved: %{^id => fetched}} -> {:already_fetched, fetched}
       _ -> :unfetched
     end
   end
@@ -377,9 +377,13 @@ defmodule Moonwalk.Schema.Resolver do
         end
       end)
 
-    {:ok, known}
+    {:ok, sort_vocabularies(known)}
   catch
     {:unknown_vocabulary, uri} -> {:error, {:unknown_vocabulary, uri}}
+  end
+
+  defp sort_vocabularies(modules) do
+    Enum.sort_by(modules, fn module -> module.priority() end)
   end
 
   def as_root(rsv, fun) when is_function(fun, 2) do

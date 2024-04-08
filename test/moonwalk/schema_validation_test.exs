@@ -22,7 +22,8 @@ defmodule Moonwalk.SchemaValidationTest do
   end)
 
   suites = [
-    # {"maxContains.json", []},
+    {"minContains.json", []},
+    {"maxContains.json", []},
     {"uniqueItems.json", []},
     {"dependentRequired.json", []},
     {"dependentSchemas.json", []},

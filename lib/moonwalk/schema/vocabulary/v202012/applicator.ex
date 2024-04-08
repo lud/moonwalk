@@ -2,8 +2,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator
-  alias Moonwalk.Schema.Validator.Context
-  use Moonwalk.Schema.Vocabulary
+  use Moonwalk.Schema.Vocabulary, priority: 200
 
   def init_validators do
     []
@@ -110,6 +109,22 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
+  def take_keyword({"maxContains", max_contains}, acc, ctx) do
+    if validation_enabled?(ctx) do
+      take_integer(:max_contains, max_contains, acc, ctx)
+    else
+      :ignore
+    end
+  end
+
+  def take_keyword({"minContains", min_contains}, acc, ctx) do
+    if validation_enabled?(ctx) do
+      take_integer(:min_contains, min_contains, acc, ctx)
+    else
+      :ignore
+    end
+  end
+
   def take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx) do
     dependent_schemas
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, depschema}, {acc, ctx} ->
@@ -150,6 +165,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     validators = finalize_properties(validators)
     validators = finalize_if_then_else(validators)
     validators = finalize_items(validators)
+    validators = finalize_contains(validators)
     validators
   end
 
@@ -186,6 +202,17 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
       {nil, _, _} -> validators
       {_, nil, nil} -> validators
       some -> Keyword.put(validators, :if_then_else, some)
+    end
+  end
+
+  defp finalize_contains(validators) do
+    {contains, validators} = Keyword.pop(validators, :contains, nil)
+    {min_contains, validators} = Keyword.pop(validators, :min_contains, 1)
+    {max_contains, validators} = Keyword.pop(validators, :max_contains, nil)
+
+    case {contains, min_contains, max_contains} do
+      {nil, _, _} -> validators
+      some -> Keyword.put(validators, :all_contains, some)
     end
   end
 
@@ -347,7 +374,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validate_keyword(data, {:contains, subschema}, vdr) when is_list(data) do
+  defp validate_keyword(data, {:all_contains, {subschema, n_min, n_max}}, vdr) when is_list(data) do
     count =
       Enum.count(data, fn item ->
         case Validator.validate(item, subschema, vdr) do
@@ -356,14 +383,21 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
         end
       end)
 
-    if count > 0 do
-      {:ok, data, vdr}
-    else
-      {:error, Validator.with_error(vdr, :contains, data, count: count)}
+    true = is_integer(n_min)
+
+    cond do
+      count < n_min ->
+        {:error, Validator.with_error(vdr, :contains, data, count: count, min_contains: n_min)}
+
+      is_integer(n_max) and count > n_max ->
+        {:error, Validator.with_error(vdr, :contains, data, count: count, max_contains: n_max)}
+
+      true ->
+        {:ok, data, vdr}
     end
   end
 
-  pass validate_keyword({:contains, _})
+  pass validate_keyword({:all_contains, _})
 
   defp validate_keyword(data, {:dependent_schemas, schemas_map}, vdr) when is_map(data) do
     Validator.apply_all_fun(data, schemas_map, vdr, fn
@@ -412,5 +446,9 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
       :pattern -> Validator.with_error(vdr, :pattern_property, data, pattern: pattern, key: key)
       :additional -> Validator.with_error(vdr, :additional_property, data, key: key)
     end
+  end
+
+  defp validation_enabled?(%{vocabularies: vs}) do
+    Moonwalk.Schema.Vocabulary.V202012.Validation in vs
   end
 end
