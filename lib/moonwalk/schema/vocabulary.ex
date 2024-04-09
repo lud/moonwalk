@@ -154,18 +154,4 @@ defmodule Moonwalk.Schema.Vocabulary do
   defp check_number(other) do
     {:error, "not a number: #{inspect(other)}"}
   end
-
-  def take_boolean(key, bool, acc, ctx) do
-    with :ok <- check_boolean(bool) do
-      {:ok, [{key, bool} | acc], ctx}
-    end
-  end
-
-  defp check_boolean(b) when is_boolean(b) do
-    :ok
-  end
-
-  defp check_boolean(other) do
-    {:error, "not a boolean: #{inspect(other)}"}
-  end
 end
