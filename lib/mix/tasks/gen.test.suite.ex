@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
   @enabled %{
     "draft2020-12" => [
+      {"propertyNames.json", [ignore: ["unevaluated property", "annotations are still collected inside a 'not'"]]},
       {"not.json", [ignore: ["unevaluated property", "annotations are still collected inside a 'not'"]]},
       {"minProperties.json", []},
       {"maxProperties.json", []},

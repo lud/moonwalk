@@ -1,8 +1,7 @@
 defmodule Moonwalk.Schema.Vocabulary do
+  alias Moonwalk.Schema.Validator
   alias Moonwalk.Helpers
-  alias Moonwalk.Schema.Validator.Context
   alias Moonwalk.Schema.Builder
-  alias Moonwalk.Schema.Validator.Error
 
   @type validators :: term
   @type pair :: {binary, term}
@@ -11,7 +10,7 @@ defmodule Moonwalk.Schema.Vocabulary do
   @callback take_keyword(pair, validators, bld :: Builder.t()) ::
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
-  @callback validate(data, validators, ctx :: Context.t()) :: {:ok, data} | {:error, Error.t()}
+  @callback validate(data, validators, vdr :: Validator.t()) :: {:ok, data} | {:error, Validator.t()}
 
   @doc """
   Returns the priority for applyting this module to the data.
@@ -96,24 +95,6 @@ defmodule Moonwalk.Schema.Vocabulary do
       def take_keyword({unquote(kw), _}, acc, ctx) do
         {:ok, acc, ctx}
       end
-    end
-  end
-
-  defmacro run_validators(data, validators, vdr, {:&, _, _} = f) do
-    quote bind_quoted: binding() do
-      Moonwalk.Schema.Validator.apply_all_fun(data, validators, vdr, f)
-    end
-  end
-
-  IO.warn("TODO remove this clause")
-
-  defmacro run_validators(data, validators, vdr, f) when is_atom(f) do
-    IO.warn("TODO pass fun directly")
-
-    quote do
-      Moonwalk.Schema.Validator.apply_all_fun(unquote(data), unquote(validators), unquote(vdr), fn data, item, vdr ->
-        unquote(f)(data, item, vdr)
-      end)
     end
   end
 

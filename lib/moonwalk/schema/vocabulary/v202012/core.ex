@@ -114,7 +114,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   # ---------------------------------------------------------------------------
 
   def validate(data, vds, vdr) do
-    run_validators(data, vds, vdr, &validate_keyword/3)
+    Validator.iterate(vds, data, vdr, fn vd, data, vdr -> validate_keyword(data, vd, vdr) end)
   end
 
   defp validate_keyword(data, {:ref, ref}, vdr) do

@@ -101,10 +101,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   def take_keyword({"contains", contains}, acc, ctx) do
-    case Builder.build_sub(contains, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:contains, subvalidators} | acc], ctx}
-      {:error, _} = err -> err
-    end
+    take_sub(:contains, contains, acc, ctx)
   end
 
   def take_keyword({"maxContains", max_contains}, acc, ctx) do
@@ -138,10 +135,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   def take_keyword({"not", subschema}, acc, ctx) do
-    case Builder.build_sub(subschema, ctx) do
-      {:ok, subvalidators, ctx} -> {:ok, [{:not, subvalidators} | acc], ctx}
-      {:error, _} = err -> err
-    end
+    take_sub(:not, subschema, acc, ctx)
   end
 
   ignore_any_keyword()
@@ -224,7 +218,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   # ---------------------------------------------------------------------------
 
   def validate(data, vds, vdr) do
-    run_validators(data, vds, vdr, &validate_keyword/3)
+    Validator.iterate(vds, data, vdr, fn vd, data, vdr -> validate_keyword(data, vd, vdr) end)
   end
 
   IO.warn("remove errors carrying. Maybe seen keys too?")
@@ -281,8 +275,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     # Note: casted data from previous schema is evaluted by later schema. The
     # other way would be to discard previously casted on later schema.
 
-    Validator.apply_all_fun(data, all_validation, vdr, fn
-      data, {_kind, key, subschema, _pattern} = propcase, vdr ->
+    Validator.iterate(all_validation, data, vdr, fn
+      {_kind, key, subschema, _pattern} = propcase, data, vdr ->
         case Validator.validate_nested(Map.fetch!(data, key), key, subschema, vdr) do
           {:ok, casted, vdr} -> {:ok, Map.put(data, key, casted), vdr}
           {:error, vdr} -> {:error, with_property_error(vdr, data, propcase)}
@@ -394,11 +388,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   pass validate_keyword({:all_contains, _})
 
   defp validate_keyword(data, {:dependent_schemas, schemas_map}, vdr) when is_map(data) do
-    Validator.apply_all_fun(data, schemas_map, vdr, fn
-      data, {parent_key, subschema}, vdr when is_map_key(data, parent_key) ->
+    Validator.iterate(schemas_map, data, vdr, fn
+      {parent_key, subschema}, data, vdr when is_map_key(data, parent_key) ->
         Validator.validate(data, subschema, vdr)
 
-      data, {_, _}, vdr ->
+      {_, _}, data, vdr ->
         {:ok, data, vdr}
     end)
   end
@@ -413,6 +407,18 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
+  defp validate_keyword(data, {:property_names, subschema}, vdr) when is_map(data) do
+    data
+    |> Map.keys()
+    |> Validator.iterate(data, vdr, fn key, data, vdr ->
+      case Validator.validate(key, subschema, vdr) do
+        {:ok, _, vdr} -> {:ok, data, vdr}
+        {:error, _} = err -> err
+      end
+    end)
+  end
+
+  pass validate_keyword({:property_names, _})
   # ---------------------------------------------------------------------------
 
   # Split the validators between those that validate the data and those who

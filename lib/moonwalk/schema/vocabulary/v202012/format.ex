@@ -1,4 +1,5 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
+  alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary, priority: 300
 
   def init_validators do
@@ -20,10 +21,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
   end
 
   def validate(data, vds, vdr) do
-    run_validators(data, vds, vdr, &validate_keyword/3)
+    Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
 
-  defp validate_keyword(data, {:format, _format}, vdr) do
+  defp validate_keyword({:format, _format}, data, vdr) do
     {:ok, data, vdr}
   end
 end

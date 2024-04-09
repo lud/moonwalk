@@ -55,7 +55,7 @@ defmodule Moonwalk.Schema.Validator do
     vdr = %__MODULE__{vdr | scope: [inner_scope | scopes]}
 
     applied =
-      apply_all_fun(data, validators, vdr, fn data, {module, mod_validators}, vdr ->
+      iterate(validators, data, vdr, fn {module, mod_validators}, data, vdr ->
         module.validate(data, mod_validators, vdr)
       end)
 
@@ -65,32 +65,54 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  def apply_all_fun(data, validators, vdr, fun) do
-    {new_data, new_vdr} =
-      Enum.reduce(validators, {data, vdr}, fn validation_item, {data, vdr} ->
-        case fun.(data, validation_item, vdr) do
+  @doc """
+  Iteration over an enum, accumulating errors.
+
+  This function is kind of a mix between map and reduce:
+
+  * The callback is called with `item, acc, vdr` for all items in the enum,
+    regardless of previously returned values. Returning and error tuple does not
+    stop the iteration.
+  * When returning `{:ok, value, vdr}`, `value` will be the new accumulator.
+  * When returning `{:error, vdr}`, the accumulator is not changed.
+  * Returning an ok tuple after an error tuple on a previous item does not
+    remove the errors from the validator struct, they are carried along.
+
+  The final return value is `{:ok, acc, vdr}` if all calls of the callback
+  returned an OK tuple, `{:error, vdr}` otherwise.
+
+  This is useful to call all possible validators for a given piece of data,
+  collecting all possible errors without stopping, but still returning an errors
+  in the end if some error arose.
+  """
+  def iterate(enum, init, vdr, fun) when is_function(fun, 3) do
+    {new_acc, new_vdr} =
+      Enum.reduce(enum, {init, vdr}, fn item, {acc, vdr} ->
+        res = fun.(item, acc, vdr)
+
+        case res do
           # When returning :ok, the errors may be empty or not, depending on
           # previous iterations.
-          {:ok, new_data, %__MODULE__{} = new_vdr} ->
-            {new_data, new_vdr}
+          {:ok, new_acc, %__MODULE__{} = new_vdr} ->
+            {new_acc, new_vdr}
 
           # When returning :error, an error MUST be set
           {:error, %__MODULE__{errors: [_ | _]} = new_vdr} ->
-            {data, new_vdr}
+            {acc, new_vdr}
 
           other ->
-            raise "Invalid return from #{inspect(fun)} called with #{inspect(validation_item)}: #{inspect(other)}"
+            raise "Invalid return from #{inspect(fun)} called with #{inspect(item)}: #{inspect(other)}"
         end
       end)
 
-    return(new_data, new_vdr)
+    return(new_acc, new_vdr)
   end
 
   def validate_nested(data, key, subvalidators, vdr) when is_binary(key) when is_integer(key) do
     %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key} = vdr
     # We do not carry sub errors so custom validation do not have to check for
     # error presence when iterating with map/reduce (although they should use
-    # apply_all_funs).
+    # iterate/4).
     sub_vdr = %__MODULE__{
       path: [key | path],
       errors: [],

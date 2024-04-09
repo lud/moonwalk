@@ -148,7 +148,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   @impl true
   def validate(data, vds, vdr) do
-    run_validators(data, vds, vdr, &validate_keyword/3)
+    Validator.iterate(vds, data, vdr, fn vd, data, vdr -> validate_keyword(data, vd, vdr) end)
   end
 
   defp validate_keyword(data, {:type, ts}, vdr) when is_list(ts) do
@@ -254,10 +254,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:required, _})
 
-  defp validate_keyword(data, {:dependent_required, map}, vdr) when is_map(data) do
-    Validator.apply_all_fun(data, map, vdr, fn
-      data, {parent_key, required_keys}, vdr when is_map_key(data, parent_key) ->
-        case required_keys -- Map.keys(data) do
+  defp validate_keyword(data, {:dependent_required, depsreq}, vdr) when is_map(data) do
+    all_keys = Map.keys(data)
+
+    Validator.iterate(depsreq, data, vdr, fn
+      {parent_key, required_keys}, data, vdr when is_map_key(data, parent_key) ->
+        case required_keys -- all_keys do
           [] ->
             {:ok, data, vdr}
 
@@ -265,7 +267,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
             {:error, Validator.with_error(vdr, :dependent_required, data, parent: parent_key, required: missing)}
         end
 
-      data, {_, _}, vdr ->
+      {_, _}, data, vdr ->
         {:ok, data, vdr}
     end)
   end
