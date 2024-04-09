@@ -105,7 +105,7 @@ defmodule Moonwalk.Schema.Vocabulary do
 
       {fun_name, _, [match_tuple]} ->
         quote do
-          defp unquote(fun_name)(data, unquote(match_tuple), vdr) do
+          defp unquote(fun_name)(unquote(match_tuple), data, vdr) do
             {:ok, data, vdr}
           end
         end

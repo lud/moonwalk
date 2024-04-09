@@ -148,10 +148,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   @impl true
   def validate(data, vds, vdr) do
-    Validator.iterate(vds, data, vdr, fn vd, data, vdr -> validate_keyword(data, vd, vdr) end)
+    Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
 
-  defp validate_keyword(data, {:type, ts}, vdr) when is_list(ts) do
+  defp validate_keyword({:type, ts}, data, vdr) when is_list(ts) do
     Enum.find_value(ts, fn t ->
       case validate_type(data, t) do
         true -> {:ok, data}
@@ -165,7 +165,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  defp validate_keyword(data, {:type, t}, vdr) do
+  defp validate_keyword({:type, t}, data, vdr) do
     case validate_type(data, t) do
       true -> {:ok, data, vdr}
       false -> {:error, Validator.with_error(vdr, :type, data, type: t)}
@@ -173,7 +173,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  defp validate_keyword(data, {:maximum, n}, vdr) when is_number(data) do
+  defp validate_keyword({:maximum, n}, data, vdr) when is_number(data) do
     case data <= n do
       true -> {:ok, data, vdr}
       false -> {:error, Validator.with_error(vdr, :maximum, data, n: n)}
@@ -182,7 +182,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:maximum, _})
 
-  defp validate_keyword(data, {:exclusive_maximum, n}, vdr) when is_number(data) do
+  defp validate_keyword({:exclusive_maximum, n}, data, vdr) when is_number(data) do
     case data < n do
       true -> {:ok, data, vdr}
       false -> {:error, Validator.with_error(vdr, :exclusive_maximum, data, n: n)}
@@ -191,7 +191,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:exclusive_maximum, _})
 
-  defp validate_keyword(data, {:minimum, n}, vdr) when is_number(data) do
+  defp validate_keyword({:minimum, n}, data, vdr) when is_number(data) do
     case data >= n do
       true -> {:ok, data, vdr}
       false -> {:error, Validator.with_error(vdr, :minimum, data, n: n)}
@@ -200,7 +200,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:minimum, _})
 
-  defp validate_keyword(data, {:exclusive_minimum, n}, vdr) when is_number(data) do
+  defp validate_keyword({:exclusive_minimum, n}, data, vdr) when is_number(data) do
     case data > n do
       true -> {:ok, data, vdr}
       false -> {:error, Validator.with_error(vdr, :exclusive_minimum, data, n: n)}
@@ -209,7 +209,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:exclusive_minimum, _})
 
-  defp validate_keyword(data, {:max_items, max}, vdr) when is_list(data) do
+  defp validate_keyword({:max_items, max}, data, vdr) when is_list(data) do
     len = length(data)
 
     if len <= max do
@@ -221,7 +221,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:max_items, _})
 
-  defp validate_keyword(data, {:min_items, min}, vdr) when is_list(data) do
+  defp validate_keyword({:min_items, min}, data, vdr) when is_list(data) do
     len = length(data)
 
     if len >= min do
@@ -233,7 +233,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:min_items, _})
 
-  defp validate_keyword(data, {:multiple_of, n}, vdr) when is_number(data) do
+  defp validate_keyword({:multiple_of, n}, data, vdr) when is_number(data) do
     case Helpers.fractional_is_zero?(data / n) do
       true -> {:ok, data, vdr}
       false -> {:error, Validator.with_error(vdr, :multiple_of, data, multiple_of: n)}
@@ -245,7 +245,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:multiple_of, _})
 
-  defp validate_keyword(data, {:required, required_keys}, vdr) when is_map(data) do
+  defp validate_keyword({:required, required_keys}, data, vdr) when is_map(data) do
     case required_keys -- Map.keys(data) do
       [] -> {:ok, data, vdr}
       missing -> {:error, Validator.with_error(vdr, :required, data, required: missing)}
@@ -254,7 +254,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:required, _})
 
-  defp validate_keyword(data, {:dependent_required, depsreq}, vdr) when is_map(data) do
+  defp validate_keyword({:dependent_required, depsreq}, data, vdr) when is_map(data) do
     all_keys = Map.keys(data)
 
     Validator.iterate(depsreq, data, vdr, fn
@@ -274,7 +274,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:dependent_required, _})
 
-  defp validate_keyword(data, {:max_length, max}, vdr) when is_binary(data) do
+  defp validate_keyword({:max_length, max}, data, vdr) when is_binary(data) do
     len = String.length(data)
 
     if len <= max do
@@ -286,7 +286,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:max_length, _})
 
-  defp validate_keyword(data, {:min_length, min}, vdr) when is_binary(data) do
+  defp validate_keyword({:min_length, min}, data, vdr) when is_binary(data) do
     len = String.length(data)
 
     if len >= min do
@@ -298,7 +298,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:min_length, _})
 
-  defp validate_keyword(data, {:const, const}, vdr) do
+  defp validate_keyword({:const, const}, data, vdr) do
     # 1 == 1.0 should be true according to JSON Schema specs
     if data == const do
       {:ok, data, vdr}
@@ -307,7 +307,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  defp validate_keyword(data, {:enum, enum}, vdr) do
+  defp validate_keyword({:enum, enum}, data, vdr) do
     # validate 1 == 1.0 or 1.0 == 1
     if Enum.any?(enum, &(&1 == data)) do
       {:ok, data, vdr}
@@ -316,7 +316,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  defp validate_keyword(data, {:pattern, re}, vdr) when is_binary(data) do
+  defp validate_keyword({:pattern, re}, data, vdr) when is_binary(data) do
     if Regex.match?(re, data) do
       {:ok, data, vdr}
     else
@@ -326,7 +326,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:pattern, _})
 
-  defp validate_keyword(data, {:unique_items, true}, vdr) when is_list(data) do
+  defp validate_keyword({:unique_items, true}, data, vdr) when is_list(data) do
     data
     |> Enum.with_index()
     |> Enum.reduce({[], %{}}, fn {item, index}, {duplicate_indices, seen} ->
@@ -343,7 +343,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:unique_items, true})
 
-  defp validate_keyword(data, {:min_properties, n}, vdr) when is_map(data) do
+  defp validate_keyword({:min_properties, n}, data, vdr) when is_map(data) do
     case map_size(data) do
       size when size < n -> {:error, Validator.with_error(vdr, :min_properties, data, min_properties: n, size: size)}
       _ -> {:ok, data, vdr}
@@ -352,7 +352,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:min_properties, _})
 
-  defp validate_keyword(data, {:max_properties, n}, vdr) when is_map(data) do
+  defp validate_keyword({:max_properties, n}, data, vdr) when is_map(data) do
     case map_size(data) do
       size when size > n -> {:error, Validator.with_error(vdr, :max_properties, data, max_properties: n, size: size)}
       _ -> {:ok, data, vdr}
