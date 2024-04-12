@@ -10,12 +10,14 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   @latest_draft "https://json-schema.org/draft/2020-12/schema"
+
   @vocabulary %{
     "https://json-schema.org/draft/2020-12/vocab/core" => Vocabulary.V202012.Core,
     "https://json-schema.org/draft/2020-12/vocab/validation" => Vocabulary.V202012.Validation,
     "https://json-schema.org/draft/2020-12/vocab/applicator" => Vocabulary.V202012.Applicator,
     "https://json-schema.org/draft/2020-12/vocab/content" => Vocabulary.V202012.Content,
     "https://json-schema.org/draft/2020-12/vocab/format-annotation" => Vocabulary.V202012.Format,
+    "https://json-schema.org/draft/2020-12/vocab/format-assertion" => {Vocabulary.V202012.Format, assert: true},
     "https://json-schema.org/draft/2020-12/vocab/meta-data" => Vocabulary.V202012.MetaData,
     "https://json-schema.org/draft/2020-12/vocab/unevaluated" => Vocabulary.V202012.Unevaluated
   }
@@ -383,7 +385,10 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   defp sort_vocabularies(modules) do
-    Enum.sort_by(modules, fn module -> module.priority() end)
+    Enum.sort_by(modules, fn
+      {module, _} -> module.priority()
+      module -> module.priority()
+    end)
   end
 
   def as_root(rsv, fun) when is_function(fun, 2) do

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,142 +7,148 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/oneOf.json
   """
 
-  describe "oneOf ⋅" do
+  describe "oneOf:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [%{"type" => "integer"}, %{"minimum" => 2}]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "first oneOf valid", %{schema: schema} do
+    test "first oneOf valid", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "second oneOf valid", %{schema: schema} do
+    test "second oneOf valid", c do
       data = 2.5
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both oneOf valid", %{schema: schema} do
+    test "both oneOf valid", c do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "neither oneOf valid", %{schema: schema} do
+    test "neither oneOf valid", c do
       data = 1.5
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with base schema ⋅" do
+  describe "oneOf with base schema:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [%{"minLength" => 2}, %{"maxLength" => 4}],
         "type" => "string"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "mismatch base schema", %{schema: schema} do
+    test "mismatch base schema", c do
       data = 3
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "one oneOf valid", %{schema: schema} do
+    test "one oneOf valid", c do
       data = "foobar"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both oneOf valid", %{schema: schema} do
+    test "both oneOf valid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with boolean schemas, all true ⋅" do
+  describe "oneOf with boolean schemas, all true:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [true, true, true]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is invalid", %{schema: schema} do
+    test "any value is invalid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with boolean schemas, one true ⋅" do
+  describe "oneOf with boolean schemas, one true:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [true, false, false]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is valid", %{schema: schema} do
+    test "any value is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with boolean schemas, more than one true ⋅" do
+  describe "oneOf with boolean schemas, more than one true:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [true, true, false]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is invalid", %{schema: schema} do
+    test "any value is invalid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with boolean schemas, all false ⋅" do
+  describe "oneOf with boolean schemas, all false:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [false, false, false]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is invalid", %{schema: schema} do
+    test "any value is invalid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf complex types ⋅" do
+  describe "oneOf complex types:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [
           %{"properties" => %{"bar" => %{"type" => "integer"}}, "required" => ["bar"]},
@@ -149,96 +156,99 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         ]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "first oneOf valid (complex)", %{schema: schema} do
+    test "first oneOf valid (complex)", c do
       data = %{"bar" => 2}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "second oneOf valid (complex)", %{schema: schema} do
+    test "second oneOf valid (complex)", c do
       data = %{"foo" => "baz"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both oneOf valid (complex)", %{schema: schema} do
+    test "both oneOf valid (complex)", c do
       data = %{"bar" => 2, "foo" => "baz"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "neither oneOf valid (complex)", %{schema: schema} do
+    test "neither oneOf valid (complex)", c do
       data = %{"bar" => "quux", "foo" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with empty schema ⋅" do
+  describe "oneOf with empty schema:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [%{"type" => "number"}, %{}]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "one valid - valid", %{schema: schema} do
+    test "one valid - valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both valid - invalid", %{schema: schema} do
+    test "both valid - invalid", c do
       data = 123
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with required ⋅" do
+  describe "oneOf with required:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [%{"required" => ["foo", "bar"]}, %{"required" => ["foo", "baz"]}],
         "type" => "object"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "both invalid - invalid", %{schema: schema} do
+    test "both invalid - invalid", c do
       data = %{"bar" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "first valid - valid", %{schema: schema} do
+    test "first valid - valid", c do
       data = %{"bar" => 2, "foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "second valid - valid", %{schema: schema} do
+    test "second valid - valid", c do
       data = %{"baz" => 3, "foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both valid - invalid", %{schema: schema} do
+    test "both valid - invalid", c do
       data = %{"bar" => 2, "baz" => 3, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "oneOf with missing optional property ⋅" do
+  describe "oneOf with missing optional property:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [
           %{"properties" => %{"bar" => true, "baz" => true}, "required" => ["bar"]},
@@ -246,54 +256,56 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         ]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "first oneOf valid", %{schema: schema} do
+    test "first oneOf valid", c do
       data = %{"bar" => 8}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "second oneOf valid", %{schema: schema} do
+    test "second oneOf valid", c do
       data = %{"foo" => "foo"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both oneOf valid", %{schema: schema} do
+    test "both oneOf valid", c do
       data = %{"bar" => 8, "foo" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "neither oneOf valid", %{schema: schema} do
+    test "neither oneOf valid", c do
       data = %{"baz" => "quux"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "nested oneOf, to check validation semantics ⋅" do
+  describe "nested oneOf, to check validation semantics:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "oneOf" => [%{"oneOf" => [%{"type" => "null"}]}]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "null is valid", %{schema: schema} do
+    test "null is valid", c do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "anything non-null is invalid", %{schema: schema} do
+    test "anything non-null is invalid", c do
       data = 123
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

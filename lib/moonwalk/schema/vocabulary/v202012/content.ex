@@ -1,7 +1,7 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Content do
   use Moonwalk.Schema.Vocabulary, priority: 300
 
-  def init_validators do
+  def init_validators(_) do
     []
   end
 

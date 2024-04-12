@@ -4,54 +4,113 @@ defmodule Mix.Tasks.Gen.Test.Suite do
   use Mix.Task
   require EEx
 
+  @enabled_202012 [
+    {"additionalProperties.json", []},
+    {"allOf.json", []},
+    {"anchor.json", []},
+    {"anyOf.json", []},
+    {"boolean_schema.json", []},
+    {"const.json", []},
+    {"contains.json", []},
+    {"content.json", []},
+    {"default.json", []},
+    {"defs.json", []},
+    {"dependentRequired.json", []},
+    {"dependentSchemas.json", []},
+    {"dynamicRef.json", []},
+    {"enum.json", []},
+    {"exclusiveMaximum.json", []},
+    {"exclusiveMinimum.json", []},
+    {"format.json", []},
+    {"id.json", []},
+    {"if-then-else.json", []},
+    {"infinite-loop-detection.json", []},
+    {"items.json", []},
+    {"maxContains.json", []},
+    {"maximum.json", []},
+    {"maxItems.json", []},
+    {"maxLength.json", []},
+    {"maxProperties.json", []},
+    {"minContains.json", []},
+    {"minimum.json", []},
+    {"minItems.json", []},
+    {"minLength.json", []},
+    {"minProperties.json", []},
+    {"multipleOf.json", []},
+    {"not.json", []},
+    {"oneOf.json", []},
+    {"pattern.json", []},
+    {"patternProperties.json", []},
+    {"prefixItems.json", []},
+    {"properties.json", []},
+    {"propertyNames.json", []},
+    {"ref.json", []},
+    {"refRemote.json", []},
+    {"required.json", []},
+    {"type.json", []},
+    {"unevaluatedItems.json", []},
+    {"unevaluatedProperties.json", []},
+    {"uniqueItems.json", []},
+    {"vocabulary.json", []},
+
+    # Optional
+
+    {"optional/anchor.json", []},
+    {"optional/id.json", []},
+    {"optional/no-schema.json", []},
+    {"optional/bignum.json", []},
+    {"optional/dependencies-compatibility.json", []},
+    {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
+    {"optional/ecmascript-regex.json", :unsupported},
+
+    # TODO we should be able to do cross-schema once we implement all the specs.
+    {"optional/cross-draft.json", :unsupported},
+
+    # Language incompatibilities. Elixir vs Javascript mostly.
+    #
+    {"optional/non-bmp-regex.json", :unsupported},
+    {"optional/float-overflow.json", :unsupported},
+    {"optional/format/time.json", :unsupported},
+
+    # Formats
+    {"optional/format-assertion.json", []},
+    {"optional/format/ipv6.json", schema_build_opts: [formats: true]},
+    {"optional/format/regex.json", schema_build_opts: [formats: true]},
+    {"optional/format/unknown.json", schema_build_opts: [formats: true]},
+    {"optional/format/date-time.json",
+     schema_build_opts: [formats: true],
+     ignore: [
+       "case-insensitive T and Z",
+       "a valid date-time with a leap second, UTC",
+       "a valid date-time with a leap second, with minus offset"
+     ]},
+    {"optional/format/date.json", schema_build_opts: [formats: true]},
+
+    # Not supported yet. TODO Maybe elixir 1.17 if the new Duration modules has
+    # a correct parser.
+    #
+    {"optional/format/duration.json", :unsupported},
+
+    # Needs custom implementations
+    #
+    {"optional/format/email.json", :unsupported},
+    {"optional/format/hostname.json", :unsupported},
+    {"optional/format/idn-email.json", :unsupported},
+    {"optional/format/idn-hostname.json", :unsupported},
+    {"optional/format/iri-reference.json", :unsupported},
+    {"optional/format/iri.json", :unsupported},
+    {"optional/format/json-pointer.json", :unsupported},
+    {"optional/format/relative-json-pointer.json", :unsupported},
+    {"optional/format/uri-reference.json", :unsupported},
+
+    # We need to make a change so each vocabulary module exports a strict list
+    # of supported keywords, and the resolver schema scanner does not
+    # automatically build schemas under unknown keywords.
+    {"optional/unknownKeyword.json", :unsupported}
+  ]
   @enabled %{
-    "draft2020-12" => [
-      {"propertyNames.json", [ignore: ["unevaluated property", "annotations are still collected inside a 'not'"]]},
-      {"not.json", [ignore: ["unevaluated property", "annotations are still collected inside a 'not'"]]},
-      {"minProperties.json", []},
-      {"maxProperties.json", []},
-      {"format.json", []},
-      {"minContains.json", []},
-      {"maxContains.json", []},
-      {"uniqueItems.json", []},
-      {"dependentRequired.json", []},
-      {"dependentSchemas.json", []},
-      {"contains.json", []},
-      {"additionalProperties.json", []},
-      {"allOf.json", []},
-      {"anchor.json", []},
-      {"anyOf.json", []},
-      {"boolean_schema.json", []},
-      {"const.json", []},
-      {"content.json", validate: false},
-      {"default.json", []},
-      {"defs.json", []},
-      {"dynamicRef.json", [ignore: ["strict-tree schema, guards against misspelled properties"]]},
-      {"enum.json", []},
-      {"exclusiveMaximum.json", []},
-      {"exclusiveMinimum.json", []},
-      {"id.json", []},
-      {"if-then-else.json", []},
-      {"infinite-loop-detection.json", []},
-      {"items.json", [ignore: ["JavaScript pseudo-array is valid"]]},
-      {"maximum.json", []},
-      {"maxItems.json", []},
-      {"maxLength.json", []},
-      {"minLength.json", []},
-      {"minimum.json", []},
-      {"minItems.json", []},
-      {"multipleOf.json", []},
-      {"oneOf.json", []},
-      {"patternProperties.json", []},
-      {"pattern.json", []},
-      {"prefixItems.json", []},
-      {"properties.json", []},
-      {"ref.json", ignore: ["ref creates new scope when adjacent to keywords"]},
-      {"refRemote.json", []},
-      {"required.json", []},
-      {"type.json", []},
-      {"vocabulary.json", []}
-    ]
+    # "latest" => @enabled_202012,
+    "draft2020-12" => @enabled_202012
   }
 
   @command [
@@ -73,29 +132,30 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     :defp,
     :module_template,
     ~S"""
+    # credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
     defmodule <%= @module_name %> do
       alias Moonwalk.Test.JsonSchemaSuite
       use ExUnit.Case, async: true
 
       @moduledoc \"""
-      Test generated from <%= Path.relative_to_cwd(@source_path) %>
+      Test generated from <%= Path.relative_to_cwd(@path) %>
       \"""
 
-
       <%= for tcase <- @test_cases do %>
-        describe <%= inspect(tcase.description <> " ⋅") %> do
+        describe <%= inspect(tcase.description <> ":") %> do
 
           setup do
-            schema = <%= inspect(tcase.schema, limit: :infinity, pretty: true) %>
-            {:ok, schema: schema}
+            json_schema = <%= inspect(tcase.schema, limit: :infinity, pretty: true) %>
+            schema = JsonSchemaSuite.build_schema(json_schema, <%= inspect(@schema_build_opts, limit: :infinity, pretty: true) %>)
+            {:ok, json_schema: json_schema, schema: schema}
           end
 
           <%= for ttest <- tcase.tests do %>
             <%= if ttest.skip?, do: "@tag :skip", else: "" %>
-            test <%= inspect(ttest.description) %>, %{schema: schema} do
+            test <%= inspect(ttest.description) %>, c do
               data = <%= inspect(ttest.data, limit: :infinity, pretty: true) %>
               expected_valid = <%= inspect(ttest.valid?) %>
-              JsonSchemaSuite.run_test(schema, data, expected_valid)
+              JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
             end
           <% end %>
         end
@@ -131,7 +191,13 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
   defp gen_test_mod(file_info, test_directory, namespace) do
     module_name = module_name(file_info, namespace)
-    assigns = %{module_name: module_name, test_cases: file_info.test_cases, source_path: file_info.path}
+
+    assigns =
+      Map.merge(file_info, %{
+        module_name: module_name,
+        schema_build_opts: get_in(file_info, [:opts, :schema_build_opts]) || []
+      })
+
     module_contents = module_template(assigns)
     module_path = module_path(test_directory, namespace, module_name)
 

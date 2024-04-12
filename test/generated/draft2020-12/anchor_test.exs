@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,33 +7,34 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/anchor.json
   """
 
-  describe "Location-independent identifier ⋅" do
+  describe "Location-independent identifier:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"A" => %{"$anchor" => "foo", "type" => "integer"}},
         "$ref" => "#foo",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", %{schema: schema} do
+    test "match", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "mismatch", %{schema: schema} do
+    test "mismatch", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "Location-independent identifier with absolute URI ⋅" do
+  describe "Location-independent identifier with absolute URI:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "A" => %{
             "$anchor" => "foo",
@@ -44,25 +46,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", %{schema: schema} do
+    test "match", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "mismatch", %{schema: schema} do
+    test "mismatch", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "Location-independent identifier with base URI change in subschema ⋅" do
+  describe "Location-independent identifier with base URI change in subschema:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "A" => %{
             "$defs" => %{"B" => %{"$anchor" => "foo", "type" => "integer"}},
@@ -74,25 +77,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", %{schema: schema} do
+    test "match", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "mismatch", %{schema: schema} do
+    test "mismatch", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "same $anchor with different base uri ⋅" do
+  describe "same $anchor with different base uri:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "A" => %{
             "$id" => "child1",
@@ -107,48 +111,50 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "$ref resolves to /$defs/A/allOf/1", %{schema: schema} do
+    test "$ref resolves to /$defs/A/allOf/1", c do
       data = "a"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "$ref does not resolve to /$defs/A/allOf/0", %{schema: schema} do
+    test "$ref does not resolve to /$defs/A/allOf/0", c do
       data = 1
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "invalid anchors ⋅" do
+  describe "invalid anchors:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "MUST start with a letter (and not #)", %{schema: schema} do
+    test "MUST start with a letter (and not #)", c do
       data = %{"$anchor" => "#foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "JSON pointers are not valid", %{schema: schema} do
+    test "JSON pointers are not valid", c do
       data = %{"$anchor" => "/a/b"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "invalid with valid beginning", %{schema: schema} do
+    test "invalid with valid beginning", c do
       data = %{"$anchor" => "foo#something"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,9 +7,9 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/properties.json
   """
 
-  describe "object properties validation ⋅" do
+  describe "object properties validation:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{
           "bar" => %{"type" => "string"},
@@ -16,49 +17,50 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "both properties present and valid is valid", %{schema: schema} do
+    test "both properties present and valid is valid", c do
       data = %{"bar" => "baz", "foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "one property invalid is invalid", %{schema: schema} do
+    test "one property invalid is invalid", c do
       data = %{"bar" => %{}, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both properties invalid is invalid", %{schema: schema} do
+    test "both properties invalid is invalid", c do
       data = %{"bar" => %{}, "foo" => []}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "doesn't invalidate other properties", %{schema: schema} do
+    test "doesn't invalidate other properties", c do
       data = %{"quux" => []}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores arrays", %{schema: schema} do
+    test "ignores arrays", c do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores other non-objects", %{schema: schema} do
+    test "ignores other non-objects", c do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "properties, patternProperties, additionalProperties interaction ⋅" do
+  describe "properties, patternProperties, additionalProperties interaction:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties" => %{"type" => "integer"},
         "patternProperties" => %{"f.o" => %{"minItems" => 2}},
@@ -68,96 +70,98 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "property validates property", %{schema: schema} do
+    test "property validates property", c do
       data = %{"foo" => [1, 2]}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "property invalidates property", %{schema: schema} do
+    test "property invalidates property", c do
       data = %{"foo" => [1, 2, 3, 4]}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "patternProperty invalidates property", %{schema: schema} do
+    test "patternProperty invalidates property", c do
       data = %{"foo" => []}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "patternProperty validates nonproperty", %{schema: schema} do
+    test "patternProperty validates nonproperty", c do
       data = %{"fxo" => [1, 2]}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "patternProperty invalidates nonproperty", %{schema: schema} do
+    test "patternProperty invalidates nonproperty", c do
       data = %{"fxo" => []}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "additionalProperty ignores property", %{schema: schema} do
+    test "additionalProperty ignores property", c do
       data = %{"bar" => []}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "additionalProperty validates others", %{schema: schema} do
+    test "additionalProperty validates others", c do
       data = %{"quux" => 3}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "additionalProperty invalidates others", %{schema: schema} do
+    test "additionalProperty invalidates others", c do
       data = %{"quux" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "properties with boolean schema ⋅" do
+  describe "properties with boolean schema:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"bar" => false, "foo" => true}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "no property present is valid", %{schema: schema} do
+    test "no property present is valid", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "only 'true' property present is valid", %{schema: schema} do
+    test "only 'true' property present is valid", c do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "only 'false' property present is invalid", %{schema: schema} do
+    test "only 'false' property present is invalid", c do
       data = %{"bar" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "both properties present is invalid", %{schema: schema} do
+    test "both properties present is invalid", c do
       data = %{"bar" => 2, "foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "properties with escaped characters ⋅" do
+  describe "properties with escaped characters:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{
           "foo\tbar" => %{"type" => "number"},
@@ -169,10 +173,11 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "object with all numbers is valid", %{schema: schema} do
+    test "object with all numbers is valid", c do
       data = %{
         "foo\tbar" => 1,
         "foo\nbar" => 1,
@@ -183,10 +188,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
       }
 
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "object with strings is invalid", %{schema: schema} do
+    test "object with strings is invalid", c do
       data = %{
         "foo\tbar" => "1",
         "foo\nbar" => "1",
@@ -197,30 +202,31 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
       }
 
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "properties with null valued instance properties ⋅" do
+  describe "properties with null valued instance properties:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"foo" => %{"type" => "null"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "allows null values", %{schema: schema} do
+    test "allows null values", c do
       data = %{"foo" => nil}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "properties whose names are Javascript object property names ⋅" do
+  describe "properties whose names are Javascript object property names:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{
           "__proto__" => %{"type" => "number"},
@@ -229,49 +235,50 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertiesTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "ignores arrays", %{schema: schema} do
+    test "ignores arrays", c do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores other non-objects", %{schema: schema} do
+    test "ignores other non-objects", c do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "none of the properties mentioned", %{schema: schema} do
+    test "none of the properties mentioned", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "__proto__ not valid", %{schema: schema} do
+    test "__proto__ not valid", c do
       data = %{"__proto__" => "foo"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "toString not valid", %{schema: schema} do
+    test "toString not valid", c do
       data = %{"toString" => %{"length" => 37}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "constructor not valid", %{schema: schema} do
+    test "constructor not valid", c do
       data = %{"constructor" => %{"length" => 37}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "all present and valid", %{schema: schema} do
+    test "all present and valid", c do
       data = %{"__proto__" => 12, "constructor" => 37, "toString" => %{"length" => "foo"}}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

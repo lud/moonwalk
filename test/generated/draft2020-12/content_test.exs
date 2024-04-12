@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,113 +7,106 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/content.json
   """
 
-  describe "validation of string-encoded content based on media type ⋅" do
+  describe "validation of string-encoded content based on media type:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "contentMediaType" => "application/json"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    @tag :skip
-    test "a valid JSON document", %{schema: schema} do
+    test "a valid JSON document", c do
       data = "{\"foo\": \"bar\"}"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "an invalid JSON document; validates true", %{schema: schema} do
+    test "an invalid JSON document; validates true", c do
       data = "{:}"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "ignores non-strings", %{schema: schema} do
+    test "ignores non-strings", c do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "validation of binary string-encoding ⋅" do
+  describe "validation of binary string-encoding:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "contentEncoding" => "base64"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    @tag :skip
-    test "a valid base64 string", %{schema: schema} do
+    test "a valid base64 string", c do
       data = "eyJmb28iOiAiYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "an invalid base64 string (% is not a valid character); validates true", %{schema: schema} do
+    test "an invalid base64 string (% is not a valid character); validates true", c do
       data = "eyJmb28iOi%iYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "ignores non-strings", %{schema: schema} do
+    test "ignores non-strings", c do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "validation of binary-encoded media type documents ⋅" do
+  describe "validation of binary-encoded media type documents:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "contentEncoding" => "base64",
         "contentMediaType" => "application/json"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    @tag :skip
-    test "a valid base64-encoded JSON document", %{schema: schema} do
+    test "a valid base64-encoded JSON document", c do
       data = "eyJmb28iOiAiYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "a validly-encoded invalid JSON document; validates true", %{schema: schema} do
+    test "a validly-encoded invalid JSON document; validates true", c do
       data = "ezp9Cg=="
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "an invalid base64 string that is valid JSON; validates true", %{schema: schema} do
+    test "an invalid base64 string that is valid JSON; validates true", c do
       data = "{}"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "ignores non-strings", %{schema: schema} do
+    test "ignores non-strings", c do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "validation of binary-encoded media type documents with schema ⋅" do
+  describe "validation of binary-encoded media type documents with schema:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "contentEncoding" => "base64",
         "contentMediaType" => "application/json",
@@ -123,63 +117,56 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    @tag :skip
-    test "a valid base64-encoded JSON document", %{schema: schema} do
+    test "a valid base64-encoded JSON document", c do
       data = "eyJmb28iOiAiYmFyIn0K"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "another valid base64-encoded JSON document", %{schema: schema} do
+    test "another valid base64-encoded JSON document", c do
       data = "eyJib28iOiAyMCwgImZvbyI6ICJiYXoifQ=="
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "an invalid base64-encoded JSON document; validates true", %{schema: schema} do
+    test "an invalid base64-encoded JSON document; validates true", c do
       data = "eyJib28iOiAyMH0="
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "an empty object as a base64-encoded JSON document; validates true", %{schema: schema} do
+    test "an empty object as a base64-encoded JSON document; validates true", c do
       data = "e30="
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "an empty array as a base64-encoded JSON document", %{schema: schema} do
+    test "an empty array as a base64-encoded JSON document", c do
       data = "W10="
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "a validly-encoded invalid JSON document; validates true", %{schema: schema} do
+    test "a validly-encoded invalid JSON document; validates true", c do
       data = "ezp9Cg=="
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "an invalid base64 string that is valid JSON; validates true", %{schema: schema} do
+    test "an invalid base64 string that is valid JSON; validates true", c do
       data = "{}"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    @tag :skip
-    test "ignores non-strings", %{schema: schema} do
+    test "ignores non-strings", c do
       data = 100
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

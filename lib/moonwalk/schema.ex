@@ -30,10 +30,10 @@ defmodule Moonwalk.Schema do
   end
 
   def build(raw_schema, opts) when is_map(raw_schema) do
-    resolver_impl = Keyword.fetch!(opts, :resolver)
+    {resolver_impl, opts} = Keyword.pop!(opts, :resolver)
 
     with {:ok, resolver} <- Resolver.new_root(raw_schema, %{resolver: resolver_impl}),
-         bld = Builder.new(resolver: resolver),
+         bld = Builder.new(resolver: resolver, opts: opts),
          bld = Builder.stage_build(bld, resolver.root),
          root_key = Key.of(resolver.root),
          {:ok, validators} <- Builder.build_all(bld) do

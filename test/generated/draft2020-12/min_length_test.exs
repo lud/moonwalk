@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.MinLengthTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,63 +7,65 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinLengthTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/minLength.json
   """
 
-  describe "minLength validation ⋅" do
+  describe "minLength validation:" do
     setup do
-      schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "minLength" => 2}
-      {:ok, schema: schema}
+      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "minLength" => 2}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "longer is valid", %{schema: schema} do
+    test "longer is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "exact length is valid", %{schema: schema} do
+    test "exact length is valid", c do
       data = "fo"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "too short is invalid", %{schema: schema} do
+    test "too short is invalid", c do
       data = "f"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores non-strings", %{schema: schema} do
+    test "ignores non-strings", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "one grapheme is not long enough", %{schema: schema} do
+    test "one grapheme is not long enough", c do
       data = "💩"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "minLength validation with a decimal ⋅" do
+  describe "minLength validation with a decimal:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "minLength" => 2.0
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "longer is valid", %{schema: schema} do
+    test "longer is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "too short is invalid", %{schema: schema} do
+    test "too short is invalid", c do
       data = "f"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

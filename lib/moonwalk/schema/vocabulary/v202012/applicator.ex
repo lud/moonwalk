@@ -1,10 +1,11 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
+  alias Moonwalk.Schema.Vocabulary.V202012.Validation
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Helpers
   alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary, priority: 200
 
-  def init_validators do
+  def init_validators(_) do
     []
   end
 
@@ -134,6 +135,23 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
+  def take_keyword({"dependencies", map}, acc, ctx) when is_map(map) do
+    {dependent_schemas, dependent_required} =
+      Enum.reduce(map, {[], []}, fn {key, subschema}, {dependent_schemas, dependent_required} ->
+        cond do
+          is_list(subschema) && Enum.all?(subschema, &is_binary/1) ->
+            {dependent_schemas, [{key, subschema} | dependent_required]}
+
+          is_boolean(subschema) || is_map(subschema) ->
+            {[{key, subschema} | dependent_schemas], dependent_required}
+        end
+      end)
+
+    with {:ok, acc, ctx} <- take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx) do
+      {:ok, [{:dependent_required, dependent_required} | acc], ctx}
+    end
+  end
+
   def take_keyword({"not", subschema}, acc, ctx) do
     take_sub(:not, subschema, acc, ctx)
   end
@@ -199,7 +217,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
     case {if_vds, then_vds, else_vds} do
       {nil, _, _} -> validators
-      {_, nil, nil} -> validators
       some -> Keyword.put(validators, :if_then_else, some)
     end
   end
@@ -326,6 +343,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
+  IO.warn("@todo do not use validate_split for anyOf, halt on first match")
+
   defp validate_keyword({:any_of, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
@@ -340,6 +359,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
+      # TODO merge evaluated
       {[{_, data} | _], [], vdr} -> {:ok, data, vdr}
       # TODO merge all error VDRs
       {_, [{_, err_vdr} | _] = _invalid, _vdr} -> {:error, err_vdr}
@@ -348,7 +368,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp validate_keyword({:if_then_else, {if_vds, then_vds, else_vds}}, data, vdr) do
     case Validator.validate(data, if_vds, vdr) do
-      {:ok, _, _} ->
+      {:ok, _, vdr} ->
         case then_vds do
           nil -> {:ok, data, vdr}
           sub -> Validator.validate(data, sub, vdr)
@@ -363,11 +383,15 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   defp validate_keyword({:all_contains, {subschema, n_min, n_max}}, data, vdr) when is_list(data) do
-    count =
-      Enum.count(data, fn item ->
-        case Validator.validate(item, subschema, vdr) do
-          {:ok, _, _} -> true
-          {:error, _} -> false
+    # We need to keep the validator struct for validated items as they have to
+    # be flagged as evaluated for unevaluatedItems support.
+    {:ok, count, vdr} =
+      data
+      |> Enum.with_index()
+      |> Validator.iterate(0, vdr, fn {item, index}, count, vdr ->
+        case Validator.validate_nested(item, index, subschema, vdr) do
+          {:ok, _, vdr} -> {:ok, count + 1, vdr}
+          {:error, _} -> {:ok, count, vdr}
         end
       end)
 
@@ -398,6 +422,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   pass validate_keyword({:dependent_schemas, _})
+
+  defp validate_keyword({:dependent_required, dep_req}, data, vdr) do
+    Validation.validate_dependent_required(dep_req, data, vdr)
+  end
 
   defp validate_keyword({:not, schema}, data, vdr) do
     case Validator.validate(data, schema, vdr) do
@@ -430,7 +458,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     # global VDR
     {valids, invalids, vdr} =
       Enum.reduce(validators, {[], [], vdr}, fn subvalidator, {valids, invalids, vdr} ->
-        case Validator.validate(data, subvalidator, vdr) do
+        case Validator.validate_detach(data, subvalidator, vdr) do
           {:ok, data, vdr} -> {[{subvalidator, data} | valids], invalids, vdr}
           # We continue with the good validator in the acc
           {:error, err_vdr} -> {valids, [{subvalidator, err_vdr} | invalids], vdr}
@@ -448,7 +476,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validation_enabled?(%{vocabularies: vs}) do
-    Moonwalk.Schema.Vocabulary.V202012.Validation in vs
+  defp validation_enabled?(bld) do
+    Builder.vocabulary_enabled?(bld, Moonwalk.Schema.Vocabulary.V202012.Validation)
   end
 end

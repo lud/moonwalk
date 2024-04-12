@@ -8,7 +8,7 @@ defmodule Moonwalk.Schema.Builder do
   alias Moonwalk.Schema.Resolver.Resolved
 
   @derive {Inspect, only: [:resolver, :staged]}
-  defstruct [:resolver, staged: [], vocabularies: nil, ns: nil]
+  defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, opts: []]
 
   def new(opts) do
     struct!(__MODULE__, Map.new(opts))
@@ -190,10 +190,13 @@ defmodule Moonwalk.Schema.Builder do
 
   defp do_build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) do
     {_leftovers, schema_validators, %__MODULE__{} = bld} =
-      List.foldr(bld.vocabularies, {raw_schema, [], bld}, fn module, {raw_schema, schema_validators, bld} ->
+      List.foldr(bld.vocabularies, {raw_schema, [], bld}, fn module_or_tuple, {raw_schema, schema_validators, bld} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
-        {consumed_raw_schema, mod_validators, %__MODULE__{} = bld} = build_mod_validators(raw_schema, module, bld)
+        {module, init_opts} = mod_and_init_opts(module_or_tuple)
+
+        {consumed_raw_schema, mod_validators, %__MODULE__{} = bld} =
+          build_mod_validators(raw_schema, module, init_opts, bld)
 
         case mod_validators do
           :ignore -> {consumed_raw_schema, schema_validators, bld}
@@ -212,9 +215,16 @@ defmodule Moonwalk.Schema.Builder do
     {:ok, %Moonwalk.Schema.Dialect{validators: schema_validators}, bld}
   end
 
-  defp build_mod_validators(raw_schema, module, bld) do
+  defp mod_and_init_opts(module_or_tuple) do
+    case module_or_tuple do
+      {module, opts} -> {module, opts}
+      module -> {module, []}
+    end
+  end
+
+  defp build_mod_validators(raw_schema, module, init_opts, bld) do
     {leftovers, mod_acc, %__MODULE__{} = bld} =
-      Enum.reduce(raw_schema, {[], module.init_validators(), bld}, fn pair, {leftovers, mod_acc, bld} ->
+      Enum.reduce(raw_schema, {[], module.init_validators(init_opts), bld}, fn pair, {leftovers, mod_acc, bld} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.
 
@@ -225,5 +235,13 @@ defmodule Moonwalk.Schema.Builder do
       end)
 
     {leftovers, module.finalize_validators(mod_acc), bld}
+  end
+
+  def vocabulary_enabled?(bld, vocab) do
+    Enum.find_value(bld.vocabularies, false, fn
+      ^vocab -> true
+      {^vocab, _} -> true
+      _ -> false
+    end)
   end
 end

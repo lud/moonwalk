@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.PatternTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,79 +7,81 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/pattern.json
   """
 
-  describe "pattern validation ⋅" do
+  describe "pattern validation:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "pattern" => "^a*$"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a matching pattern is valid", %{schema: schema} do
+    test "a matching pattern is valid", c do
       data = "aaa"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-matching pattern is invalid", %{schema: schema} do
+    test "a non-matching pattern is invalid", c do
       data = "abc"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores booleans", %{schema: schema} do
+    test "ignores booleans", c do
       data = true
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores integers", %{schema: schema} do
+    test "ignores integers", c do
       data = 123
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores floats", %{schema: schema} do
+    test "ignores floats", c do
       data = 1.0
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores objects", %{schema: schema} do
+    test "ignores objects", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores arrays", %{schema: schema} do
+    test "ignores arrays", c do
       data = []
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores null", %{schema: schema} do
+    test "ignores null", c do
       data = nil
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "pattern is not anchored ⋅" do
+  describe "pattern is not anchored:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "pattern" => "a+"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "matches a substring", %{schema: schema} do
+    test "matches a substring", c do
       data = "xxaayy"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

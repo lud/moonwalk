@@ -38,6 +38,7 @@ defmodule Moonwalk.MixProject do
        only: [:test],
        compile: false,
        app: false},
+      {:decimal, "~> 2.1"},
 
       # Test or Prod ?
       {:ex_ssl_options, "~> 0.1.0"},

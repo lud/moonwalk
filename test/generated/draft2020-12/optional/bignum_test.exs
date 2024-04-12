@@ -1,101 +1,16 @@
 # credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
-defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
+defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
   @moduledoc """
-  Test generated from deps/json_schema_test_suite/tests/draft2020-12/multipleOf.json
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/optional/bignum.json
   """
 
-  describe "by int:" do
+  describe "integer:" do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "multipleOf" => 2
-      }
-
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
-      {:ok, json_schema: json_schema, schema: schema}
-    end
-
-    test "int by int", c do
-      data = 10
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    test "int by int fail", c do
-      data = 7
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    test "ignores non-numbers", c do
-      data = "foo"
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-  end
-
-  describe "by number:" do
-    setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "multipleOf" => 1.5
-      }
-
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
-      {:ok, json_schema: json_schema, schema: schema}
-    end
-
-    test "zero is multiple of anything", c do
-      data = 0
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    test "4.5 is multiple of 1.5", c do
-      data = 4.5
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    test "35 is not multiple of 1.5", c do
-      data = 35
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-  end
-
-  describe "by small number:" do
-    setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "multipleOf" => 0.0001
-      }
-
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
-      {:ok, json_schema: json_schema, schema: schema}
-    end
-
-    test "0.0075 is multiple of 0.0001", c do
-      data = 0.0075
-      expected_valid = true
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    test "0.00751 is not multiple of 0.0001", c do
-      data = 0.00751
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-  end
-
-  describe "float division = inf:" do
-    setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "multipleOf" => 0.123456789,
         "type" => "integer"
       }
 
@@ -103,28 +18,129 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "always invalid, but naive implementations may raise an overflow error", c do
-      data = 1.0e308
-      expected_valid = false
+    test "a bignum is an integer", c do
+      data = 12_345_678_910_111_213_141_516_171_819_202_122_232_425_262_728_293_031
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "a negative bignum is an integer", c do
+      data = -12_345_678_910_111_213_141_516_171_819_202_122_232_425_262_728_293_031
+      expected_valid = true
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "small multiple of large integer:" do
+  describe "number:" do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "multipleOf" => 1.0e-8,
-        "type" => "integer"
+        "type" => "number"
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, [])
       {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any integer is a multiple of 1e-8", c do
-      data = 12_391_239_123
+    test "a bignum is a number", c do
+      data = 98_249_283_749_234_923_498_293_171_823_948_729_348_710_298_301_928_331
       expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "a negative bignum is a number", c do
+      data = -98_249_283_749_234_923_498_293_171_823_948_729_348_710_298_301_928_331
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "string:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "type" => "string"
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "a bignum is not a string", c do
+      data = 98_249_283_749_234_923_498_293_171_823_948_729_348_710_298_301_928_331
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "maximum integer comparison:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "maximum" => 18_446_744_073_709_551_615
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "comparison works for high numbers", c do
+      data = 18_446_744_073_709_551_600
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "float comparison with high precision:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "exclusiveMaximum" => 9.727837981879871e26
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "comparison works for high numbers", c do
+      data = 9.727837981879871e26
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "minimum integer comparison:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "minimum" => -18_446_744_073_709_551_615
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "comparison works for very negative numbers", c do
+      data = -18_446_744_073_709_551_600
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "float comparison with high precision on negative numbers:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "exclusiveMinimum" => -9.727837981879871e26
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "comparison works for very negative numbers", c do
+      data = -9.727837981879871e26
+      expected_valid = false
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end

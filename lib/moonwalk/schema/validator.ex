@@ -18,14 +18,14 @@ defmodule Moonwalk.Schema.Validator do
 
   # TODO remove `%__MODULE__{}=`
 
-  @enforce_keys [:path, :validators, :scope, :errors, :root_key, :public]
+  @enforce_keys [:path, :validators, :scope, :errors, :root_key, :evaluated]
   defstruct @enforce_keys
 
   @opaque t :: %__MODULE__{}
 
   def new(%Schema{} = schema) do
     %{validators: validators, root_key: root_key} = schema
-    %__MODULE__{path: [], validators: validators, root_key: root_key, scope: [root_key], errors: [], public: %{}}
+    %__MODULE__{path: [], validators: validators, root_key: root_key, scope: [root_key], errors: [], evaluated: [%{}]}
   end
 
   def validate(data, dialect_or_boolean_schema, vdr)
@@ -43,6 +43,26 @@ defmodule Moonwalk.Schema.Validator do
 
   def validate(data, validators, %__MODULE__{} = vdr) do
     do_validate(data, validators, vdr)
+  end
+
+  @doc """
+  Validate the data with the given validators but separate the current
+  evaluation context during the validation, to squash it afterwards.
+
+  This means that currently evaluated properties or items will not be seen as
+  evaluated during the validation (detach), and properties or items evaluated by
+  the validators will be added back (squash) to the current scope of the given
+  validator struct.
+  """
+  def validate_detach(data, dialect_or_boolean_schema, vdr) do
+    %{evaluated: parent_evaluated} = vdr
+    # TODO no need to add the parent in the list?
+    sub_vdr = %__MODULE__{vdr | evaluated: [%{} | parent_evaluated]}
+
+    case validate(data, dialect_or_boolean_schema, sub_vdr) do
+      {:ok, data, new_sub} -> {:ok, data, squash_evaluated(new_sub)}
+      {:error, new_sub} -> {:error, squash_evaluated(new_sub)}
+    end
   end
 
   IO.warn("should set the scope from the ref, useless in validators")
@@ -109,7 +129,7 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   def validate_nested(data, key, subvalidators, vdr) when is_binary(key) when is_integer(key) do
-    %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key} = vdr
+    %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key, evaluated: evaluated} = vdr
     # We do not carry sub errors so custom validation do not have to check for
     # error presence when iterating with map/reduce (although they should use
     # iterate/4).
@@ -119,12 +139,17 @@ defmodule Moonwalk.Schema.Validator do
       validators: all_validators,
       scope: scope,
       root_key: root_key,
-      public: %{}
+      evaluated: [%{} | evaluated]
     }
 
     case validate(data, subvalidators, sub_vdr) do
-      {:ok, data, %__MODULE__{} = sub_vdr} -> {:ok, data, merge_sub(vdr, sub_vdr)}
-      {:error, %__MODULE__{errors: [_ | _]} = sub_vdr} -> {:error, merge_sub(vdr, sub_vdr)}
+      {:ok, data, %__MODULE__{} = sub_vdr} ->
+        # There should not be errors in sub at this point ?
+        new_vdr = vdr |> add_evaluated(key) |> merge_errors(sub_vdr)
+        {:ok, data, new_vdr}
+
+      {:error, %__MODULE__{errors: [_ | _]} = sub_vdr} ->
+        {:error, merge_errors(vdr, sub_vdr)}
     end
   end
 
@@ -133,7 +158,7 @@ defmodule Moonwalk.Schema.Validator do
   def validate_ref(data, ref, vdr) do
     subvalidators = checkout_ref(vdr, ref)
 
-    %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key} = vdr
+    %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key, evaluated: evaluated} = vdr
     # TODO separate validator must have its isolated evaluated paths list
     separate_vdr = %__MODULE__{
       path: path,
@@ -141,32 +166,48 @@ defmodule Moonwalk.Schema.Validator do
       validators: all_validators,
       scope: [Key.namespace_of(ref) | scope],
       root_key: root_key,
-      public: %{}
+      evaluated: evaluated
     }
 
     case validate(data, subvalidators, separate_vdr) do
-      {:ok, data, %__MODULE__{} = separate_vdr} -> {:ok, data, merge_sub(vdr, separate_vdr)}
-      {:error, %__MODULE__{errors: [_ | _]} = separate_vdr} -> {:error, merge_sub(vdr, separate_vdr)}
+      {:ok, data, %__MODULE__{} = separate_vdr} ->
+        # There should not be errors in sub at this point ?
+        new_vdr = vdr |> merge_evaluated(separate_vdr) |> merge_errors(separate_vdr)
+        {:ok, data, new_vdr}
+
+      {:error, %__MODULE__{errors: [_ | _]} = separate_vdr} ->
+        {:error, merge_errors(vdr, separate_vdr)}
     end
   end
 
-  defp merge_sub(vdr, sub) do
+  defp merge_errors(vdr, sub) do
     %__MODULE__{errors: vdr_errors} = vdr
     %__MODULE__{errors: sub_errors} = sub
-    %__MODULE__{vdr | errors: merge_errors(vdr_errors, sub_errors)}
+    %__MODULE__{vdr | errors: do_merge_errors(vdr_errors, sub_errors)}
   end
 
-  defp merge_errors([], sub_errors) do
+  defp do_merge_errors([], sub_errors) do
     sub_errors
   end
 
-  defp merge_errors(vdr_errors, []) do
+  defp do_merge_errors(vdr_errors, []) do
     vdr_errors
   end
 
-  defp merge_errors(vdr_errors, sub_errors) do
+  defp do_merge_errors(vdr_errors, sub_errors) do
     # TODO maybe append but for now we will flatten only when rendering/formatting errors
     [vdr_errors, sub_errors]
+  end
+
+  defp merge_evaluated(vdr, sub) do
+    %__MODULE__{evaluated: [top_vdr | rest_vdr]} = vdr
+    %__MODULE__{evaluated: [top_sub | _rest_sub]} = sub
+    %__MODULE__{vdr | evaluated: [Map.merge(top_vdr, top_sub) | rest_vdr]}
+  end
+
+  defp squash_evaluated(vdr) do
+    %{evaluated: [to_squash, old_top | rest]} = vdr
+    %__MODULE__{vdr | evaluated: [Map.merge(to_squash, old_top) | rest]}
   end
 
   def return(data, %__MODULE__{errors: []} = vdr) do
@@ -241,6 +282,17 @@ defmodule Moonwalk.Schema.Validator do
   defp add_error(vdr, error) do
     %__MODULE__{errors: errors, path: path} = vdr
     %__MODULE__{vdr | errors: [{path, error} | errors]}
+  end
+
+  defp add_evaluated(vdr, key) do
+    %{evaluated: [current | ev]} = vdr
+    current = Map.put(current, key, true)
+    %__MODULE__{vdr | evaluated: [current | ev]}
+  end
+
+  def list_evaluaded(vdr) do
+    %{evaluated: [current | _]} = vdr
+    Map.keys(current)
   end
 
   # def put_path_meta(%__MODULE__{} = vdr, key, value) do

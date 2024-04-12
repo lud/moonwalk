@@ -6,7 +6,7 @@ defmodule Moonwalk.Schema.Vocabulary do
   @type validators :: term
   @type pair :: {binary, term}
   @type data :: %{optional(binary) => data} | [data] | binary | boolean | number | nil
-  @callback init_validators :: validators
+  @callback init_validators(Keyword.t()) :: validators
   @callback take_keyword(pair, validators, bld :: Builder.t()) ::
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators

@@ -17,23 +17,24 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
         rel_path = Path.relative_to(path, suite_dir)
 
         case Map.fetch(config, rel_path) do
-          {:ok, cfg} -> {[%{path: path, rel_path: rel_path, config: cfg}], discarded}
+          {:ok, :unsupported} -> {[], []}
+          {:ok, opts} -> {[%{path: path, rel_path: rel_path, opts: opts}], discarded}
           :error -> {[], [rel_path | discarded]}
         end
       end,
       &print_unchecked(suite, &1)
     )
     |> Stream.map(fn item ->
-      %{path: path, config: config} = item
+      %{path: path, opts: opts} = item
 
-      Map.put(item, :test_cases, mashall_file(path, config))
+      Map.put(item, :test_cases, mashall_file(path, opts))
     end)
   end
 
-  defp mashall_file(source_path, config) do
+  defp mashall_file(source_path, opts) do
     # If validate is false, all tests in the file are skipped
-    validate = Keyword.get(config, :validate, true)
-    ignored = Keyword.get(config, :ignore, [])
+    validate = Keyword.get(opts, :validate, true)
+    ignored = Keyword.get(opts, :ignore, [])
 
     source_path
     |> File.read!()
@@ -63,9 +64,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
     end
   end
 
-  def run_test(json_schema, data, expected_valid) do
-    schema = build_schema(json_schema)
-
+  def run_test(json_schema, schema, data, expected_valid) do
     {valid?, %Validator{} = validator} =
       case Moonwalk.Schema.validation_entrypoint(data, schema) do
         {:ok, casted, vdr} ->
@@ -106,8 +105,8 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
     end
   end
 
-  defp build_schema(json_schema) do
-    case Moonwalk.Schema.build(json_schema, resolver: Moonwalk.Test.TestResolver) do
+  def build_schema(json_schema, build_opts) do
+    case Moonwalk.Schema.build(json_schema, [resolver: Moonwalk.Test.TestResolver] ++ build_opts) do
       {:ok, schema} -> schema
       {:error, reason} -> flunk(denorm_failure(json_schema, reason, []))
     end
@@ -139,12 +138,13 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
 
   defp print_unchecked(suite, paths) do
     total = length(paths)
-    maxprint = 10
+    maxprint = 20
     more? = total > maxprint
 
     print_list =
       paths
       |> Enum.sort_by(fn
+        "optional/format/" <> _ = rel_path -> {2, rel_path}
         "optional/" <> _ = rel_path -> {1, rel_path}
         rel_path -> {0, rel_path}
       end)

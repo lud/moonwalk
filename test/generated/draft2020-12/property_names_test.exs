@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.PropertyNamesTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,96 +7,99 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertyNamesTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/propertyNames.json
   """
 
-  describe "propertyNames validation ⋅" do
+  describe "propertyNames validation:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "propertyNames" => %{"maxLength" => 3}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "all property names valid", %{schema: schema} do
+    test "all property names valid", c do
       data = %{"f" => %{}, "foo" => %{}}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "some property names invalid", %{schema: schema} do
+    test "some property names invalid", c do
       data = %{"foo" => %{}, "foobar" => %{}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "object without properties is valid", %{schema: schema} do
+    test "object without properties is valid", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores arrays", %{schema: schema} do
+    test "ignores arrays", c do
       data = [1, 2, 3, 4]
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores strings", %{schema: schema} do
+    test "ignores strings", c do
       data = "foobar"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores other non-objects", %{schema: schema} do
+    test "ignores other non-objects", c do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "propertyNames with boolean schema true ⋅" do
+  describe "propertyNames with boolean schema true:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "propertyNames" => true
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "object with any properties is valid", %{schema: schema} do
+    test "object with any properties is valid", c do
       data = %{"foo" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "empty object is valid", %{schema: schema} do
+    test "empty object is valid", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "propertyNames with boolean schema false ⋅" do
+  describe "propertyNames with boolean schema false:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "propertyNames" => false
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "object with any properties is invalid", %{schema: schema} do
+    test "object with any properties is invalid", c do
       data = %{"foo" => 1}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "empty object is valid", %{schema: schema} do
+    test "empty object is valid", c do
       data = %{}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

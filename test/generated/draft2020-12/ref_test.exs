@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,45 +7,46 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/ref.json
   """
 
-  describe "root pointer ref ⋅" do
+  describe "root pointer ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties" => false,
         "properties" => %{"foo" => %{"$ref" => "#"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", %{schema: schema} do
+    test "match", c do
       data = %{"foo" => false}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "recursive match", %{schema: schema} do
+    test "recursive match", c do
       data = %{"foo" => %{"foo" => false}}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "mismatch", %{schema: schema} do
+    test "mismatch", c do
       data = %{"bar" => false}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "recursive mismatch", %{schema: schema} do
+    test "recursive mismatch", c do
       data = %{"foo" => %{"bar" => false}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "relative pointer ref to object ⋅" do
+  describe "relative pointer ref to object:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{
           "bar" => %{"$ref" => "#/properties/foo"},
@@ -52,48 +54,50 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match", %{schema: schema} do
+    test "match", c do
       data = %{"bar" => 3}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "mismatch", %{schema: schema} do
+    test "mismatch", c do
       data = %{"bar" => true}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "relative pointer ref to array ⋅" do
+  describe "relative pointer ref to array:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "prefixItems" => [%{"type" => "integer"}, %{"$ref" => "#/prefixItems/0"}]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "match array", %{schema: schema} do
+    test "match array", c do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "mismatch array", %{schema: schema} do
+    test "mismatch array", c do
       data = [1, "foo"]
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "escaped pointer ref ⋅" do
+  describe "escaped pointer ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "percent%field" => %{"type" => "integer"},
           "slash/field" => %{"type" => "integer"},
@@ -107,49 +111,50 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "slash invalid", %{schema: schema} do
+    test "slash invalid", c do
       data = %{"slash" => "aoeu"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "tilde invalid", %{schema: schema} do
+    test "tilde invalid", c do
       data = %{"tilde" => "aoeu"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "percent invalid", %{schema: schema} do
+    test "percent invalid", c do
       data = %{"percent" => "aoeu"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "slash valid", %{schema: schema} do
+    test "slash valid", c do
       data = %{"slash" => 123}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "tilde valid", %{schema: schema} do
+    test "tilde valid", c do
       data = %{"tilde" => 123}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "percent valid", %{schema: schema} do
+    test "percent valid", c do
       data = %{"percent" => 123}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "nested refs ⋅" do
+  describe "nested refs:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "a" => %{"type" => "integer"},
           "b" => %{"$ref" => "#/$defs/a"},
@@ -159,161 +164,168 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "nested ref valid", %{schema: schema} do
+    test "nested ref valid", c do
       data = 5
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "nested ref invalid", %{schema: schema} do
+    test "nested ref invalid", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "ref applies alongside sibling keywords ⋅" do
+  describe "ref applies alongside sibling keywords:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"reffed" => %{"type" => "array"}},
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"foo" => %{"$ref" => "#/$defs/reffed", "maxItems" => 2}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "ref valid, maxItems valid", %{schema: schema} do
+    test "ref valid, maxItems valid", c do
       data = %{"foo" => []}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ref valid, maxItems invalid", %{schema: schema} do
+    test "ref valid, maxItems invalid", c do
       data = %{"foo" => [1, 2, 3]}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ref invalid", %{schema: schema} do
+    test "ref invalid", c do
       data = %{"foo" => "string"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "remote ref, containing refs itself ⋅" do
+  describe "remote ref, containing refs itself:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$ref" => "https://json-schema.org/draft/2020-12/schema",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "remote ref valid", %{schema: schema} do
+    test "remote ref valid", c do
       data = %{"minLength" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "remote ref invalid", %{schema: schema} do
+    test "remote ref invalid", c do
       data = %{"minLength" => -1}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "property named $ref that is not a reference ⋅" do
+  describe "property named $ref that is not a reference:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"$ref" => %{"type" => "string"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "property named $ref valid", %{schema: schema} do
+    test "property named $ref valid", c do
       data = %{"$ref" => "a"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "property named $ref invalid", %{schema: schema} do
+    test "property named $ref invalid", c do
       data = %{"$ref" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "property named $ref, containing an actual $ref ⋅" do
+  describe "property named $ref, containing an actual $ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"is-string" => %{"type" => "string"}},
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"$ref" => %{"$ref" => "#/$defs/is-string"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "property named $ref valid", %{schema: schema} do
+    test "property named $ref valid", c do
       data = %{"$ref" => "a"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "property named $ref invalid", %{schema: schema} do
+    test "property named $ref invalid", c do
       data = %{"$ref" => 2}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "$ref to boolean schema true ⋅" do
+  describe "$ref to boolean schema true:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"bool" => true},
         "$ref" => "#/$defs/bool",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is valid", %{schema: schema} do
+    test "any value is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "$ref to boolean schema false ⋅" do
+  describe "$ref to boolean schema false:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"bool" => false},
         "$ref" => "#/$defs/bool",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "any value is invalid", %{schema: schema} do
+    test "any value is invalid", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "Recursive references between schemas ⋅" do
+  describe "Recursive references between schemas:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "node" => %{
             "$id" => "http://localhost:1234/draft2020-12/node",
@@ -337,10 +349,11 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "type" => "object"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid tree", %{schema: schema} do
+    test "valid tree", c do
       data = %{
         "meta" => "root",
         "nodes" => [
@@ -362,10 +375,10 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
       }
 
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "invalid tree", %{schema: schema} do
+    test "invalid tree", c do
       data = %{
         "meta" => "root",
         "nodes" => [
@@ -387,87 +400,89 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
       }
 
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "refs with quote ⋅" do
+  describe "refs with quote:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"foo\"bar" => %{"type" => "number"}},
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"foo\"bar" => %{"$ref" => "#/$defs/foo%22bar"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "object with numbers is valid", %{schema: schema} do
+    test "object with numbers is valid", c do
       data = %{"foo\"bar" => 1}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "object with strings is invalid", %{schema: schema} do
+    test "object with strings is invalid", c do
       data = %{"foo\"bar" => "1"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "ref creates new scope when adjacent to keywords ⋅" do
+  describe "ref creates new scope when adjacent to keywords:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"A" => %{"unevaluatedProperties" => false}},
         "$ref" => "#/$defs/A",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "properties" => %{"prop1" => %{"type" => "string"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    @tag :skip
-    test "referenced subschema doesn't see annotations from properties", %{schema: schema} do
+    test "referenced subschema doesn't see annotations from properties", c do
       data = %{"prop1" => "match"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "naive replacement of $ref with its destination is not correct ⋅" do
+  describe "naive replacement of $ref with its destination is not correct:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"a_string" => %{"type" => "string"}},
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "enum" => [%{"$ref" => "#/$defs/a_string"}]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "do not evaluate the $ref inside the enum, matching any string", %{schema: schema} do
+    test "do not evaluate the $ref inside the enum, matching any string", c do
       data = "this is a string"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "do not evaluate the $ref inside the enum, definition exact match", %{schema: schema} do
+    test "do not evaluate the $ref inside the enum, definition exact match", c do
       data = %{"type" => "string"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "match the enum exactly", %{schema: schema} do
+    test "match the enum exactly", c do
       data = %{"$ref" => "#/$defs/a_string"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "refs with relative uris and defs ⋅" do
+  describe "refs with relative uris and defs:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$id" => "http://example.com/schema-relative-uri-defs1.json",
         "$ref" => "schema-relative-uri-defs2.json",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -482,31 +497,32 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "invalid on inner field", %{schema: schema} do
+    test "invalid on inner field", c do
       data = %{"bar" => "a", "foo" => %{"bar" => 1}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "invalid on outer field", %{schema: schema} do
+    test "invalid on outer field", c do
       data = %{"bar" => 1, "foo" => %{"bar" => "a"}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "valid on both fields", %{schema: schema} do
+    test "valid on both fields", c do
       data = %{"bar" => "a", "foo" => %{"bar" => "a"}}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "relative refs with absolute uris and defs ⋅" do
+  describe "relative refs with absolute uris and defs:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$id" => "http://example.com/schema-refs-absolute-uris-defs1.json",
         "$ref" => "schema-refs-absolute-uris-defs2.json",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -521,31 +537,32 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "invalid on inner field", %{schema: schema} do
+    test "invalid on inner field", c do
       data = %{"bar" => "a", "foo" => %{"bar" => 1}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "invalid on outer field", %{schema: schema} do
+    test "invalid on outer field", c do
       data = %{"bar" => 1, "foo" => %{"bar" => "a"}}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "valid on both fields", %{schema: schema} do
+    test "valid on both fields", c do
       data = %{"bar" => "a", "foo" => %{"bar" => "a"}}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "$id must be resolved against nearest parent, not just immediate parent ⋅" do
+  describe "$id must be resolved against nearest parent, not just immediate parent:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "x" => %{
             "$id" => "http://example.com/b/c.json",
@@ -557,25 +574,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "allOf" => [%{"$ref" => "http://example.com/b/d.json"}]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is valid", %{schema: schema} do
+    test "number is valid", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "non-number is invalid", %{schema: schema} do
+    test "non-number is invalid", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "order of evaluation: $id and $ref ⋅" do
+  describe "order of evaluation: $id and $ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "$id must be evaluated before $ref to get the proper $ref destination",
         "$defs" => %{
           "bigint" => %{
@@ -594,25 +612,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "data is valid against first definition", %{schema: schema} do
+    test "data is valid against first definition", c do
       data = 5
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "data is invalid against first definition", %{schema: schema} do
+    test "data is invalid against first definition", c do
       data = 50
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "order of evaluation: $id and $anchor and $ref ⋅" do
+  describe "order of evaluation: $id and $anchor and $ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "$id must be evaluated before $ref to get the proper $ref destination",
         "$defs" => %{
           "bigint" => %{
@@ -634,25 +653,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "data is valid against first definition", %{schema: schema} do
+    test "data is valid against first definition", c do
       data = 5
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "data is invalid against first definition", %{schema: schema} do
+    test "data is invalid against first definition", c do
       data = 50
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "simple URN base URI with $ref via the URN ⋅" do
+  describe "simple URN base URI with $ref via the URN:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "URIs do not have to have HTTP(s) schemes",
         "$id" => "urn:uuid:deadbeef-1234-ffff-ffff-4321feebdaed",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -662,25 +682,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "valid under the URN IDed schema", %{schema: schema} do
+    test "valid under the URN IDed schema", c do
       data = %{"foo" => 37}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "invalid under the URN IDed schema", %{schema: schema} do
+    test "invalid under the URN IDed schema", c do
       data = %{"foo" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "simple URN base URI with JSON pointer ⋅" do
+  describe "simple URN base URI with JSON pointer:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "URIs do not have to have HTTP(s) schemes",
         "$defs" => %{"bar" => %{"type" => "string"}},
         "$id" => "urn:uuid:deadbeef-1234-00ff-ff00-4321feebdaed",
@@ -688,25 +709,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-string is invalid", %{schema: schema} do
+    test "a non-string is invalid", c do
       data = %{"foo" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "URN base URI with NSS ⋅" do
+  describe "URN base URI with NSS:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "RFC 8141 §2.2",
         "$defs" => %{"bar" => %{"type" => "string"}},
         "$id" => "urn:example:1/406/47452/2",
@@ -714,25 +736,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-string is invalid", %{schema: schema} do
+    test "a non-string is invalid", c do
       data = %{"foo" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "URN base URI with r-component ⋅" do
+  describe "URN base URI with r-component:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "RFC 8141 §2.3.1",
         "$defs" => %{"bar" => %{"type" => "string"}},
         "$id" => "urn:example:foo-bar-baz-qux?+CCResolve:cc=uk",
@@ -740,25 +763,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-string is invalid", %{schema: schema} do
+    test "a non-string is invalid", c do
       data = %{"foo" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "URN base URI with q-component ⋅" do
+  describe "URN base URI with q-component:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "RFC 8141 §2.3.2",
         "$defs" => %{"bar" => %{"type" => "string"}},
         "$id" => "urn:example:weather?=op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z",
@@ -766,43 +790,45 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-string is invalid", %{schema: schema} do
+    test "a non-string is invalid", c do
       data = %{"foo" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "URN base URI with f-component ⋅" do
+  describe "URN base URI with f-component:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$comment" => "RFC 8141 §2.3.3, but we don't allow fragments",
         "$ref" => "https://json-schema.org/draft/2020-12/schema",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "is invalid", %{schema: schema} do
+    test "is invalid", c do
       data = %{"$id" => "urn:example:foo-bar-baz-qux#somepart"}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "URN base URI with URN and JSON pointer ref ⋅" do
+  describe "URN base URI with URN and JSON pointer ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"bar" => %{"type" => "string"}},
         "$id" => "urn:uuid:deadbeef-1234-0000-0000-4321feebdaed",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -813,25 +839,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-string is invalid", %{schema: schema} do
+    test "a non-string is invalid", c do
       data = %{"foo" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "URN base URI with URN and anchor ref ⋅" do
+  describe "URN base URI with URN and anchor ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"bar" => %{"$anchor" => "something", "type" => "string"}},
         "$id" => "urn:uuid:deadbeef-1234-ff00-00ff-4321feebdaed",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -842,25 +869,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = %{"foo" => "bar"}
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-string is invalid", %{schema: schema} do
+    test "a non-string is invalid", c do
       data = %{"foo" => 12}
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "URN ref with nested pointer ref ⋅" do
+  describe "URN ref with nested pointer ref:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "foo" => %{
             "$defs" => %{"bar" => %{"type" => "string"}},
@@ -872,97 +900,101 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = "bar"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "a non-string is invalid", %{schema: schema} do
+    test "a non-string is invalid", c do
       data = 12
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "ref to if ⋅" do
+  describe "ref to if:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$ref" => "http://example.com/ref/if",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "if" => %{"$id" => "http://example.com/ref/if", "type" => "integer"}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a non-integer is invalid due to the $ref", %{schema: schema} do
+    test "a non-integer is invalid due to the $ref", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "an integer is valid", %{schema: schema} do
+    test "an integer is valid", c do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "ref to then ⋅" do
+  describe "ref to then:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$ref" => "http://example.com/ref/then",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "then" => %{"$id" => "http://example.com/ref/then", "type" => "integer"}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a non-integer is invalid due to the $ref", %{schema: schema} do
+    test "a non-integer is invalid due to the $ref", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "an integer is valid", %{schema: schema} do
+    test "an integer is valid", c do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "ref to else ⋅" do
+  describe "ref to else:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$ref" => "http://example.com/ref/else",
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "else" => %{"$id" => "http://example.com/ref/else", "type" => "integer"}
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a non-integer is invalid due to the $ref", %{schema: schema} do
+    test "a non-integer is invalid due to the $ref", c do
       data = "foo"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "an integer is valid", %{schema: schema} do
+    test "an integer is valid", c do
       data = 12
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "ref with absolute-path-reference ⋅" do
+  describe "ref with absolute-path-reference:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{
           "a" => %{
             "$id" => "http://example.com/ref/absref/foobar.json",
@@ -978,93 +1010,97 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "a string is valid", %{schema: schema} do
+    test "a string is valid", c do
       data = "foo"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "an integer is invalid", %{schema: schema} do
+    test "an integer is invalid", c do
       data = 12
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "$id with file URI still resolves pointers - *nix ⋅" do
+  describe "$id with file URI still resolves pointers - *nix:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"foo" => %{"type" => "number"}},
         "$id" => "file:///folder/file.json",
         "$ref" => "#/$defs/foo",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is valid", %{schema: schema} do
+    test "number is valid", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "non-number is invalid", %{schema: schema} do
+    test "non-number is invalid", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "$id with file URI still resolves pointers - windows ⋅" do
+  describe "$id with file URI still resolves pointers - windows:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"foo" => %{"type" => "number"}},
         "$id" => "file:///c:/folder/file.json",
         "$ref" => "#/$defs/foo",
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is valid", %{schema: schema} do
+    test "number is valid", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "non-number is invalid", %{schema: schema} do
+    test "non-number is invalid", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "empty tokens in $ref json-pointer ⋅" do
+  describe "empty tokens in $ref json-pointer:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$defs" => %{"" => %{"$defs" => %{"" => %{"type" => "number"}}}},
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "allOf" => [%{"$ref" => "#/$defs//$defs/"}]
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "number is valid", %{schema: schema} do
+    test "number is valid", c do
       data = 1
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "non-number is invalid", %{schema: schema} do
+    test "non-number is invalid", c do
       data = "a"
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

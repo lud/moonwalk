@@ -1,17 +1,17 @@
 # credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
-defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
+defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibilityTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
 
   @moduledoc """
-  Test generated from deps/json_schema_test_suite/tests/draft2020-12/dependentRequired.json
+  Test generated from deps/json_schema_test_suite/tests/draft2020-12/optional/dependencies-compatibility.json
   """
 
   describe "single dependency:" do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentRequired" => %{"bar" => ["foo"]}
+        "dependencies" => %{"bar" => ["foo"]}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, [])
@@ -65,7 +65,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentRequired" => %{"bar" => []}
+        "dependencies" => %{"bar" => []}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, [])
@@ -95,7 +95,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentRequired" => %{"quux" => ["foo", "bar"]}
+        "dependencies" => %{"quux" => ["foo", "bar"]}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, [])
@@ -143,10 +143,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
     setup do
       json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentRequired" => %{
-          "foo\nbar" => ["foo\rbar"],
-          "foo\"bar" => ["foo'bar"]
-        }
+        "dependencies" => %{"foo\nbar" => ["foo\rbar"], "foo\"bar" => ["foo'bar"]}
       }
 
       schema = JsonSchemaSuite.build_schema(json_schema, [])
@@ -173,6 +170,148 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentRequiredTest do
 
     test "quoted quotes missing dependent", c do
       data = %{"foo\"bar" => 2}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "single schema dependency:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "dependencies" => %{
+          "bar" => %{
+            "properties" => %{
+              "bar" => %{"type" => "integer"},
+              "foo" => %{"type" => "integer"}
+            }
+          }
+        }
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "valid", c do
+      data = %{"bar" => 2, "foo" => 1}
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "no dependency", c do
+      data = %{"foo" => "quux"}
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "wrong type", c do
+      data = %{"bar" => 2, "foo" => "quux"}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "wrong type other", c do
+      data = %{"bar" => "quux", "foo" => 2}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "wrong type both", c do
+      data = %{"bar" => "quux", "foo" => "quux"}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "ignores arrays", c do
+      data = ["bar"]
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "ignores strings", c do
+      data = "foobar"
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "ignores other non-objects", c do
+      data = 12
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "boolean subschemas:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "dependencies" => %{"bar" => false, "foo" => true}
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "object with property having schema true is valid", c do
+      data = %{"foo" => 1}
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "object with property having schema false is invalid", c do
+      data = %{"bar" => 2}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "object with both properties is invalid", c do
+      data = %{"bar" => 2, "foo" => 1}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "empty object is valid", c do
+      data = %{}
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "schema dependencies with escaped characters:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "dependencies" => %{
+          "foo\tbar" => %{"minProperties" => 4},
+          "foo'bar" => %{"required" => ["foo\"bar"]}
+        }
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "quoted tab", c do
+      data = %{"a" => 2, "b" => 3, "c" => 4, "foo\tbar" => 1}
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "quoted quote", c do
+      data = %{"foo'bar" => %{"foo\"bar" => 1}}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "quoted tab invalid under dependent schema", c do
+      data = %{"a" => 2, "foo\tbar" => 1}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "quoted quote invalid under dependent schema", c do
+      data = %{"foo'bar" => 1}
       expected_valid = false
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end

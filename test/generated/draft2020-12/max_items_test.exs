@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
 defmodule Elixir.Moonwalk.Generated.Draft202012.MaxItemsTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -6,57 +7,59 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaxItemsTest do
   Test generated from deps/json_schema_test_suite/tests/draft2020-12/maxItems.json
   """
 
-  describe "maxItems validation ⋅" do
+  describe "maxItems validation:" do
     setup do
-      schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "maxItems" => 2}
-      {:ok, schema: schema}
+      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "maxItems" => 2}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "shorter is valid", %{schema: schema} do
+    test "shorter is valid", c do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "exact length is valid", %{schema: schema} do
+    test "exact length is valid", c do
       data = [1, 2]
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "too long is invalid", %{schema: schema} do
+    test "too long is invalid", c do
       data = [1, 2, 3]
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "ignores non-arrays", %{schema: schema} do
+    test "ignores non-arrays", c do
       data = "foobar"
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 
-  describe "maxItems validation with a decimal ⋅" do
+  describe "maxItems validation with a decimal:" do
     setup do
-      schema = %{
+      json_schema = %{
         "$schema" => "https://json-schema.org/draft/2020-12/schema",
         "maxItems" => 2.0
       }
 
-      {:ok, schema: schema}
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      {:ok, json_schema: json_schema, schema: schema}
     end
 
-    test "shorter is valid", %{schema: schema} do
+    test "shorter is valid", c do
       data = [1]
       expected_valid = true
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
 
-    test "too long is invalid", %{schema: schema} do
+    test "too long is invalid", c do
       data = [1, 2, 3]
       expected_valid = false
-      JsonSchemaSuite.run_test(schema, data, expected_valid)
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
 end

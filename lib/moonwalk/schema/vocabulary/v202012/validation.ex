@@ -4,7 +4,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   use Moonwalk.Schema.Vocabulary, priority: 300
 
   @impl true
-  def init_validators do
+  def init_validators(_) do
     []
   end
 
@@ -239,8 +239,9 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
       false -> {:error, Validator.with_error(vdr, :multiple_of, data, multiple_of: n)}
     end
   rescue
-    # Rescue infinite division (huge numbers divided by float)
-    _ in ArithmeticError -> {:error, Validator.with_error(vdr, :multiple_of, data, multiple_of: n)}
+    # Rescue infinite division (huge numbers divided by float, too large invalid
+    # floats)
+    e in ArithmeticError -> {:error, Validator.with_error(vdr, :arithmetic_error, data, multiple_of: n, error: e)}
   end
 
   pass validate_keyword({:multiple_of, _})
@@ -254,25 +255,9 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   pass validate_keyword({:required, _})
 
-  defp validate_keyword({:dependent_required, depsreq}, data, vdr) when is_map(data) do
-    all_keys = Map.keys(data)
-
-    Validator.iterate(depsreq, data, vdr, fn
-      {parent_key, required_keys}, data, vdr when is_map_key(data, parent_key) ->
-        case required_keys -- all_keys do
-          [] ->
-            {:ok, data, vdr}
-
-          missing ->
-            {:error, Validator.with_error(vdr, :dependent_required, data, parent: parent_key, required: missing)}
-        end
-
-      {_, _}, data, vdr ->
-        {:ok, data, vdr}
-    end)
+  defp validate_keyword({:dependent_required, dependent_required}, data, vdr) do
+    validate_dependent_required(dependent_required, data, vdr)
   end
-
-  pass validate_keyword({:dependent_required, _})
 
   defp validate_keyword({:max_length, max}, data, vdr) when is_binary(data) do
     len = String.length(data)
@@ -362,6 +347,30 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   pass validate_keyword({:max_properties, _})
 
   # ---------------------------------------------------------------------------
+
+  # Shared to support "dependencies" compatibility
+  @doc false
+  def validate_dependent_required(dependent_required, data, vdr) when is_map(data) do
+    all_keys = Map.keys(data)
+
+    Validator.iterate(dependent_required, data, vdr, fn
+      {parent_key, required_keys}, data, vdr when is_map_key(data, parent_key) ->
+        case required_keys -- all_keys do
+          [] ->
+            {:ok, data, vdr}
+
+          missing ->
+            {:error, Validator.with_error(vdr, :dependent_required, data, parent: parent_key, required: missing)}
+        end
+
+      {_, _}, data, vdr ->
+        {:ok, data, vdr}
+    end)
+  end
+
+  def validate_dependent_required(_dependent_required, data, vdr) do
+    {:ok, data, vdr}
+  end
 
   defp validate_type(data, :array) do
     is_list(data)
