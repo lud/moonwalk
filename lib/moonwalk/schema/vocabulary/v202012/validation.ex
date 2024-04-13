@@ -241,7 +241,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
   rescue
     # Rescue infinite division (huge numbers divided by float, too large invalid
     # floats)
-    e in ArithmeticError -> {:error, Validator.with_error(vdr, :arithmetic_error, data, multiple_of: n, error: e)}
+    _ in ArithmeticError -> {:error, Validator.with_error(vdr, :arithmetic_error, data, context: "multipleOf")}
   end
 
   pass validate_keyword({:multiple_of, _})
@@ -265,7 +265,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     if len <= max do
       {:ok, data, vdr}
     else
-      {:error, Validator.with_error(vdr, :max_length, data, max_items: max, len: len)}
+      {:error, Validator.with_error(vdr, :max_length, data, max_length: max, len: len)}
     end
   end
 
@@ -277,7 +277,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     if len >= min do
       {:ok, data, vdr}
     else
-      {:error, Validator.with_error(vdr, :min_length, data, min_items: min, len: len)}
+      {:error, Validator.with_error(vdr, :min_length, data, min_length: min, len: len)}
     end
   end
 
@@ -360,7 +360,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
             {:ok, data, vdr}
 
           missing ->
-            {:error, Validator.with_error(vdr, :dependent_required, data, parent: parent_key, required: missing)}
+            {:error, Validator.with_error(vdr, :dependent_required, data, parent: parent_key, missing: missing)}
         end
 
       {_, _}, data, vdr ->
@@ -402,5 +402,114 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   defp validate_type(data, :number) do
     is_number(data)
+  end
+
+  # ---------------------------------------------------------------------------
+
+  @impl true
+  def format_error(:type, args, _) do
+    %{type: type} = args
+    types_format = type |> List.wrap() |> Enum.map_intersperse(" or ", &Atom.to_string/1)
+    "value is not of type #{types_format}"
+  end
+
+  def format_error(:minimum, %{n: n}, data) do
+    "value #{data} is lower than minimum #{n}"
+  end
+
+  def format_error(:exclusive_minimum, %{n: n}, data) do
+    "value #{data} is not higher than exclusive minimum #{n}"
+  end
+
+  def format_error(:maximum, %{n: n}, data) do
+    "value #{data} is higher than maximum #{n}"
+  end
+
+  def format_error(:exclusive_maximum, %{n: n}, data) do
+    "value #{data} is not lower than exclusive maximum #{n}"
+  end
+
+  def format_error(:min_length, %{len: len, min_length: min_length}, _data) do
+    "value length must be at least #{min_length} but is #{len}"
+  end
+
+  def format_error(:max_length, %{len: len, max_length: max_length}, _data) do
+    "value length must be at most #{max_length} but is #{len}"
+  end
+
+  def format_error(:const, %{const: const}, _data) do
+    "value should be #{Jason.encode!(const)}"
+  end
+
+  def format_error(:required, %{required: required}, _data) do
+    case required do
+      [single] -> "property #{quote_prop(single)} is required"
+      _ -> "properties #{required |> Enum.map(&quote_prop/1) |> verbose_list("and")} are required"
+    end
+  end
+
+  def format_error(:multiple_of, %{multiple_of: multiple_of}, data) do
+    "value #{data} is not a multiple of #{multiple_of}"
+  end
+
+  def format_error(:pattern, %{pattern: pattern}, _data) do
+    "value does not conform to pattern /#{pattern}/"
+  end
+
+  def format_error(:max_items, %{len: len, max_items: max_items}, _data) do
+    "value should have at most #{max_items} items, got #{len}"
+  end
+
+  def format_error(:min_items, %{len: len, min_items: min_items}, _data) do
+    "value should have at least #{min_items} items, got #{len}"
+  end
+
+  def format_error(:min_properties, %{size: size, min_properties: min_properties}, _data) do
+    "value must have at least #{min_properties} properties, got #{size}"
+  end
+
+  def format_error(:max_properties, %{size: size, max_properties: max_properties}, _data) do
+    "value must have at most #{max_properties} properties, got #{size}"
+  end
+
+  def format_error(:enum, %{enum: enum}, _data) do
+    "value must be one of the enum values: #{enum |> Enum.map(&inspect/1) |> verbose_list("or")}"
+  end
+
+  def format_error(:dependent_required, %{parent: parent, missing: missing}, _data) do
+    case missing do
+      [single] ->
+        "property #{quote_prop(single)} is required when property #{quote_prop(parent)} is present"
+
+      _ ->
+        "properties #{missing |> Enum.map(&quote_prop/1) |> verbose_list("and")} are required when property #{quote_prop(parent)} is present"
+    end
+  end
+
+  def format_error(:unique_items, %{duplicates: duplicates}, _data) do
+    printout =
+      Enum.map(duplicates, fn {dup_index, seen_index} ->
+        "values at indices #{seen_index} and #{dup_index} are equal"
+      end)
+
+    "value must contain unique items but #{verbose_list(printout, "and")}"
+  end
+
+  def format_error(:arithmetic_error, %{context: context}, data) do
+    "could not valiade #{inspect(data)}, got arithmetic error in context #{quote_prop(context)}"
+  end
+
+  defp verbose_list([single], _) do
+    single
+  end
+
+  defp verbose_list([_ | _] = list, operator) do
+    [last | [_ | _] = rest] = :lists.reverse(list)
+    rest = :lists.reverse(rest)
+    [Enum.intersperse(rest, ", "), " ", operator, " ", last]
+  end
+
+  defp quote_prop(val) do
+    ["'", val, "'"]
   end
 end

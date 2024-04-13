@@ -1,6 +1,7 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
   use Moonwalk.Schema.Vocabulary, priority: 300
 
+  @impl true
   def init_validators(_) do
     []
   end
@@ -15,11 +16,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
   consume_keyword("examples")
 
   ignore_any_keyword()
-
+  @impl true
   def finalize_validators(_) do
     :ignore
   end
 
+  @impl true
   def validate(_data, _validators, _context) do
     raise "should not be called"
   end

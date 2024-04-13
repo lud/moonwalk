@@ -12,6 +12,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
   # * Define a vocabulary that does nothing, as we will implement everything in
   #   this module, but we can check if the vocabulary is loaded
 
+  @impl true
   def init_validators(opts) do
     # The assert option is defined at the vocabulary level, as vocabularies are
     # defined like so:
@@ -28,6 +29,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
     %{default_assert: default_assert}
   end
 
+  @impl true
   def take_keyword({"format", format}, acc, ctx) do
     validate_formats? =
       case {acc.default_assert, ctx.opts[:formats]} do
@@ -46,6 +48,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
 
   ignore_any_keyword()
 
+  @impl true
   def finalize_validators(acc) do
     acc
     |> Map.take([:format])
@@ -56,6 +59,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
     end
   end
 
+  @impl true
   def validate(data, [format: format], vdr) do
     if validate_format(format, data) do
       {:ok, data, vdr}
@@ -112,5 +116,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
 
   defp validate_format("unknown", _data) do
     true
+  end
+
+  # ---------------------------------------------------------------------------
+
+  @impl true
+  def format_error(:format, %{format: format}, _data) do
+    "value does not respect the '#{format}' format"
   end
 end

@@ -63,4 +63,13 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
   end
 
   pass validate_keyword({:unevaluated_items, _})
+
+  # ---------------------------------------------------------------------------
+
+  # TODO add tests for error formatting
+
+  @impl true
+  def format_error(_, _, _data) do
+    "unevaluated value did not conform to schema"
+  end
 end

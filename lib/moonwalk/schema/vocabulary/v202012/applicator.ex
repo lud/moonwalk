@@ -5,14 +5,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary, priority: 200
 
+  @impl true
   def init_validators(_) do
     []
   end
 
   @impl true
-  todo_take_keywords(~w(
-    additionalItems
-  ))
 
   def take_keyword({"properties", properties}, acc, ctx) do
     properties
@@ -174,6 +172,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   # ---------------------------------------------------------------------------
+
+  @impl true
   def finalize_validators([]) do
     :ignore
   end
@@ -234,6 +234,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   # ---------------------------------------------------------------------------
 
+  @impl true
   def validate(data, vds, vdr) do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
@@ -399,10 +400,10 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
     cond do
       count < n_min ->
-        {:error, Validator.with_error(vdr, :contains, data, count: count, min_contains: n_min)}
+        {:error, Validator.with_error(vdr, :min_contains, data, count: count, min_contains: n_min)}
 
       is_integer(n_max) and count > n_max ->
-        {:error, Validator.with_error(vdr, :contains, data, count: count, max_contains: n_max)}
+        {:error, Validator.with_error(vdr, :max_contains, data, count: count, max_contains: n_max)}
 
       true ->
         {:ok, data, vdr}
@@ -429,7 +430,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp validate_keyword({:not, schema}, data, vdr) do
     case Validator.validate(data, schema, vdr) do
-      {:ok, data, vdr} -> {:error, Validator.with_error(vdr, :not, data, subschema: schema)}
+      {:ok, data, vdr} -> {:error, Validator.with_error(vdr, :not, data, [])}
       # TODO maybe we need to merge "evaluted" properties
       {:error, _} -> {:ok, data, vdr}
     end
@@ -478,5 +479,56 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   defp validation_enabled?(bld) do
     Builder.vocabulary_enabled?(bld, Moonwalk.Schema.Vocabulary.V202012.Validation)
+  end
+
+  # ---------------------------------------------------------------------------
+
+  @impl true
+  def format_error(:min_contains, %{count: count, min_contains: min_contains}, _data) do
+    case count do
+      0 ->
+        "list does not contain any item validating the 'contains' schema, #{min_contains} are required"
+
+      n ->
+        "list contains only #{n} item(s) validating the 'contains' schema, #{min_contains} are required"
+    end
+  end
+
+  def format_error(:max_contains, args, _) do
+    %{count: count, max_contains: max_contains} = args
+    "list contains more than #{max_contains} items validating the 'contains' schema, found #{count} items"
+  end
+
+  def format_error(:item, args, _) do
+    %{index: index} = args
+    "item at index #{index} does not validate the 'items' schema"
+  end
+
+  def format_error(:property, %{key: key}, _) do
+    "property '#{key}' did not conform to the property schema"
+  end
+
+  def format_error(:additional_property, %{key: key}, _data) do
+    "property '#{key}' did not conform to the additionalProperties schema"
+  end
+
+  def format_error(:pattern_property, %{pattern: pattern, key: key}, _data) do
+    "property '#{key}' did not conform to the patternProperties schema for pattern /#{pattern}/"
+  end
+
+  def format_error(:one_of, %{validated_schemas: []}, _data) do
+    {"value did not conform to one of the given schemas", %{}}
+  end
+
+  def format_error(:one_of, %{validated_schemas: _validated_schemas}, _data) do
+    {"value validated more than one of the given schemas", %{}}
+  end
+
+  def format_error(:any_of, %{validated_schemas: []}, _data) do
+    "value did not conform to any of the given schemas"
+  end
+
+  def format_error(:not, _, _data) do
+    "value must not validate the schema given in 'not'"
   end
 end

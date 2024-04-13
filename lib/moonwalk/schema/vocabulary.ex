@@ -11,6 +11,10 @@ defmodule Moonwalk.Schema.Vocabulary do
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
   @callback validate(data, validators, vdr :: Validator.t()) :: {:ok, data} | {:error, Validator.t()}
+  @callback format_error(atom, %{optional(atom) => term}, data) ::
+              String.t() | {String.t(), %{optional(binary | atom) => term}}
+
+  @optional_callbacks format_error: 3
 
   @doc """
   Returns the priority for applyting this module to the data.
@@ -19,11 +23,9 @@ defmodule Moonwalk.Schema.Vocabulary do
   instead of "priority" but several modules can share the same priority value.
 
   This can be useful to define vocabularies that depend on other vocabularies.
-  For instance, the `max_contains` keyword in the validation vocabulary has
-  lower priority (higher number) as the applicator vocabulary that defines
-  `contains`. So when validating `max_contains`, the validator for `contains`
-  will have registered the matched number of items in the validator `public`
-  state.
+  For instance, the `unevaluatedProperties` keyword needs "properties",
+  "patternProperties", "additionalProperties" and "allOf", "oneOf", "anyOf",
+  _etc._ to be ran before itself so it can lookup what has been evaluated.
 
   Modules shipped in this library have priority of 100, 200, etc. up to 900 so
   you can interleave your own vocabularies. Casting values to non-validable
@@ -56,6 +58,32 @@ defmodule Moonwalk.Schema.Vocabulary do
       @behaviour unquote(__MODULE__)
       require Moonwalk.Schema.Validator
       unquote(priority_callback)
+    end
+  end
+
+  @doc false
+  defmacro todo_format_error do
+    quote unquote: false do
+      IO.warn("used todo_format_error")
+      @impl true
+      def format_error(kind, args, _data) do
+        keys = Map.keys(args)
+
+        map_format = [
+          "%{",
+          Enum.map_intersperse(args, ", ", fn {k, _} -> [Atom.to_string(k), ": ", Atom.to_string(k)] end),
+          "}"
+        ]
+
+        raise """
+        TODO! unimplemented error formatting in #{inspect(__MODULE__)}:
+        #{__ENV__.file}
+
+        def format_error(#{inspect(kind)}, #{map_format}, _data) do
+          "some message"
+        end
+        """
+      end
     end
   end
 

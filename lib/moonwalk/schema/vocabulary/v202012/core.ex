@@ -120,4 +120,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   defp validate_keyword({:ref, ref}, data, vdr) do
     Validator.validate_ref(data, ref, vdr)
   end
+
+  # ---------------------------------------------------------------------------
 end

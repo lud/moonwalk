@@ -78,8 +78,12 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
 
     # assert the expected result
 
-    case valid? do
-      ^expected_valid ->
+    case {expected_valid, valid?} do
+      {true, true} ->
+        :ok
+
+      {false, false} ->
+        test_error_format(validator)
         :ok
 
       _ ->
@@ -103,6 +107,19 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
         #{inspect(validator.errors, pretty: true)}
         """)
     end
+  end
+
+  defp test_error_format(validator) do
+    formatted = Validator.format_errors(validator)
+    assert is_list(formatted)
+
+    Enum.each(formatted, fn err ->
+      assert {:ok, message} = Map.fetch(err, :message)
+      assert is_binary(message)
+    end)
+
+    assert {:ok, _} = Jason.encode(formatted)
+    # IO.puts(Jason.encode!(formatted, pretty: true))
   end
 
   def build_schema(json_schema, build_opts) do

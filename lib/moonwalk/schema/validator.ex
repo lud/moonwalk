@@ -1,11 +1,25 @@
 defmodule Moonwalk.Schema.Validator.Error do
-  # @derive {Inspect, only: [:resolver, :staged]}
-  defstruct [:kind, :data, :args, :formatter]
+  @enforce_keys [:kind, :data, :args, :formatter, :path]
+  defstruct @enforce_keys
 
   @opaque t :: %__MODULE__{}
 
-  def new(kind, data, formatter \\ nil, args) do
-    %__MODULE__{kind: kind, data: data, formatter: formatter, args: args}
+  def format(%__MODULE__{} = error) do
+    %__MODULE__{kind: kind, data: data, path: path, formatter: formatter, args: args} = error
+    formatter = formatter || __MODULE__
+    args_map = Map.new(args)
+
+    {message, detail} =
+      case formatter.format_error(kind, args_map, data) do
+        message when is_binary(message) -> {message, args_map}
+        {message, detail} when is_binary(message) -> {message, detail}
+      end
+
+    %{kind: kind, at: :lists.reverse(path), message: message, detail: detail}
+  end
+
+  def format_error(:boolean_schema, %{}, _data) do
+    "value was rejected due to boolean schema false"
   end
 end
 
@@ -33,7 +47,7 @@ defmodule Moonwalk.Schema.Validator do
   def validate(data, %BooleanSchema{} = bs, %__MODULE__{} = vdr) do
     case BooleanSchema.valid?(bs) do
       true -> return(data, vdr)
-      false -> {:error, add_error(vdr, boolean_schema_error(bs))}
+      false -> {:error, add_error(vdr, boolean_schema_error(vdr, bs, data))}
     end
   end
 
@@ -243,17 +257,8 @@ defmodule Moonwalk.Schema.Validator do
     :error
   end
 
-  @deprecated "use make_error"
-  def type_error(_vdr, data, type) do
-    Error.new(:type, data, type: type)
-  end
-
-  def group_error(_vdr, data, errors) do
-    Error.new(:group, data, Error, errors: errors)
-  end
-
-  def boolean_schema_error(%BooleanSchema{valid?: false}) do
-    Error.new(:boolean_schema, nil, Error, valid?: false)
+  def boolean_schema_error(vdr, %BooleanSchema{valid?: false}, data) do
+    %Error{kind: :boolean_schema, data: data, path: vdr.path, formatter: nil, args: []}
   end
 
   defmacro return_error(data, vdr, kind, args) do
@@ -270,18 +275,13 @@ defmodule Moonwalk.Schema.Validator do
 
   @doc false
   def __with_error__(module, %__MODULE__{} = vdr, kind, data, args) do
-    error = Error.new(kind, data, module, args)
+    error = %Error{kind: kind, data: data, path: vdr.path, formatter: module, args: args}
     add_error(vdr, error)
   end
 
-  def __with_error__(module, data, %__MODULE__{} = vdr, kind, args) do
-    raise("use vdr,kind,data arg order")
-    __with_error__(module, vdr, kind, data, args)
-  end
-
   defp add_error(vdr, error) do
-    %__MODULE__{errors: errors, path: path} = vdr
-    %__MODULE__{vdr | errors: [{path, error} | errors]}
+    %__MODULE__{errors: errors} = vdr
+    %__MODULE__{vdr | errors: [error | errors]}
   end
 
   defp add_evaluated(vdr, key) do
@@ -295,16 +295,7 @@ defmodule Moonwalk.Schema.Validator do
     Map.keys(current)
   end
 
-  # def put_path_meta(%__MODULE__{} = vdr, key, value) do
-  #   %{path: path, public: public} = vdr
-  #   full_key = {path, key}
-  #   public = Map.put(public, full_key, value)
-  #   %__MODULE__{vdr | public: public}
-  # end
-
-  # def get_path_meta(%__MODULE__{} = vdr, key) do
-  #   %{path: path, public: public} = vdr
-  #   full_key = {path, key}
-  #   Map.fetch(public, full_key)
-  # end
+  def format_errors(%__MODULE__{} = vdr) do
+    vdr.errors |> :lists.flatten() |> Enum.map(&Error.format/1) |> Enum.sort_by(& &1.at, :desc)
+  end
 end
