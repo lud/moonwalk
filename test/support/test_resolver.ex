@@ -1,4 +1,5 @@
 defmodule Moonwalk.Test.TestResolver do
+  @mutex __MODULE__.Mutex
   @root_dir Path.join([File.cwd!(), "_build", "test", "resolved"])
   @suite_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "remotes"])
   File.mkdir_p!(@root_dir)
@@ -21,10 +22,12 @@ defmodule Moonwalk.Test.TestResolver do
     %{host: host, path: path, query: nil, fragment: nil} = URI.parse(url)
     path = [@root_dir, host | String.split(path, "/")] |> Path.join()
 
-    case File.read(path) do
-      {:ok, json} -> Jason.decode(json)
-      {:error, :enoent} -> fetch_and_write(url, path)
-    end
+    Mutex.under(@mutex, {:fetch, host}, fn ->
+      case File.read(path) do
+        {:ok, json} -> Jason.decode(json)
+        {:error, :enoent} -> fetch_and_write(url, path)
+      end
+    end)
   end
 
   defp fetch_and_write(url, path) do
@@ -48,5 +51,9 @@ defmodule Moonwalk.Test.TestResolver do
       {:ok, {{_, status, _}, _, body}} -> {:ok, %{status: status, body: body}}
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  def start_mutex do
+    {:ok, _} = Mutex.start(name: @mutex)
   end
 end

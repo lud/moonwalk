@@ -46,9 +46,12 @@ defmodule Moonwalk.MixProject do
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.18.0"},
       {:cli_mate, "~> 0.3.0", only: [:dev, :test]},
-      {:modkit, "~> 0.5.1", only: [:dev, :test]}
+      {:modkit, "~> 0.5.1", only: [:dev, :test]},
+
+      # Test
+      {:excoveralls, "~> 0.18.0"},
+      {:mutex, "~> 2.0"}
     ]
   end
 
