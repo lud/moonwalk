@@ -1,6 +1,6 @@
-defmodule Moonwalk.Schema.Dialect do
+defmodule Moonwalk.Schema.Subschema do
   @moduledoc false
-  defstruct [:scope, :validators]
+  defstruct [:validators]
 end
 
 defmodule Moonwalk.Schema do

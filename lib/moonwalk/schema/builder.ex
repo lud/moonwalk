@@ -1,5 +1,4 @@
 defmodule Moonwalk.Schema.Builder do
-  alias Moonwalk.Schema.Dialect
   alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Ref
@@ -76,7 +75,7 @@ defmodule Moonwalk.Schema.Builder do
         with :buildable <- check_buildable(all_validators, vkey),
              {:ok, resolved} <- Resolver.fetch_resolved(resolver, vkey),
              {:ok, schema_validators, bld} <- build_resolved(bld, vkey, resolved) do
-          build_all(bld, Map.put(all_validators, vkey, put_scope(schema_validators, vkey)))
+          build_all(bld, Map.put(all_validators, vkey, schema_validators))
         else
           {:already_built, _} -> build_all(bld, all_validators)
           {:error, _} = err -> err
@@ -99,18 +98,6 @@ defmodule Moonwalk.Schema.Builder do
       :empty ->
         {:ok, all_validators}
     end
-  end
-
-  defp put_scope(%BooleanSchema{} = schema_validators, _vkey) do
-    schema_validators
-  end
-
-  defp put_scope(%Dialect{} = schema_validators, vkey) do
-    %Dialect{schema_validators | scope: Key.namespace_of(vkey)}
-  end
-
-  defp put_scope({:alias_of, _} = aliased, _vkey) do
-    aliased
   end
 
   defp resolve_and_stage(bld, resolvable) do
@@ -212,7 +199,7 @@ defmodule Moonwalk.Schema.Builder do
     #   other -> IO.warn("got some leftovers: #{inspect(other)}", [])
     # end
 
-    {:ok, %Moonwalk.Schema.Dialect{validators: schema_validators}, bld}
+    {:ok, %Moonwalk.Schema.Subschema{validators: schema_validators}, bld}
   end
 
   defp mod_and_init_opts(module_or_tuple) do

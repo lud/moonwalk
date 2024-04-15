@@ -63,8 +63,4 @@ defmodule Moonwalk.Schema.Key do
   def namespace_of({:pointer, ns, _}) do
     ns
   end
-
-  # def namespace_of(%Ref{ns: ns}) do
-  #   ns
-  # end
 end

@@ -24,8 +24,8 @@ defmodule Moonwalk.Schema.Validator.Error do
 end
 
 defmodule Moonwalk.Schema.Validator do
+  alias Moonwalk.Schema.Subschema
   alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema.Dialect
   alias Moonwalk.Schema
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Validator.Error
@@ -52,11 +52,30 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   def validate(data, {:alias_of, key}, %__MODULE__{} = vdr) do
-    validate(data, Map.fetch!(vdr.validators, key), vdr)
+    with_scope(vdr, key, fn vdr ->
+      validate(data, Map.fetch!(vdr.validators, key), vdr)
+    end)
   end
 
   def validate(data, validators, %__MODULE__{} = vdr) do
     do_validate(data, validators, vdr)
+  end
+
+  defp with_scope(vdr, sub_key, fun) do
+    %{scope: scopes} = vdr
+
+    # Premature optimization that can be removed: skip appending scope if it is
+    # the same as the current one.
+    case {Key.namespace_of(sub_key), scopes} do
+      {same, [same | _]} ->
+        fun.(vdr)
+
+      {new_scope, scopes} ->
+        case fun.(%__MODULE__{vdr | scope: [new_scope | scopes]}) do
+          {:ok, data, vdr} -> {:ok, data, %__MODULE__{vdr | scope: scopes}}
+          {:error, vdr} -> {:error, %__MODULE__{vdr | scope: scopes}}
+        end
+    end
   end
 
   @doc """
@@ -79,24 +98,14 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  IO.warn("should set the scope from the ref, useless in validators")
   # Executes all validators with the given data, collecting errors on the way,
   # then return either ok or error with all errors.
-  defp do_validate(data, %Dialect{} = dialect, vdr) do
-    %{validators: validators, scope: inner_scope} = dialect
+  defp do_validate(data, %Subschema{} = sub, vdr) do
+    %{validators: validators} = sub
 
-    %__MODULE__{scope: scopes} = vdr
-    vdr = %__MODULE__{vdr | scope: [inner_scope | scopes]}
-
-    applied =
-      iterate(validators, data, vdr, fn {module, mod_validators}, data, vdr ->
-        module.validate(data, mod_validators, vdr)
-      end)
-
-    case applied do
-      {:ok, data, vdr} -> {:ok, data, %__MODULE__{vdr | scope: scopes}}
-      {:error, vdr} -> {:error, %__MODULE__{vdr | scope: scopes}}
-    end
+    iterate(validators, data, vdr, fn {module, mod_validators}, data, vdr ->
+      module.validate(data, mod_validators, vdr)
+    end)
   end
 
   @doc """
@@ -167,9 +176,13 @@ defmodule Moonwalk.Schema.Validator do
     end
   end
 
-  IO.warn("should set the scope from the ref, useless in validators")
-
   def validate_ref(data, ref, vdr) do
+    with_scope(vdr, ref, fn vdr ->
+      do_validate_ref(data, ref, vdr)
+    end)
+  end
+
+  defp do_validate_ref(data, ref, vdr) do
     subvalidators = checkout_ref(vdr, ref)
 
     %__MODULE__{path: path, validators: all_validators, scope: scope, root_key: root_key, evaluated: evaluated} = vdr
@@ -178,7 +191,7 @@ defmodule Moonwalk.Schema.Validator do
       path: path,
       errors: [],
       validators: all_validators,
-      scope: [Key.namespace_of(ref) | scope],
+      scope: scope,
       root_key: root_key,
       evaluated: evaluated
     }
@@ -248,6 +261,9 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp checkout_dynamic_ref([h | scope], vdr, anchor) do
+    # Recurse first as the outermost scope should have priority. If the dynamic
+    # ref resolution fails with all outer scopes, then actually try to resolve
+    # from this scope.
     with :error <- checkout_dynamic_ref(scope, vdr, anchor) do
       Map.fetch(vdr.validators, {:dynamic_anchor, h, anchor})
     end
