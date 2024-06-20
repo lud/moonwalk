@@ -108,9 +108,17 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     # automatically build schemas under unknown keywords.
     {"optional/unknownKeyword.json", :unsupported}
   ]
+
+  @enabled_201909 [
+    {"additionalItems.json", []},
+    {"additionalProperties.json", []}
+  ]
+
   @enabled %{
     # "latest" => @enabled_202012,
-    "draft2020-12" => @enabled_202012
+    "draft2020-12" => @enabled_202012,
+    "draft2019-09" => @enabled_201909
+    # "draft2019-09" => false
   }
 
   @command [
@@ -182,7 +190,12 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     CLI.warn("Deleting current test files directory #{test_directory}")
     File.rm_rf!(test_directory)
 
-    config = @enabled |> Map.get(suite, []) |> Map.new()
+    config =
+      case Map.fetch(@enabled, suite) do
+        {:ok, false} -> Map.new([])
+        {:ok, suite} when is_list(suite) -> Map.new(suite)
+        :error -> raise ArgumentError, "No suite configuration for #{inspect(suite)}"
+      end
 
     suite
     |> JsonSchemaSuite.stream_cases(config)

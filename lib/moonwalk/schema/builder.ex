@@ -204,8 +204,8 @@ defmodule Moonwalk.Schema.Builder do
 
   defp mod_and_init_opts(module_or_tuple) do
     case module_or_tuple do
-      {module, opts} -> {module, opts}
-      module -> {module, []}
+      {module, opts} when is_atom(module) and is_list(opts) -> {module, opts}
+      module when is_atom(module) -> {module, []}
     end
   end
 

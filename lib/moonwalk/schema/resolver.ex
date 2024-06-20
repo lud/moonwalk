@@ -12,6 +12,7 @@ defmodule Moonwalk.Schema.Resolver do
   @latest_draft "https://json-schema.org/draft/2020-12/schema"
 
   @vocabulary %{
+    # 2020-12
     "https://json-schema.org/draft/2020-12/vocab/core" => Vocabulary.V202012.Core,
     "https://json-schema.org/draft/2020-12/vocab/validation" => Vocabulary.V202012.Validation,
     "https://json-schema.org/draft/2020-12/vocab/applicator" => Vocabulary.V202012.Applicator,
@@ -19,7 +20,17 @@ defmodule Moonwalk.Schema.Resolver do
     "https://json-schema.org/draft/2020-12/vocab/format-annotation" => Vocabulary.V202012.Format,
     "https://json-schema.org/draft/2020-12/vocab/format-assertion" => {Vocabulary.V202012.Format, assert: true},
     "https://json-schema.org/draft/2020-12/vocab/meta-data" => Vocabulary.V202012.MetaData,
-    "https://json-schema.org/draft/2020-12/vocab/unevaluated" => Vocabulary.V202012.Unevaluated
+    "https://json-schema.org/draft/2020-12/vocab/unevaluated" => Vocabulary.V202012.Unevaluated,
+
+    # 2019-09
+    "https://json-schema.org/draft/2019-09/vocab/core" => Vocabulary.V201909.Core,
+    "https://json-schema.org/draft/2019-09/vocab/validation" => Vocabulary.V201909.Validation,
+    "https://json-schema.org/draft/2019-09/vocab/applicator" => Vocabulary.V201909.Applicator,
+    "https://json-schema.org/draft/2019-09/vocab/content" => Vocabulary.V201909.Content,
+    # "https://json-schema.org/draft/2019-09/vocab/format-annotation" => Vocabulary.V201909.Format,
+    # "https://json-schema.org/draft/2019-09/vocab/format-assertion" => {Vocabulary.V201909.Format, assert: true},
+    "https://json-schema.org/draft/2019-09/vocab/meta-data" => Vocabulary.V201909.MetaData
+    # "https://json-schema.org/draft/2019-09/vocab/unevaluated" => Vocabulary.V201909.Unevaluated,
   }
 
   @derive {Inspect, except: [:fetch_cache, :vocabularies, :ns, :dynamic_scope, :opts]}
