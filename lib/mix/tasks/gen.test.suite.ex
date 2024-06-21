@@ -111,7 +111,30 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
   @enabled_201909 [
     {"additionalItems.json", []},
-    {"additionalProperties.json", []}
+    {"additionalProperties.json", []},
+    {"allOf.json", []},
+    {"anchor.json", []},
+    {"anyOf.json", []},
+    {"boolean_schema.json", []},
+    {"const.json", []},
+    {"contains.json", []},
+    {"content.json", []},
+    {"default.json", []},
+    {"defs.json", []},
+    # {"dependentRequired.json", []},
+    # {"dependentSchemas.json", []},
+    # {"enum.json", []},
+    # {"exclusiveMaximum.json", []},
+    # {"exclusiveMinimum.json", []},
+    # {"format.json", []},
+    # {"id.json", []},
+    # {"if-then-else.json", []},
+    # {"infinite-loop-detection.json", []},
+    # {"items.json", []},
+    # {"maxContains.json", []},
+    # {"maxItems.json", []}
+
+    {"additionalItems.json", []}
   ]
 
   @enabled %{

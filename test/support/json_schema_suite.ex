@@ -101,7 +101,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
         #{inspect(data, pretty: true)}
 
         SCHEMA
-        #{inspect(schema, pretty: true)}
+        {inspect(schema, pretty: true)}
 
         ERRORS
         #{inspect(validator.errors, pretty: true)}

@@ -48,6 +48,7 @@ defmodule Moonwalk.MixProject do
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:cli_mate, "~> 0.4.0", only: [:dev, :test]},
       {:modkit, "~> 0.6", only: [:dev, :test]},
+      {:freedom_formatter, ">= 2.0.0", only: :dev},
 
       # Test
       {:excoveralls, "~> 0.18.0"},
