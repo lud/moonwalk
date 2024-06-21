@@ -9,9 +9,9 @@ defmodule Moonwalk.Schema.Resolver do
     defstruct [:raw, :meta, :vocabularies]
   end
 
-  @latest_draft "https://json-schema.org/draft/2020-12/schema"
+  @default_draft "http://json-schema.org/draft-07/schema"
 
-  @vocabulary %{
+  @draft_202012_vocabulary %{
     "https://json-schema.org/draft/2020-12/vocab/core" => Vocabulary.V202012.Core,
     "https://json-schema.org/draft/2020-12/vocab/validation" => Vocabulary.V202012.Validation,
     "https://json-schema.org/draft/2020-12/vocab/applicator" => Vocabulary.V202012.Applicator,
@@ -21,6 +21,19 @@ defmodule Moonwalk.Schema.Resolver do
     "https://json-schema.org/draft/2020-12/vocab/meta-data" => Vocabulary.V202012.MetaData,
     "https://json-schema.org/draft/2020-12/vocab/unevaluated" => Vocabulary.V202012.Unevaluated
   }
+  @draft7_vocabulary %{
+    "https://json-schema.org/draft-07/--fallback--vocab/core" => Vocabulary.VDraft7.Core,
+    "https://json-schema.org/draft-07/--fallback--vocab/validation" => Vocabulary.VDraft7.Validation,
+    "https://json-schema.org/draft-07/--fallback--vocab/applicator" => Vocabulary.VDraft7.Applicator
+    # "https://json-schema.org/draft-07/--fallback--vocab/content" => Vocabulary.VDraft7.Content,
+    # "https://json-schema.org/draft-07/--fallback--vocab/format-annotation" => Vocabulary.VDraft7.Format,
+    # "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.VDraft7.Format, assert: true},
+    # "https://json-schema.org/draft-07/--fallback--vocab/meta-data" => Vocabulary.VDraft7.MetaData,
+    # "https://json-schema.org/draft-07/--fallback--vocab/unevaluated" => Vocabulary.VDraft7.Unevaluated
+  }
+  @draft7_vocabulary_keyword_fallback Map.new(@draft7_vocabulary, fn {k, _mod} -> {k, true} end)
+
+  @vocabulary %{} |> Map.merge(@draft_202012_vocabulary) |> Map.merge(@draft7_vocabulary)
 
   @derive {Inspect, except: [:fetch_cache, :vocabularies, :ns, :dynamic_scope, :opts]}
   @enforce_keys [:root]
@@ -157,8 +170,8 @@ defmodule Moonwalk.Schema.Resolver do
 
     aliases = id_aliases ++ anchor ++ dynamic_anchor
 
-    # If no metaschema is defined we will use the latest draft
-    meta = Map.get(top_schema, "$schema", @latest_draft)
+    # If no metaschema is defined we will use the default draft as a fallback
+    meta = Map.get(top_schema, "$schema", @default_draft)
 
     top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases}
 
@@ -289,8 +302,9 @@ defmodule Moonwalk.Schema.Resolver do
     # Do not default to latest meta on meta schema as we will not use it anyway
     # TODO we should not even recursively download metaschemas?
     meta = Map.get(raw_schema, "$schema", nil)
+    id = Map.fetch!(raw_schema, "$id")
 
-    case load_vocabularies(vocabulary) do
+    case load_vocabularies(vocabulary, id) do
       {:ok, vocabularies} -> {:ok, %Resolved{vocabularies: vocabularies, meta: meta}}
       {:error, _} = err -> err
     end
@@ -365,11 +379,20 @@ defmodule Moonwalk.Schema.Resolver do
   # vocabulary, so nil is a valid vocabulary map. It will not be looked up for
   # normal schemas, and metaschemas without vocabulary should have a default
   # vocabulary in the library.
-  defp load_vocabularies(nil) do
+  defp load_vocabularies(nil, id)
+       when id in [
+              "http://json-schema.org/draft-07/schema",
+              "http://json-schema.org/draft-07/schema#"
+            ] do
+    load_vocabularies(@draft7_vocabulary_keyword_fallback, id)
+  end
+
+  defp load_vocabularies(nil, id) do
+    raise "Schema with $id #{inspect(id)} does not define vocabularies"
     {:ok, nil}
   end
 
-  defp load_vocabularies(map) when is_map(map) do
+  defp load_vocabularies(map, _) when is_map(map) do
     known =
       Enum.flat_map(map, fn {uri, required} ->
         case Map.fetch(@vocabulary, uri) do

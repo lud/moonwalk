@@ -19,7 +19,8 @@ defmodule Moonwalk.Test.TestResolver do
   end
 
   def resolve("http" <> _ = url) do
-    %{host: host, path: path, query: nil, fragment: nil} = URI.parse(url)
+    %{host: host, path: path, query: nil, fragment: frag} = URI.parse(url)
+    true = frag in [nil, ""]
     path = [@root_dir, host | String.split(path, "/")] |> Path.join()
 
     Mutex.under(@mutex, {:fetch, host}, fn ->

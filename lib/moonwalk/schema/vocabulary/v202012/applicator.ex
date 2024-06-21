@@ -268,8 +268,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validate_keyword({:all_properties, {properties, pattern_properties, additional_properties}}, data, vdr)
-       when is_map(data) do
+  def validate_keyword({:all_properties, {properties, pattern_properties, additional_properties}}, data, vdr)
+      when is_map(data) do
     key_to_propschema = property_validations(data, properties)
     key_to_patternschema = pattern_validations(data, pattern_properties)
 
@@ -304,7 +304,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   pass validate_keyword({:all_properties, _})
 
-  defp validate_keyword({:all_items, {items, prefix_items}}, data, vdr) when is_list(data) do
+  def validate_keyword({:all_items, {items, prefix_items}}, data, vdr) when is_list(data) do
     all_schemas = Stream.concat(List.wrap(prefix_items), Stream.cycle([items]))
 
     index_items = Stream.with_index(data)
@@ -329,7 +329,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   pass validate_keyword({:all_items, _})
 
-  defp validate_keyword({:one_of, subvalidators}, data, vdr) do
+  def validate_keyword({:one_of, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       {[{_, data}], _, vdr} ->
         {:ok, data, vdr}
@@ -346,7 +346,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   IO.warn("@todo do not use validate_split for anyOf, halt on first match")
 
-  defp validate_keyword({:any_of, subvalidators}, data, vdr) do
+  def validate_keyword({:any_of, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
@@ -356,7 +356,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validate_keyword({:all_of, subvalidators}, data, vdr) do
+  def validate_keyword({:all_of, subvalidators}, data, vdr) do
     case validate_split(subvalidators, data, vdr) do
       # If multiple schemas validate the data, we take the casted value of the
       # first one, arbitrarily.
@@ -367,7 +367,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validate_keyword({:if_then_else, {if_vds, then_vds, else_vds}}, data, vdr) do
+  def validate_keyword({:if_then_else, {if_vds, then_vds, else_vds}}, data, vdr) do
     case Validator.validate(data, if_vds, vdr) do
       {:ok, _, vdr} ->
         case then_vds do
@@ -383,7 +383,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validate_keyword({:all_contains, {subschema, n_min, n_max}}, data, vdr) when is_list(data) do
+  def validate_keyword({:all_contains, {subschema, n_min, n_max}}, data, vdr) when is_list(data) do
     # We need to keep the validator struct for validated items as they have to
     # be flagged as evaluated for unevaluatedItems support.
     {:ok, count, vdr} =
@@ -412,7 +412,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   pass validate_keyword({:all_contains, _})
 
-  defp validate_keyword({:dependent_schemas, schemas_map}, data, vdr) when is_map(data) do
+  def validate_keyword({:dependent_schemas, schemas_map}, data, vdr) when is_map(data) do
     Validator.iterate(schemas_map, data, vdr, fn
       {parent_key, subschema}, data, vdr when is_map_key(data, parent_key) ->
         Validator.validate(data, subschema, vdr)
@@ -424,11 +424,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   pass validate_keyword({:dependent_schemas, _})
 
-  defp validate_keyword({:dependent_required, dep_req}, data, vdr) do
+  def validate_keyword({:dependent_required, dep_req}, data, vdr) do
     Validation.validate_dependent_required(dep_req, data, vdr)
   end
 
-  defp validate_keyword({:not, schema}, data, vdr) do
+  def validate_keyword({:not, schema}, data, vdr) do
     case Validator.validate(data, schema, vdr) do
       {:ok, data, vdr} -> {:error, Validator.with_error(vdr, :not, data, [])}
       # TODO maybe we need to merge "evaluted" properties
@@ -436,7 +436,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  defp validate_keyword({:property_names, subschema}, data, vdr) when is_map(data) do
+  def validate_keyword({:property_names, subschema}, data, vdr) when is_map(data) do
     data
     |> Map.keys()
     |> Validator.iterate(data, vdr, fn key, data, vdr ->

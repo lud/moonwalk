@@ -33,7 +33,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
     Validator.iterate(vds, data, vdr, &validate_keyword/3)
   end
 
-  defp validate_keyword({:unevaluated_properties, subschema}, data, vdr) when is_map(data) do
+  def validate_keyword({:unevaluated_properties, subschema}, data, vdr) when is_map(data) do
     evaluated = Validator.list_evaluaded(vdr)
 
     data
@@ -48,7 +48,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
 
   pass validate_keyword({:unevaluated_properties, _})
 
-  defp validate_keyword({:unevaluated_items, subschema}, data, vdr) when is_list(data) do
+  def validate_keyword({:unevaluated_items, subschema}, data, vdr) when is_list(data) do
     evaluated = Validator.list_evaluaded(vdr)
 
     data
