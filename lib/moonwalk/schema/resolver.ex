@@ -175,9 +175,9 @@ defmodule Moonwalk.Schema.Resolver do
 
     top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases}
 
-    # reverse the found schemas order so the top-ones appear first and
-    # dynamicAnchor scope priority is respected.
     with {:ok, acc} <- scan_map_values(top_schema, id, nss, meta, [top_descriptor]) do
+      # reverse the found schemas order so the top-ones appear first and
+      # dynamicAnchor scope priority is respected.
       {:ok, :lists.reverse(acc)}
     end
   end
@@ -483,6 +483,8 @@ defmodule Moonwalk.Schema.Resolver do
     end
   end
 
+  IO.warn("@TODO use a single function for deref_resolved and fetch_resolved, it is confusing for now")
+
   defp deref_resolved(%{resolved: cache} = rsv, key) do
     case Map.fetch(cache, key) do
       {:ok, {:alias_of, key}} -> deref_resolved(rsv, key)
@@ -514,15 +516,9 @@ defmodule Moonwalk.Schema.Resolver do
     do_fetch_resolved(rsv, k)
   end
 
-  # def fetch_resolved(rsv, %Ref{} = ref) do
-  #   fetch_ref(rsv, ref)
-  # end
-
-  # def fetch_resolved(rsv, {:dynamic_anchor, _, _} = k) do
-  #   do_fetch_resolved(rsv, k)
-  # end
-
   defp do_fetch_resolved(%{resolved: cache}, key) do
+    cache |> dbg()
+
     case Map.fetch(cache, key) do
       {:ok, cached} -> {:ok, cached}
       :error -> {:error, {:missed_cache, key}}

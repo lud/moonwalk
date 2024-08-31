@@ -166,7 +166,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
         rel_path -> {0, rel_path}
       end)
       |> Enum.take(maxprint)
-      |> Enum.map_intersperse(?\n, fn filename -> "{#{inspect(filename)}, []}" end)
+      |> Enum.map_intersperse(?\n, fn filename -> "{#{inspect(filename)}, []}," end)
 
     """
     Unchecked test cases in #{suite}:

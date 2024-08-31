@@ -1,8 +1,13 @@
 defmodule Moonwalk.Schema.RNS do
+  IO.warn("@TODO if we keep the fragments in there, rename to URP (universal resource prefix) or SID (schema id)")
   # A "namespace" for a schema ID or reference
   # Universal Resource Reference. That is
   # basically a URI but with a hack to support URNs (urn:isbn:1234 is
   # represented as urn://isbn/1234)
+
+  # TODO do not be specific about URN. If there is no authority in the ID then
+  # we can note that, we may want to not use the URI module at all.
+
   defstruct [:uri, urn?: false]
 
   def parse("urn:" <> _ = urn) do
@@ -52,14 +57,28 @@ defmodule Moonwalk.Schema.RNS do
   def to_ns(%{uri: uri, urn?: true}) do
     %{host: host, path: "/" <> path} = uri
     uri = %URI{uri | host: nil, path: host <> ":" <> path}
-    to_string_no_fragment(uri)
+    # to_string_no_fragment(uri)
+    URI.to_string(uri)
   end
 
   def to_ns(%{uri: uri}) do
-    to_string_no_fragment(uri)
+    # to_string_no_fragment(uri)
+    URI.to_string(uri)
   end
 
   defp to_string_no_fragment(%URI{} = uri) do
     String.Chars.URI.to_string(Map.put(uri, :fragment, nil))
+  end
+
+  def without_fragment(rns) when is_binary(rns) do
+    rns |> parse() |> without_fragment()
+  end
+
+  def without_fragment(%{uri: uri}) do
+    to_string_no_fragment(uri)
+  end
+
+  def without_fragment(:root) do
+    :root
   end
 end

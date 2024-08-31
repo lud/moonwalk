@@ -14,10 +14,12 @@ defmodule Moonwalk.Schema.Ref do
   def do_parse(url, current_ns, dynamic?) do
     uri = URI.parse(url)
     {kind, normalized_fragment, arg} = parse_fragment(uri.fragment)
+
     dynamic? = dynamic? and kind == :anchor
 
-    with {:ok, ns} <- RNS.derive(current_ns, url) do
-      {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg, dynamic?: dynamic?}}
+    with {:ok, ns} <- RNS.derive(current_ns, url) |> dbg() do
+      ns = RNS.without_fragment(ns)
+      {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg, dynamic?: dynamic?}} |> dbg()
     end
   end
 

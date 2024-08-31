@@ -10,7 +10,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   def take_keyword({"$ref", raw_ref}, acc, bld) do
-    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) do
+    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) |> dbg() do
       add_regular_ref(ref, acc, bld)
     end
   end
