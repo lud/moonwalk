@@ -1,8 +1,8 @@
 defmodule Mix.Tasks.Gen.Test.Suite do
-  alias Moonwalk.Test.JsonSchemaSuite
   alias CliMate.CLI
-  use Mix.Task
+  alias Moonwalk.Test.JsonSchemaSuite
   require EEx
+  use Mix.Task
 
   @enabled_202012 [
     {"additionalProperties.json", []},
@@ -182,6 +182,8 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     :module_template,
     ~S"""
     # credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
+    # credo:disable-for-this-file Credo.Check.Readability.StringSigils
+
     defmodule <%= @module_name %> do
       alias Moonwalk.Test.JsonSchemaSuite
       use ExUnit.Case, async: true

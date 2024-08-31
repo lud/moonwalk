@@ -1,10 +1,10 @@
 defmodule Moonwalk.Schema.Builder do
-  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.BooleanSchema
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Ref
-  alias Moonwalk.Schema.RNS
   alias Moonwalk.Schema.Resolver
   alias Moonwalk.Schema.Resolver.Resolved
+  alias Moonwalk.Schema.RNS
 
   @derive {Inspect, except: []}
   defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, parent_nss: [], opts: []]
@@ -217,13 +217,11 @@ defmodule Moonwalk.Schema.Builder do
   end
 
   defp build_mod_validators(raw_pairs, module, init_opts, bld, raw_schema) when is_map(raw_schema) do
-    raw_pairs |> IO.inspect(label: "raw_pairs")
-
     {leftovers, mod_acc, %__MODULE__{} = bld} =
       Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), bld}, fn pair, {leftovers, mod_acc, bld} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.
-        case module.take_keyword(pair, mod_acc, bld, raw_schema) |> IO.inspect(label: "module #{module}") do
+        case module.take_keyword(pair, mod_acc, bld, raw_schema) do
           {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
           :ignore -> {[pair | leftovers], mod_acc, bld}
         end

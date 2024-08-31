@@ -1,7 +1,7 @@
 defmodule Moonwalk.Schema.Vocabulary.Draft7.Applicator do
-  alias Moonwalk.Schema.Validator
-  alias Moonwalk.Schema.Builder
   alias Moonwalk.Helpers
+  alias Moonwalk.Schema.Builder
+  alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Vocabulary.V202012.Applicator, as: Fallback
   use Moonwalk.Schema.Vocabulary, priority: 200
 

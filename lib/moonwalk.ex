@@ -1,8 +1,6 @@
-raise "todo cleanup"
-
 defmodule Moonwalk do
-  alias Moonwalk.Spec.Request
   alias Moonwalk.Spec.Api
+  alias Moonwalk.Spec.Request
 
   def normalize_spec(%Api{} = api) do
     Api.normalize_spec(api)

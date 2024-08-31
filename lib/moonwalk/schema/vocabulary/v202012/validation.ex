@@ -1,6 +1,6 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
-  alias Moonwalk.Schema.Validator
   alias Moonwalk.Helpers
+  alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary, priority: 300
 
   @impl true

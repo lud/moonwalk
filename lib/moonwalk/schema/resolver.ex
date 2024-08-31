@@ -1,8 +1,8 @@
 defmodule Moonwalk.Schema.Resolver do
-  alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema.RNS
   alias Moonwalk.Helpers
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Ref
+  alias Moonwalk.Schema.RNS
   alias Moonwalk.Schema.Vocabulary
 
   defmodule Resolved do

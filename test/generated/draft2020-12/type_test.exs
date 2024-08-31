@@ -1,4 +1,6 @@
 # credo:disable-for-this-file Credo.Check.Readability.LargeNumbers
+# credo:disable-for-this-file Credo.Check.Readability.StringSigils
+
 defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
   alias Moonwalk.Test.JsonSchemaSuite
   use ExUnit.Case, async: true
@@ -320,7 +322,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
         "type" => "boolean"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, []) |> dbg()
+      schema = JsonSchemaSuite.build_schema(json_schema, [])
       {:ok, json_schema: json_schema, schema: schema}
     end
 

@@ -24,10 +24,10 @@ defmodule Moonwalk.Schema.Validator.Error do
 end
 
 defmodule Moonwalk.Schema.Validator do
-  alias Moonwalk.Schema.Subschema
-  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema
   alias Moonwalk.Schema.BooleanSchema
+  alias Moonwalk.Schema.Key
+  alias Moonwalk.Schema.Subschema
   alias Moonwalk.Schema.Validator.Error
 
   # TODO remove `%__MODULE__{}=`

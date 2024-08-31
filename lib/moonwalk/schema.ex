@@ -4,12 +4,12 @@ defmodule Moonwalk.Schema.Subschema do
 end
 
 defmodule Moonwalk.Schema do
-  alias Moonwalk.Schema.Validator
-  alias Moonwalk.Schema.Key
+  alias __MODULE__
   alias Moonwalk.Schema.BooleanSchema
   alias Moonwalk.Schema.Builder
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Resolver
-  alias __MODULE__
+  alias Moonwalk.Schema.Validator
 
   defstruct validators: %{}, root_key: nil
   @opaque t :: %__MODULE__{}

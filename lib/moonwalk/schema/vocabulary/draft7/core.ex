@@ -10,8 +10,6 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
 
   def take_keyword({"$ref", raw_ref}, acc, bld, raw_schema) do
     this_schema_id = Map.get(raw_schema, "$id")
-    this_schema_id |> dbg()
-    bld.ns |> dbg()
 
     # The ref is not relative to the $id if defined at the same level
 
@@ -26,9 +24,8 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
         {_, %{ns: parent_ns}} ->
           parent_ns
       end
-      |> dbg()
 
-    with {:ok, ref} <- Ref.parse(raw_ref, ref_relative_to_ns) |> dbg() do
+    with {:ok, ref} <- Ref.parse(raw_ref, ref_relative_to_ns) do
       Fallback.ok_put_ref(ref, acc, bld)
     end
   end

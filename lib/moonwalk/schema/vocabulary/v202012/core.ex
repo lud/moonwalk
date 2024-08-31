@@ -1,8 +1,8 @@
 defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
-  alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Builder
+  alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Ref
+  alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary, priority: 100
 
   def init_validators(_) do
