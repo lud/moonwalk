@@ -7,11 +7,11 @@ defmodule Moonwalk.Test.TestResolver do
 
   def resolve("http://localhost:1234/" <> _ = url) do
     uri = URI.parse(url)
-    path = Path.join(@suite_dir, uri.path)
+    return_local_file(uri.path)
+  end
 
-    with {:ok, json} <- File.read(path) do
-      Jason.decode(json)
-    end
+  def resolve("urn:uuid:feebdaed-ffff-0000-ffff-0000deadbeef") do
+    return_local_file("urn-ref-string.json")
   end
 
   def resolve("http://example.com" <> _ = url) do
@@ -29,6 +29,14 @@ defmodule Moonwalk.Test.TestResolver do
         {:error, :enoent} -> fetch_and_write(url, path)
       end
     end)
+  end
+
+  defp return_local_file(path) do
+    full_path = Path.join(@suite_dir, path)
+
+    with {:ok, json} <- File.read(full_path) do
+      Jason.decode(json)
+    end
   end
 
   defp fetch_and_write(url, path) do

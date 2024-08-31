@@ -57,28 +57,14 @@ defmodule Moonwalk.Schema.RNS do
   def to_ns(%{uri: uri, urn?: true}) do
     %{host: host, path: "/" <> path} = uri
     uri = %URI{uri | host: nil, path: host <> ":" <> path}
-    # to_string_no_fragment(uri)
-    URI.to_string(uri)
+    to_string_no_fragment(uri)
   end
 
   def to_ns(%{uri: uri}) do
-    # to_string_no_fragment(uri)
-    URI.to_string(uri)
+    to_string_no_fragment(uri)
   end
 
   defp to_string_no_fragment(%URI{} = uri) do
     String.Chars.URI.to_string(Map.put(uri, :fragment, nil))
-  end
-
-  def without_fragment(rns) when is_binary(rns) do
-    rns |> parse() |> without_fragment()
-  end
-
-  def without_fragment(%{uri: uri}) do
-    to_string_no_fragment(uri)
-  end
-
-  def without_fragment(:root) do
-    :root
   end
 end
