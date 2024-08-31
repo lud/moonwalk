@@ -183,7 +183,7 @@ defmodule Moonwalk.Schema.Builder do
 
   defp do_build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) do
     {_leftovers, schema_validators, %__MODULE__{} = bld} =
-      List.foldr(bld.vocabularies, {raw_schema, [], bld}, fn module_or_tuple,
+      List.foldl(bld.vocabularies, {raw_schema, [], bld}, fn module_or_tuple,
                                                              {remaining_pairs, schema_validators, bld} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
