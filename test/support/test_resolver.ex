@@ -23,6 +23,8 @@ defmodule Moonwalk.Test.TestResolver do
     true = frag in [nil, ""]
     path = [@root_dir, host | String.split(path, "/")] |> Path.join()
 
+    # Prevent concurrent cache checks and fetches of the same resource.
+
     Mutex.under(@mutex, {:fetch, host}, fn ->
       case File.read(path) do
         {:ok, json} -> Jason.decode(json)

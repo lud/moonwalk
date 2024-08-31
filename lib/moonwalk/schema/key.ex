@@ -37,7 +37,6 @@ defmodule Moonwalk.Schema.Key do
   end
 
   def for_anchor(ns, arg) do
-    binding() |> dbg()
     {:anchor, ns, arg}
   end
 

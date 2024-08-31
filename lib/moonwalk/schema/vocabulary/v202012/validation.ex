@@ -10,78 +10,78 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
 
   @impl true
 
-  def take_keyword({"type", t}, vds, ctx) do
+  def take_keyword({"type", t}, vds, ctx, _) do
     {:ok, [{:type, valid_type!(t)} | vds], ctx}
   end
 
-  def take_keyword({"maximum", maximum}, acc, ctx) do
+  def take_keyword({"maximum", maximum}, acc, ctx, _) do
     take_number(:maximum, maximum, acc, ctx)
   end
 
-  def take_keyword({"exclusiveMaximum", exclusive_maximum}, acc, ctx) do
+  def take_keyword({"exclusiveMaximum", exclusive_maximum}, acc, ctx, _) do
     take_number(:exclusive_maximum, exclusive_maximum, acc, ctx)
   end
 
-  def take_keyword({"minimum", minimum}, acc, ctx) do
+  def take_keyword({"minimum", minimum}, acc, ctx, _) do
     take_number(:minimum, minimum, acc, ctx)
   end
 
-  def take_keyword({"exclusiveMinimum", exclusive_minimum}, acc, ctx) do
+  def take_keyword({"exclusiveMinimum", exclusive_minimum}, acc, ctx, _) do
     take_number(:exclusive_minimum, exclusive_minimum, acc, ctx)
   end
 
-  def take_keyword({"minItems", min_items}, acc, ctx) do
+  def take_keyword({"minItems", min_items}, acc, ctx, _) do
     take_integer(:min_items, min_items, acc, ctx)
   end
 
-  def take_keyword({"maxItems", max_items}, acc, ctx) do
+  def take_keyword({"maxItems", max_items}, acc, ctx, _) do
     take_integer(:max_items, max_items, acc, ctx)
   end
 
-  def take_keyword({"required", required}, acc, ctx) when is_list(required) do
+  def take_keyword({"required", required}, acc, ctx, _) when is_list(required) do
     {:ok, [{:required, required} | acc], ctx}
   end
 
-  def take_keyword({"multipleOf", zero}, _acc, _ctx) when zero in [0, 0.0] do
+  def take_keyword({"multipleOf", zero}, _acc, _ctx, _) when zero in [0, 0.0] do
     {:error, "mutipleOf zero is not allowed"}
   end
 
-  def take_keyword({"multipleOf", multiple_of}, acc, ctx) do
+  def take_keyword({"multipleOf", multiple_of}, acc, ctx, _) do
     take_number(:multiple_of, multiple_of, acc, ctx)
   end
 
-  def take_keyword({"const", const}, acc, ctx) do
+  def take_keyword({"const", const}, acc, ctx, _) do
     {:ok, [{:const, const} | acc], ctx}
   end
 
-  def take_keyword({"maxLength", max_length}, acc, ctx) do
+  def take_keyword({"maxLength", max_length}, acc, ctx, _) do
     take_integer(:max_length, max_length, acc, ctx)
   end
 
-  def take_keyword({"minLength", min_length}, acc, ctx) do
+  def take_keyword({"minLength", min_length}, acc, ctx, _) do
     take_integer(:min_length, min_length, acc, ctx)
   end
 
-  def take_keyword({"minProperties", min_properties}, acc, ctx) do
+  def take_keyword({"minProperties", min_properties}, acc, ctx, _) do
     take_integer(:min_properties, min_properties, acc, ctx)
   end
 
-  def take_keyword({"maxProperties", max_properties}, acc, ctx) do
+  def take_keyword({"maxProperties", max_properties}, acc, ctx, _) do
     take_integer(:max_properties, max_properties, acc, ctx)
   end
 
-  def take_keyword({"enum", enum}, acc, ctx) do
+  def take_keyword({"enum", enum}, acc, ctx, _) do
     {:ok, [{:enum, enum} | acc], ctx}
   end
 
-  def take_keyword({"pattern", pattern}, acc, ctx) do
+  def take_keyword({"pattern", pattern}, acc, ctx, _) do
     case Regex.compile(pattern) do
       {:ok, re} -> {:ok, [{:pattern, re} | acc], ctx}
       {:error, _} -> {:error, {:invalid_pattern, pattern}}
     end
   end
 
-  def take_keyword({"uniqueItems", unique?}, acc, ctx) do
+  def take_keyword({"uniqueItems", unique?}, acc, ctx, _) do
     if unique? do
       {:ok, [{:unique_items, true} | acc], ctx}
     else
@@ -89,13 +89,13 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Validation do
     end
   end
 
-  def take_keyword({keyword, _}, _acc, _ctx) when keyword in ["minContains", "maxContains"] do
+  def take_keyword({keyword, _}, _acc, _ctx, _) when keyword in ["minContains", "maxContains"] do
     # This is handled by the Applicator module IF the validation vocabulary is
     # enabled
     :ignore
   end
 
-  def take_keyword({"dependentRequired", dependent_required}, acc, ctx) do
+  def take_keyword({"dependentRequired", dependent_required}, acc, ctx, _) do
     {:ok, [{:dependent_required, dependent_required} | acc], ctx}
   end
 

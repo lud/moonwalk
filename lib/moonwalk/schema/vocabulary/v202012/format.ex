@@ -30,7 +30,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
   end
 
   @impl true
-  def take_keyword({"format", format}, acc, ctx) do
+  def take_keyword({"format", format}, acc, ctx, _) do
     validate_formats? =
       case {acc.default_assert, ctx.opts[:formats]} do
         {_, true} -> true

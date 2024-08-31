@@ -1,4 +1,4 @@
-defmodule Moonwalk.Schema.Vocabulary.VDraft7.Content do
+defmodule Moonwalk.Schema.Vocabulary.Draft7.Content do
   alias Moonwalk.Schema.Vocabulary.V202012.Content, as: Fallback
   use Moonwalk.Schema.Vocabulary, priority: 300
 
@@ -6,7 +6,7 @@ defmodule Moonwalk.Schema.Vocabulary.VDraft7.Content do
   defdelegate init_validators(opts), to: Fallback
 
   @impl true
-  defdelegate take_keyword(kw_tuple, acc, ctx), to: Fallback
+  defdelegate take_keyword(kw_tuple, acc, ctx, raw_schema), to: Fallback
 
   @impl true
   defdelegate finalize_validators(acc), to: Fallback

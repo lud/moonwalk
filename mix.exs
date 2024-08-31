@@ -11,7 +11,8 @@ defmodule Moonwalk.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
-      package: package()
+      package: package(),
+      modkit: modkit()
     ]
   end
 
@@ -46,8 +47,8 @@ defmodule Moonwalk.MixProject do
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:cli_mate, "~> 0.4.0", only: [:dev, :test]},
-      {:modkit, "~> 0.5.1", only: [:dev, :test]},
+      {:cli_mate, "~> 0.4.0", only: [:dev, :test], runtime: false},
+      {:modkit, "~> 0.6.0", only: [:dev, :test], runtime: false},
 
       # Test
       {:excoveralls, "~> 0.18.0"},
@@ -61,5 +62,14 @@ defmodule Moonwalk.MixProject do
 
   def cli do
     [preferred_envs: ["coveralls.html": :test]]
+  end
+
+  defp modkit do
+    [
+      mount: [
+        {Moonwalk, "lib/moonwalk"},
+        {Moonwalk.Test, "test/support"}
+      ]
+    ]
   end
 end

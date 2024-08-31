@@ -12,7 +12,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
 
   @impl true
 
-  def take_keyword({"properties", properties}, acc, ctx) do
+  def take_keyword({"properties", properties}, acc, ctx, _) do
     properties
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       case Builder.build_sub(pschema, ctx) do
@@ -26,11 +26,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"additionalProperties", additional_properties}, acc, ctx) do
+  def take_keyword({"additionalProperties", additional_properties}, acc, ctx, _) do
     take_sub(:additional_properties, additional_properties, acc, ctx)
   end
 
-  def take_keyword({"patternProperties", pattern_properties}, acc, ctx) do
+  def take_keyword({"patternProperties", pattern_properties}, acc, ctx, _) do
     pattern_properties
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, pschema}, {acc, ctx} ->
       with {:ok, re} <- Regex.compile(k),
@@ -44,11 +44,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"items", items}, acc, ctx) do
+  def take_keyword({"items", items}, acc, ctx, _) do
     take_sub(:items, items, acc, ctx)
   end
 
-  def take_keyword({"prefixItems", prefix_items}, acc, ctx) do
+  def take_keyword({"prefixItems", prefix_items}, acc, ctx, _) do
     prefix_items
     |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
       case Builder.build_sub(item, ctx) do
@@ -62,48 +62,48 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"allOf", [_ | _] = all_of}, acc, ctx) do
+  def take_keyword({"allOf", [_ | _] = all_of}, acc, ctx, _) do
     case build_sub_list(all_of, ctx) do
       {:ok, subvalidators, ctx} -> {:ok, [{:all_of, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
-  def take_keyword({"anyOf", [_ | _] = any_of}, acc, ctx) do
+  def take_keyword({"anyOf", [_ | _] = any_of}, acc, ctx, _) do
     case build_sub_list(any_of, ctx) do
       {:ok, subvalidators, ctx} -> {:ok, [{:any_of, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
-  def take_keyword({"oneOf", [_ | _] = one_of}, acc, ctx) do
+  def take_keyword({"oneOf", [_ | _] = one_of}, acc, ctx, _) do
     case build_sub_list(one_of, ctx) do
       {:ok, subvalidators, ctx} -> {:ok, [{:one_of, :lists.reverse(subvalidators)} | acc], ctx}
       {:error, _} = err -> err
     end
   end
 
-  def take_keyword({"if", if_schema}, acc, ctx) do
+  def take_keyword({"if", if_schema}, acc, ctx, _) do
     take_sub(:if, if_schema, acc, ctx)
   end
 
-  def take_keyword({"then", then}, acc, ctx) do
+  def take_keyword({"then", then}, acc, ctx, _) do
     take_sub(:then, then, acc, ctx)
   end
 
-  def take_keyword({"else", else_schema}, acc, ctx) do
+  def take_keyword({"else", else_schema}, acc, ctx, _) do
     take_sub(:else, else_schema, acc, ctx)
   end
 
-  def take_keyword({"propertyNames", property_names}, acc, ctx) do
+  def take_keyword({"propertyNames", property_names}, acc, ctx, _) do
     take_sub(:property_names, property_names, acc, ctx)
   end
 
-  def take_keyword({"contains", contains}, acc, ctx) do
+  def take_keyword({"contains", contains}, acc, ctx, _) do
     take_sub(:contains, contains, acc, ctx)
   end
 
-  def take_keyword({"maxContains", max_contains}, acc, ctx) do
+  def take_keyword({"maxContains", max_contains}, acc, ctx, _) do
     if validation_enabled?(ctx) do
       take_integer(:max_contains, max_contains, acc, ctx)
     else
@@ -111,7 +111,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"minContains", min_contains}, acc, ctx) do
+  def take_keyword({"minContains", min_contains}, acc, ctx, _) do
     if validation_enabled?(ctx) do
       take_integer(:min_contains, min_contains, acc, ctx)
     else
@@ -119,7 +119,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx) do
+  def take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx, _) do
     dependent_schemas
     |> Helpers.reduce_ok({%{}, ctx}, fn {k, depschema}, {acc, ctx} ->
       case Builder.build_sub(depschema, ctx) do
@@ -133,7 +133,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
     end
   end
 
-  def take_keyword({"dependencies", map}, acc, ctx) when is_map(map) do
+  def take_keyword({"dependencies", map}, acc, ctx, raw_schema) when is_map(map) do
     {dependent_schemas, dependent_required} =
       Enum.reduce(map, {[], []}, fn {key, subschema}, {dependent_schemas, dependent_required} ->
         cond do
@@ -145,12 +145,12 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
         end
       end)
 
-    with {:ok, acc, ctx} <- take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx) do
+    with {:ok, acc, ctx} <- take_keyword({"dependentSchemas", dependent_schemas}, acc, ctx, raw_schema) do
       {:ok, [{:dependent_required, dependent_required} | acc], ctx}
     end
   end
 
-  def take_keyword({"not", subschema}, acc, ctx) do
+  def take_keyword({"not", subschema}, acc, ctx, _) do
     take_sub(:not, subschema, acc, ctx)
   end
 

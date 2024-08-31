@@ -7,7 +7,7 @@ defmodule Moonwalk.Schema.Vocabulary do
   @type pair :: {binary, term}
   @type data :: %{optional(binary) => data} | [data] | binary | boolean | number | nil
   @callback init_validators(Keyword.t()) :: validators
-  @callback take_keyword(pair, validators, bld :: Builder.t()) ::
+  @callback take_keyword(pair, validators, bld :: Builder.t(), raw_schema :: term) ::
               {:ok, validators(), Builder.t()} | :ignore | {:error, term}
   @callback finalize_validators(validators) :: :ignore | validators
   @callback validate(data, validators, vdr :: Validator.t()) :: {:ok, data} | {:error, Validator.t()}
@@ -101,7 +101,7 @@ defmodule Moonwalk.Schema.Vocabulary do
           TODO! in #{inspect(__MODULE__)}:
           #{__ENV__.file}
 
-          def take_keyword({#{inspect(k)}, #{ut}}, acc, ctx) do
+          def take_keyword({#{inspect(k)}, #{ut}}, acc, ctx, _) do
             {:ok, [{:"#{u}", #{ut}}|acc], ctx}
           end
           """
@@ -112,7 +112,7 @@ defmodule Moonwalk.Schema.Vocabulary do
 
   defmacro ignore_any_keyword do
     quote do
-      def take_keyword(_, _, _) do
+      def take_keyword(_, _, _, _) do
         :ignore
       end
     end
@@ -120,7 +120,7 @@ defmodule Moonwalk.Schema.Vocabulary do
 
   defmacro consume_keyword(kw) do
     quote do
-      def take_keyword({unquote(kw), _}, acc, ctx) do
+      def take_keyword({unquote(kw), _}, acc, ctx, _) do
         {:ok, acc, ctx}
       end
     end

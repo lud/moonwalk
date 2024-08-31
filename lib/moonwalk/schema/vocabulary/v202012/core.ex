@@ -9,21 +9,21 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     []
   end
 
-  def take_keyword({"$ref", raw_ref}, acc, bld) do
-    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) |> dbg() do
-      add_regular_ref(ref, acc, bld)
+  def take_keyword({"$ref", raw_ref}, acc, bld, _) do
+    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) do
+      ok_put_ref(ref, acc, bld)
     end
   end
 
-  def take_keyword({"$defs", _defs}, acc, bld) do
+  def take_keyword({"$defs", _defs}, acc, bld, _) do
     {:ok, acc, bld}
   end
 
-  def take_keyword({"$anchor", _anchor}, acc, bld) do
+  def take_keyword({"$anchor", _anchor}, acc, bld, _) do
     {:ok, acc, bld}
   end
 
-  def take_keyword({"$dynamicRef", raw_ref}, acc, bld) do
+  def take_keyword({"$dynamicRef", raw_ref}, acc, bld, _) do
     # We need to ensure that the dynamic ref is in a schema where a
     # corresponding dynamic anchor is present. Otherwise we are just a normal
     # ref to an anchor (and we do not check its existence at this point.)
@@ -32,18 +32,17 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
          {:ok, bld} <- Builder.ensure_resolved(bld, ref),
          {:ok, %{raw: raw}} <- Builder.fetch_resolved(bld, ref.ns),
          :ok <- find_local_dynamic_anchor(raw, anchor) do
-      bld = Builder.stage_build(bld, ref)
-      # The "dynamic" information is carried in the key, so we just return a
-      # :ref tuple. This allows to treat dynamic refs without anchors as regular
-      # refs.
-      {:ok, [{:ref, Key.of(ref)} | acc], bld}
+      # The "dynamic" information is carried in the ref from Ref.parse_dynamic,
+      # so we just return a :ref tuple. This allows to treat dynamic refs
+      # without corresponding dynamic anchors as regular refs.
+      ok_put_ref(ref, acc, bld)
     else
-      {:error, {:no_such_dynamic_anchor, _}} -> add_regular_ref(raw_ref, acc, bld)
-      {:ok, %{dynamic?: false} = ref} -> add_regular_ref(ref, acc, bld)
+      {:error, {:no_such_dynamic_anchor, _}} -> ok_put_ref(raw_ref, acc, bld)
+      {:ok, %{dynamic?: false} = ref} -> ok_put_ref(ref, acc, bld)
     end
   end
 
-  def take_keyword({"$dynamicAnchor", _anchor}, acc, bld) do
+  def take_keyword({"$dynamicAnchor", _anchor}, acc, bld, _) do
     {:ok, acc, bld}
   end
 
@@ -60,14 +59,14 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     list
   end
 
-  defp add_regular_ref(%Ref{} = ref, acc, bld) do
+  def ok_put_ref(%Ref{} = ref, acc, bld) do
     bld = Builder.stage_build(bld, ref)
     {:ok, [{:ref, Key.of(ref)} | acc], bld}
   end
 
-  defp add_regular_ref(raw_ref, acc, bld) when is_binary(raw_ref) do
+  def ok_put_ref(raw_ref, acc, bld) when is_binary(raw_ref) do
     with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) do
-      add_regular_ref(ref, acc, bld)
+      ok_put_ref(ref, acc, bld)
     end
   end
 

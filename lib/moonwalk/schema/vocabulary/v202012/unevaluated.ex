@@ -9,11 +9,11 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
 
   @impl true
 
-  def take_keyword({"unevaluatedProperties", unevaluated_properties}, acc, ctx) do
+  def take_keyword({"unevaluatedProperties", unevaluated_properties}, acc, ctx, _) do
     take_sub(:unevaluated_properties, unevaluated_properties, acc, ctx)
   end
 
-  def take_keyword({"unevaluatedItems", unevaluated_items}, acc, ctx) do
+  def take_keyword({"unevaluatedItems", unevaluated_items}, acc, ctx, _) do
     take_sub(:unevaluated_items, unevaluated_items, acc, ctx)
   end
 

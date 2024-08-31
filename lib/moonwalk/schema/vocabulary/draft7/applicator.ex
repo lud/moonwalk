@@ -1,4 +1,4 @@
-defmodule Moonwalk.Schema.Vocabulary.VDraft7.Applicator do
+defmodule Moonwalk.Schema.Vocabulary.Draft7.Applicator do
   alias Moonwalk.Schema.Validator
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Helpers
@@ -12,15 +12,15 @@ defmodule Moonwalk.Schema.Vocabulary.VDraft7.Applicator do
   defdelegate format_error(key, args, data), to: Fallback
 
   @impl true
-  def take_keyword({"additionalItems", items}, acc, ctx) do
+  def take_keyword({"additionalItems", items}, acc, ctx, _) do
     take_sub(:additional_items, items, acc, ctx)
   end
 
-  def take_keyword({"items", items}, acc, ctx) when is_map(items) do
+  def take_keyword({"items", items}, acc, ctx, _) when is_map(items) do
     take_sub(:items, items, acc, ctx)
   end
 
-  def take_keyword({"items", items}, acc, ctx) when is_list(items) do
+  def take_keyword({"items", items}, acc, ctx, _) when is_list(items) do
     items
     |> Helpers.reduce_ok({[], ctx}, fn item, {subacc, ctx} ->
       case Builder.build_sub(item, ctx) do
@@ -34,8 +34,8 @@ defmodule Moonwalk.Schema.Vocabulary.VDraft7.Applicator do
     end
   end
 
-  def take_keyword(pair, acc, ctx) do
-    Fallback.take_keyword(pair, acc, ctx)
+  def take_keyword(pair, acc, ctx, raw_schema) do
+    Fallback.take_keyword(pair, acc, ctx, raw_schema)
   end
 
   @impl true

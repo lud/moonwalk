@@ -17,8 +17,8 @@ defmodule Moonwalk.Schema.Ref do
 
     dynamic? = dynamic? and kind == :anchor
 
-    with {:ok, ns} <- RNS.derive(current_ns, url) |> dbg() do
-      {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg, dynamic?: dynamic?}} |> dbg()
+    with {:ok, ns} <- RNS.derive(current_ns, url) do
+      {:ok, %Ref{ns: ns, kind: kind, fragment: normalized_fragment, arg: arg, dynamic?: dynamic?}}
     end
   end
 

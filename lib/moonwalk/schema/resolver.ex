@@ -22,25 +22,24 @@ defmodule Moonwalk.Schema.Resolver do
     "https://json-schema.org/draft/2020-12/vocab/unevaluated" => Vocabulary.V202012.Unevaluated
   }
   @draft7_vocabulary %{
-    "https://json-schema.org/draft-07/--fallback--vocab/core" => Vocabulary.VDraft7.Core,
-    "https://json-schema.org/draft-07/--fallback--vocab/validation" => Vocabulary.VDraft7.Validation,
-    "https://json-schema.org/draft-07/--fallback--vocab/applicator" => Vocabulary.VDraft7.Applicator
-    # "https://json-schema.org/draft-07/--fallback--vocab/content" => Vocabulary.VDraft7.Content,
-    # "https://json-schema.org/draft-07/--fallback--vocab/format-annotation" => Vocabulary.VDraft7.Format,
-    # "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.VDraft7.Format, assert: true},
-    # "https://json-schema.org/draft-07/--fallback--vocab/meta-data" => Vocabulary.VDraft7.MetaData,
-    # "https://json-schema.org/draft-07/--fallback--vocab/unevaluated" => Vocabulary.VDraft7.Unevaluated
+    "https://json-schema.org/draft-07/--fallback--vocab/core" => Vocabulary.Draft7.Core,
+    "https://json-schema.org/draft-07/--fallback--vocab/validation" => Vocabulary.Draft7.Validation,
+    "https://json-schema.org/draft-07/--fallback--vocab/applicator" => Vocabulary.Draft7.Applicator
+    # "https://json-schema.org/draft-07/--fallback--vocab/content" => Vocabulary.Draft7.Content,
+    # "https://json-schema.org/draft-07/--fallback--vocab/format-annotation" => Vocabulary.Draft7.Format,
+    # "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.Draft7.Format, assert: true},
+    # "https://json-schema.org/draft-07/--fallback--vocab/meta-data" => Vocabulary.Draft7.MetaData,
+    # "https://json-schema.org/draft-07/--fallback--vocab/unevaluated" => Vocabulary.Draft7.Unevaluated
   }
   @draft7_vocabulary_keyword_fallback Map.new(@draft7_vocabulary, fn {k, _mod} -> {k, true} end)
 
   @vocabulary %{} |> Map.merge(@draft_202012_vocabulary) |> Map.merge(@draft7_vocabulary)
 
-  @derive {Inspect, except: [:fetch_cache, :vocabularies, :ns, :dynamic_scope, :opts]}
+  @derive {Inspect, only: [:resolved, :dynamic_scope, :opts]}
   @enforce_keys [:root]
   defstruct [
     :ns,
     :root,
-    staged_refs: [],
     opts: %{resolver: UnknownResolver},
     fetch_cache: %{},
     resolved: %{},
@@ -186,37 +185,31 @@ defmodule Moonwalk.Schema.Resolver do
     # If the subschema defines an id, we will discard the current namespaces, as
     # the sibling or nested anchors will now only relate to this id
 
-    id =
-      with {:ok, rel_id} <- Map.fetch(raw_schema, "$id"),
-           {:ok, full_id} <- merge_id(parent_id, rel_id) do
-        full_id
+    {id, anchors, dynamic_anchor} =
+      case extract_keys(raw_schema) do
+        # ID that is a fragment is replaced as an anchor
+        {"#" <> frag_id, anchor, dynamic_anchor} -> {nil, [frag_id | List.wrap(anchor)], dynamic_anchor}
+        {id, anchor, dynamic_anchor} -> {id, List.wrap(anchor), dynamic_anchor}
+      end
+
+    {id, id_aliases, nss} =
+      with bin_rel_id when is_binary(id) <- id,
+           {:ok, full_id} <- merge_id(parent_id, bin_rel_id) do
+        {full_id, [full_id], [full_id]}
       else
-        _ -> nil
+        nil -> {nil, [], nss}
       end
 
-    id_aliases =
-      case id do
-        nil -> []
-        id -> [id]
+    anchors =
+      for ns <- nss, a <- anchors do
+        Key.for_anchor(ns, a)
       end
 
-    nss =
-      case id do
-        nil -> nss
-        id -> [id]
-      end
-
-    anchor =
-      case Map.fetch(raw_schema, "$anchor") do
-        {:ok, anchor} -> Enum.map(nss, &Key.for_anchor(&1, anchor))
-        :error -> []
-      end
-
-    dynamic_anchor =
-      case Map.fetch(raw_schema, "$dynamicAnchor") do
+    dynamic_anchors =
+      case dynamic_anchor do
         # a dynamic anchor is also adressable as a regular anchor for the given namespace
-        {:ok, da} -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, da), Key.for_anchor(&1, da)])
-        :error -> []
+        nil -> []
+        da -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, da), Key.for_anchor(&1, da)])
       end
 
     # We do not check for the $meta is subschemas, we only add the parent_one to
@@ -228,7 +221,7 @@ defmodule Moonwalk.Schema.Resolver do
     # order.
 
     acc =
-      case id_aliases ++ anchor ++ dynamic_anchor do
+      case(id_aliases ++ anchors ++ dynamic_anchors) do
         [] ->
           acc
 
@@ -249,6 +242,28 @@ defmodule Moonwalk.Schema.Resolver do
 
   defp scan_subschema(list, parent_id, nss, meta, acc) when is_list(list) do
     Helpers.reduce_ok(list, acc, fn item, acc -> scan_subschema(item, parent_id, nss, meta, acc) end)
+  end
+
+  defp extract_keys(schema) do
+    id =
+      case Map.fetch(schema, "$id") do
+        {:ok, id} -> id
+        :error -> nil
+      end
+
+    anchor =
+      case Map.fetch(schema, "$anchor") do
+        {:ok, anchor} -> anchor
+        :error -> nil
+      end
+
+    dynamic_anchor =
+      case Map.fetch(schema, "$dynamicAnchor") do
+        {:ok, dynamic_anchor} -> dynamic_anchor
+        :error -> nil
+      end
+
+    {id, anchor, dynamic_anchor}
   end
 
   defp scan_map_values(schema, parent_id, nss, meta, acc) do
@@ -517,8 +532,6 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   defp do_fetch_resolved(%{resolved: cache}, key) do
-    cache |> dbg()
-
     case Map.fetch(cache, key) do
       {:ok, cached} -> {:ok, cached}
       :error -> {:error, {:missed_cache, key}}

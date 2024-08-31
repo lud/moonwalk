@@ -6,8 +6,8 @@ defmodule Moonwalk.Schema.Builder do
   alias Moonwalk.Schema.Resolver
   alias Moonwalk.Schema.Resolver.Resolved
 
-  @derive {Inspect, only: [:resolver, :staged]}
-  defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, opts: []]
+  @derive {Inspect, except: []}
+  defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, parent_nss: [], opts: []]
 
   def new(opts) do
     struct!(__MODULE__, Map.new(opts))
@@ -123,7 +123,7 @@ defmodule Moonwalk.Schema.Builder do
     # So instead of inserting the ref we insert the Key, and the Key module and
     # Resolver accept to work with that kind of schema identifier (that is,
     # {:dynamic_anchor, _, _} tuple).
-
+    #
     # new items can appear when we build subschemas that stage a ref in the
     # build struct.
     #
@@ -147,7 +147,13 @@ defmodule Moonwalk.Schema.Builder do
   defp build_resolved(bld, vkey, %Resolved{} = resolved) do
     case Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
       {:ok, vocabularies} when is_list(vocabularies) ->
-        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: Key.namespace_of(vkey)}
+        parent_nss =
+          case bld do
+            %{ns: nil, parent_nss: parents} -> parents
+            %{ns: ns, parent_nss: parents} -> [ns | parents]
+          end
+
+        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: Key.namespace_of(vkey), parent_nss: parent_nss}
         do_build_sub(resolved.raw, bld)
 
       {:error, _} = err ->
@@ -177,17 +183,18 @@ defmodule Moonwalk.Schema.Builder do
 
   defp do_build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) do
     {_leftovers, schema_validators, %__MODULE__{} = bld} =
-      List.foldr(bld.vocabularies, {raw_schema, [], bld}, fn module_or_tuple, {raw_schema, schema_validators, bld} ->
+      List.foldr(bld.vocabularies, {raw_schema, [], bld}, fn module_or_tuple,
+                                                             {remaining_pairs, schema_validators, bld} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
         {module, init_opts} = mod_and_init_opts(module_or_tuple)
 
-        {consumed_raw_schema, mod_validators, %__MODULE__{} = bld} =
-          build_mod_validators(raw_schema, module, init_opts, bld)
+        {remaining_pairs, mod_validators, %__MODULE__{} = bld} =
+          build_mod_validators(remaining_pairs, module, init_opts, bld, raw_schema)
 
         case mod_validators do
-          :ignore -> {consumed_raw_schema, schema_validators, bld}
-          _ -> {consumed_raw_schema, [{module, mod_validators} | schema_validators], bld}
+          :ignore -> {remaining_pairs, schema_validators, bld}
+          _ -> {remaining_pairs, [{module, mod_validators} | schema_validators], bld}
         end
       end)
 
@@ -209,13 +216,14 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
-  defp build_mod_validators(raw_schema, module, init_opts, bld) do
+  defp build_mod_validators(raw_pairs, module, init_opts, bld, raw_schema) when is_map(raw_schema) do
+    raw_pairs |> IO.inspect(label: "raw_pairs")
+
     {leftovers, mod_acc, %__MODULE__{} = bld} =
-      Enum.reduce(raw_schema, {[], module.init_validators(init_opts), bld}, fn pair, {leftovers, mod_acc, bld} ->
+      Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), bld}, fn pair, {leftovers, mod_acc, bld} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.
-
-        case module.take_keyword(pair, mod_acc, bld) do
+        case module.take_keyword(pair, mod_acc, bld, raw_schema) |> IO.inspect(label: "module #{module}") do
           {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
           :ignore -> {[pair | leftovers], mod_acc, bld}
         end

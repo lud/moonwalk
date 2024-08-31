@@ -5,15 +5,15 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Content do
     []
   end
 
-  def take_keyword({"contentMediaType", _}, acc, ctx) do
+  def take_keyword({"contentMediaType", _}, acc, ctx, _) do
     {:ok, acc, ctx}
   end
 
-  def take_keyword({"contentEncoding", _}, acc, ctx) do
+  def take_keyword({"contentEncoding", _}, acc, ctx, _) do
     {:ok, acc, ctx}
   end
 
-  def take_keyword({"contentSchema", _}, acc, ctx) do
+  def take_keyword({"contentSchema", _}, acc, ctx, _) do
     {:ok, acc, ctx}
   end
 
