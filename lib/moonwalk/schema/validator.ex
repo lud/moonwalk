@@ -301,6 +301,7 @@ defmodule Moonwalk.Schema.Validator do
   end
 
   defp add_evaluated(vdr, key) do
+    key |> IO.inspect(label: "add_evaluated")
     %{evaluated: [current | ev]} = vdr
     current = Map.put(current, key, true)
     %__MODULE__{vdr | evaluated: [current | ev]}

@@ -183,8 +183,8 @@ defmodule Moonwalk.Schema.Builder do
 
   defp do_build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) do
     {_leftovers, schema_validators, %__MODULE__{} = bld} =
-      List.foldl(bld.vocabularies, {raw_schema, [], bld}, fn module_or_tuple,
-                                                             {remaining_pairs, schema_validators, bld} ->
+      Enum.reduce(bld.vocabularies |> dbg(), {raw_schema, [], bld}, fn module_or_tuple,
+                                                                       {remaining_pairs, schema_validators, bld} ->
         # For one vocabulary module we reduce over the raw schema keywords to
         # accumulate the validator map.
         {module, init_opts} = mod_and_init_opts(module_or_tuple)
@@ -206,7 +206,7 @@ defmodule Moonwalk.Schema.Builder do
     #   other -> IO.warn("got some leftovers: #{inspect(other)}", [])
     # end
 
-    {:ok, %Moonwalk.Schema.Subschema{validators: schema_validators}, bld}
+    {:ok, %Moonwalk.Schema.Subschema{validators: :lists.reverse(schema_validators)}, bld}
   end
 
   defp mod_and_init_opts(module_or_tuple) do
