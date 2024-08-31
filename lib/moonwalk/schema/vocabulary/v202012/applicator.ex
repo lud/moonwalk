@@ -455,8 +455,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   IO.warn("@todo return each vdr")
 
   defp validate_split(validators, data, vdr) do
-    validators |> dbg()
-    data |> dbg()
     # TODO return VDR for each matched or unmatched schema, do not return a
     # global VDR
     {valids, invalids, vdr} =

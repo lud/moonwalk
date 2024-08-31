@@ -8,7 +8,7 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
 
   @impl true
 
-  def take_keyword({"$ref", raw_ref}, acc, bld, raw_schema) do
+  def take_keyword({"$ref", raw_ref}, _acc, bld, raw_schema) do
     ref_relative_to_ns =
       case {raw_schema, bld} do
         # The ref is not relative to the current $id if defined at the same

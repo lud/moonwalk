@@ -38,7 +38,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
 
     data
     |> Enum.filter(fn {k, _v} -> k not in evaluated end)
-    |> tap(&IO.inspect(&1, label: "unevaluated"))
     |> Validator.iterate(data, vdr, fn {k, v}, data, vdr ->
       case Validator.validate_nested(v, k, subschema, vdr) do
         {:ok, _, vdr} -> {:ok, data, vdr}
