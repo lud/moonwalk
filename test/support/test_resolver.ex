@@ -37,8 +37,9 @@ defmodule Moonwalk.Test.TestResolver do
   defp return_local_file(path) do
     full_path = Path.join(@suite_dir, path)
 
-    with {:ok, json} <- File.read(full_path) do
-      Jason.decode(json)
+    case File.read(full_path) do
+      {:ok, json} -> Jason.decode(json)
+      {:error, :enoent} -> {:error, {:local_not_found, path}}
     end
   end
 

@@ -158,8 +158,8 @@ defmodule Moonwalk.Schema.Resolver do
     id = Map.get(top_schema, "$id", nil)
 
     # For self references that target "#" or "#some/path" in the document, when
-    # the document does not have an id, we will force the namespace to have an
-    # id.
+    # the document does not have an id, we will force it. This is for the
+    # document top only.
     ns =
       case id do
         nil -> external_id
@@ -204,6 +204,51 @@ defmodule Moonwalk.Schema.Resolver do
       {:ok, :lists.reverse(acc)}
     end
   end
+
+  @doc """
+  Ok so for draft 7 we need to know if the current schema has an $id, and if
+  yes, what is the parent $id so we can relate the ref to that one instead.
+
+  Now, it is not very clear what "ns" stands for for a %Resolved{}.
+
+  So here is the new plan:
+
+  * if the schema has an $id, then in %Resolved{}
+    * .ns will be that id, fully qualified by derivation from the parent
+    * .parent_ns will be the parent ns
+  * if the schema does not have an id, then in %Resolved{}
+    * .ns will be null. That schema does not introduce a new namespace
+    * .parent_ns will be the parent id, fully qualified
+
+  So in Draft7 code, for $ref, we always use the parent_ns
+
+  The builder .ns and .parent_ns are still defined from the %Resolved{}
+
+  In draft 2020 we derive the ref from the .ns if defined, from the .parent_ns
+  otherwise.
+
+
+  Finally, this must be reflected when fetching a pointer and returning a
+  %Resolved{} from fetch_docpath: we must set the ns variable to nil if the
+  current raw_schema does not define an $id.
+
+
+  -----
+
+  Our problem is that when calling fetch_docpath with raw_schema and ns, we
+  derive the raw_schema's $id from itself. We could just always pass nil to the
+  function so it will set the ns from the $id at the initial level.
+
+
+  -----
+
+  But I think it's best if .ns is always defined and inherited to sublevels.
+  That would allow to keep the current code. We just need a way to not derive
+  from self in fetch_docpath.
+
+
+  """
+  raise @doc
 
   defp scan_subschema(raw_schema, ns, nss, meta, acc) when is_map(raw_schema) do
     # If the subschema defines an id, we will discard the current namespaces, as
@@ -620,10 +665,13 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   defp fetch_docpath(raw_schema, docpath, ns, parent_ns) do
+    binding() |> IO.inspect(label: "fetch_docpath binding()")
+
     case do_fetch_docpath(raw_schema, docpath, ns, parent_ns) do
       {:ok, sub, ns, parent_ns} -> {:ok, sub, ns, parent_ns}
       :error -> {:error, {:invalid_docpath, docpath, raw_schema}}
     end
+    |> dbg()
   end
 
   defp do_fetch_docpath(list, [h | t], ns, parent_ns) when is_list(list) and is_integer(h) do

@@ -29,9 +29,19 @@ defmodule Moonwalk.Schema.RNS do
     parent_rns = parse(parent)
     child_rns = parse(child)
 
-    with {:ok, merged} <- merge(parent_rns, child_rns) do
-      {:ok, to_ns(merged)}
-    end
+    ret =
+      with {:ok, merged} <- merge(parent_rns, child_rns) do
+        {:ok, to_ns(merged)}
+      end
+
+    IO.puts("""
+    DERIVE RNS
+    child:  #{inspect(child)}
+    parent: #{inspect(parent)}
+    =>      #{inspect(ret)}
+    """)
+
+    ret
   end
 
   defp merge(%{uri: :root} = parent, %{uri: %{host: nil, path: nil}}) do
