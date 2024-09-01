@@ -69,15 +69,17 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   def resolve(rsv, resolvable) do
-    case check_resolved(rsv, resolvable) do
+    resolvable |> dbg()
+
+    case check_resolved(rsv, resolvable) |> dbg() do
       :unresolved -> do_resolve(rsv, resolvable)
       :already_resolved -> {:ok, rsv}
     end
   end
 
   defp do_resolve(rsv, resolvable) do
-    with {:ok, raw_schema, rsv} <- ensure_fetched(rsv, resolvable),
-         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable)),
+    with {:ok, raw_schema, rsv} <- ensure_fetched(rsv, resolvable) |> dbg(),
+         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable)) |> dbg(),
          {:ok, cache_entries} <- create_cache_entries(identified_schemas),
          {:ok, rsv} <- insert_cache_entries(rsv, cache_entries) do
       resolve_meta_loop(rsv, metas_of(cache_entries))
@@ -155,8 +157,16 @@ defmodule Moonwalk.Schema.Resolver do
 
   # Extract all $ids and achors. We receive the top schema
   defp scan_schema(top_schema, external_id) when not is_nil(external_id) do
-    external_id |> dbg()
     id = Map.get(top_schema, "$id", nil)
+
+    # For self references that target "#" or "#some/path" in the document, when
+    # the document does not have an id, we will force the namespace to have an
+    # id.
+    ns =
+      case id do
+        nil -> external_id
+        _ -> id
+      end
 
     nss =
       case {id, external_id} do
@@ -187,7 +197,7 @@ defmodule Moonwalk.Schema.Resolver do
     # If no metaschema is defined we will use the default draft as a fallback
     meta = Map.get(top_schema, "$schema", @default_draft)
 
-    top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases, ns: id, parent_ns: nil}
+    top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases, ns: ns, parent_ns: nil}
     acc = [top_descriptor]
 
     with {:ok, acc} <- scan_map_values(top_schema, id, nss, meta, acc) do
@@ -311,7 +321,7 @@ defmodule Moonwalk.Schema.Resolver do
   defp to_cache_entries(descriptor) do
     %{aliases: aliases, meta: meta, raw: raw, ns: ns, parent_ns: parent_ns} = descriptor
 
-    resolved = %Resolved{meta: meta, raw: raw, ns: ns, parent_ns: parent_ns, vocabularies: nil} |> dbg()
+    resolved = %Resolved{meta: meta, raw: raw, ns: ns, parent_ns: parent_ns, vocabularies: nil}
 
     case aliases do
       [single] -> [{single, resolved}]
@@ -543,11 +553,10 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   def fetch_resolved(rsv, {:pointer, ns, docpath}) do
-    with {:ok, %Resolved{raw: raw, meta: meta, ns: ns, parent_ns: parent_ns}} <- deref_resolved(rsv, ns) |> dbg(),
+    with {:ok, %Resolved{raw: raw, meta: meta, ns: ns, parent_ns: parent_ns}} <- deref_resolved(rsv, ns),
          {:ok, nested, ns, parent_ns} <- fetch_docpath(raw, docpath, ns, parent_ns) do
       {:ok, %Resolved{raw: nested, meta: meta, vocabularies: nil, ns: ns, parent_ns: parent_ns}}
     end
-    |> dbg()
   end
 
   def fetch_resolved(rsv, {:dynamic_anchor, _, _} = k) do

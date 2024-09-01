@@ -158,10 +158,6 @@ defmodule Moonwalk.Schema.Builder do
     case Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
       {:ok, vocabularies} when is_list(vocabularies) ->
         bld = %__MODULE__{bld | vocabularies: vocabularies, ns: ns, parent_nss: [parent_ns]}
-
-        resolved |> IO.inspect(label: "build resolved")
-        bld.ns |> IO.inspect(label: "bld.ns")
-        vkey |> IO.inspect(label: "vkey")
         do_build_sub(resolved.raw, bld)
 
       {:error, _} = err ->
@@ -176,16 +172,12 @@ defmodule Moonwalk.Schema.Builder do
   end
 
   def build_sub(%{"$id" => id} = schema, %__MODULE__{} = bld) do
-    schema |> IO.inspect(label: "schema")
-    parent = self()
-
     with {:ok, key} <- RNS.derive(bld.ns, id) do
       {:ok, {:alias_of, key}, stage_build(bld, key)}
     end
   end
 
   def build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) when is_boolean(raw_schema) do
-    bld.ns |> dbg()
     do_build_sub(raw_schema, bld)
   end
 
