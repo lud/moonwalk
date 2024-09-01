@@ -69,17 +69,15 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   def resolve(rsv, resolvable) do
-    resolvable |> dbg()
-
-    case check_resolved(rsv, resolvable) |> dbg() do
+    case check_resolved(rsv, resolvable) do
       :unresolved -> do_resolve(rsv, resolvable)
       :already_resolved -> {:ok, rsv}
     end
   end
 
   defp do_resolve(rsv, resolvable) do
-    with {:ok, raw_schema, rsv} <- ensure_fetched(rsv, resolvable) |> dbg(),
-         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable)) |> dbg(),
+    with {:ok, raw_schema, rsv} <- ensure_fetched(rsv, resolvable),
+         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable)),
          {:ok, cache_entries} <- create_cache_entries(identified_schemas),
          {:ok, rsv} <- insert_cache_entries(rsv, cache_entries) do
       resolve_meta_loop(rsv, metas_of(cache_entries))

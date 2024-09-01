@@ -25,9 +25,6 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
           current_ns
       end
 
-    raw_ref |> IO.inspect(label: "raw_ref")
-    ref_relative_to_ns |> IO.inspect(label: "ref_relative_to_ns")
-
     with {:ok, ref} <- Ref.parse(raw_ref, ref_relative_to_ns) do
       # reset the acc as $ref overrides any other keyword
       Fallback.ok_put_ref(ref, [], bld)
