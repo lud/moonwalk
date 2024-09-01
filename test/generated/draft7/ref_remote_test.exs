@@ -79,7 +79,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, []) |> dbg()
       {:ok, json_schema: json_schema, schema: schema}
     end
 

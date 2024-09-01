@@ -104,6 +104,8 @@ defmodule Moonwalk.Schema.Validator do
     %{validators: validators} = sub
 
     iterate(validators, data, vdr, fn {module, mod_validators}, data, vdr ->
+      module |> IO.inspect(label: "module")
+      mod_validators |> IO.inspect(label: "mod_validators")
       module.validate(data, mod_validators, vdr)
     end)
   end

@@ -318,7 +318,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
           {[item | casted], vdr}
 
         {{item, index}, subschema}, {casted, vdr} ->
-          case Validator.validate_nested(item, index, subschema, vdr) do
+          case Validator.validate_nested(item, index, subschema |> dbg(), vdr) do
             {:ok, casted_item, vdr} -> {[casted_item | casted], vdr}
             {:error, vdr} -> {[item | casted], Validator.with_error(vdr, :item, item, index: index)}
           end

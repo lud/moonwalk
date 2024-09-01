@@ -151,6 +151,12 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
+  defp build_resolved(bld, _vkey, {:alias_of, key}) do
+    # If the resolver returns an alias we know the target of the alias is
+    # already resolved, so we can just stage it as such.
+    {:ok, {:alias_of, key}, stage_build(bld, {:resolved, key})}
+  end
+
   defp build_resolved(bld, vkey, resolved) do
     %Resolved{ns: ns, parent_ns: parent_ns} = resolved
 
@@ -162,12 +168,6 @@ defmodule Moonwalk.Schema.Builder do
       {:error, _} = err ->
         err
     end
-  end
-
-  defp build_resolved(bld, _vkey, {:alias_of, key}) do
-    # If the resolver returns an alias we know the target of the alias is
-    # already resolved, so we can just stage it as such.
-    {:ok, {:alias_of, key}, stage_build(bld, {:resolved, key})}
   end
 
   def build_sub(%{"$id" => id} = schema, %__MODULE__{} = bld) do

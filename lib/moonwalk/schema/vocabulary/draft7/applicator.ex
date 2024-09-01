@@ -88,7 +88,8 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Applicator do
     Validator.return(:lists.reverse(rev_items), vdr)
   end
 
-  def validate_keyword({:all_items, {items, _}}, data, vdr) when is_map(items) and is_list(data) do
+  def validate_keyword({:all_items, {items, _}}, data, vdr)
+      when (is_map(items) or (is_tuple(items) and elem(items, 0) == :alias_of)) and is_list(data) do
     all_schemas = Stream.cycle([items])
 
     index_items = Stream.with_index(data)
