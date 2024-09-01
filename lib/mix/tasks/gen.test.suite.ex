@@ -146,7 +146,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"properties.json", []},
     {"propertyNames.json", []},
     {"ref.json", []},
-    # {"refRemote.json", []},
+    {"refRemote.json", []},
     # {"required.json", []},
     {"type.json", []},
     # # {"uniqueItems.json", []},

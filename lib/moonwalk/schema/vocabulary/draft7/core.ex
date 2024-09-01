@@ -9,6 +9,10 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
   @impl true
 
   def take_keyword({"$ref", raw_ref}, _acc, bld, raw_schema) do
+    raw_schema |> IO.inspect(label: "-------------\nraw_schema")
+    Map.get(raw_schema, "$id") |> IO.inspect(label: "Map.get(raw_schema, $id)")
+    bld.ns |> IO.inspect(label: "bld.ns")
+
     ref_relative_to_ns =
       case {raw_schema, bld} do
         # The ref is not relative to the current $id if defined at the same
@@ -16,14 +20,18 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
         #
         # Parent cannot be :root because a ref cannot target :root, it must be a
         # defined $id.
-        {%{"$id" => current_id}, %{ns: current_id, parent_nss: [parent | _]}} when parent != :root -> parent
+        {%{"$id" => current_id}, %{ns: current_id, parent_nss: [parent | _]}} when parent != :root ->
+          raise "what if the current_id is partial ?"
+          parent
+
         # Otherwise take the $id at the same level or higher
-        {_, %{ns: current_ns}} -> current_ns
+        {_, %{ns: current_ns}} ->
+          current_ns
       end
 
     with {:ok, ref} <- Ref.parse(raw_ref, ref_relative_to_ns) do
       # reset the acc as $ref overrides any other keyword
-      Fallback.ok_put_ref(ref, [], bld)
+      Fallback.ok_put_ref(ref |> dbg(), [], bld)
     end
   end
 

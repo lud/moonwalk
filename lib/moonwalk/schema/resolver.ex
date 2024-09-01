@@ -35,7 +35,7 @@ defmodule Moonwalk.Schema.Resolver do
 
   @vocabulary %{} |> Map.merge(@draft_202012_vocabulary) |> Map.merge(@draft7_vocabulary)
 
-  @derive {Inspect, only: [:resolved, :dynamic_scope, :opts]}
+  # @derive {Inspect, only: [:resolved, :dynamic_scope, :opts]}
   @enforce_keys [:root]
   defstruct [
     :ns,
@@ -229,6 +229,9 @@ defmodule Moonwalk.Schema.Resolver do
           descriptor = %{raw: raw_schema, meta: meta, aliases: aliases}
           [descriptor | acc]
       end
+
+    id |> IO.inspect(label: "id")
+    nss |> IO.inspect(label: "nss")
 
     scan_map_values(raw_schema, id || parent_id, nss, meta, acc)
   end

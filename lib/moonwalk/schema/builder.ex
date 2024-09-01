@@ -14,6 +14,7 @@ defmodule Moonwalk.Schema.Builder do
   end
 
   def stage_build(%{staged: staged} = bld, buildable) do
+    buildable |> IO.inspect(label: "staging buildable")
     %__MODULE__{bld | staged: append_unique(staged, buildable)}
   end
 
@@ -70,9 +71,16 @@ defmodule Moonwalk.Schema.Builder do
     # We need to do that 2-pass in the stage list because some resolvables
     # (dynamic refs) lead to stage and build multiple validators.
 
+    bld.staged |> IO.inspect(label: "bld.staged in take_staged")
+    bld.ns |> IO.inspect(label: "bld.ns in take_staged")
+    bld.parent_nss |> IO.inspect(label: "bld.parent_nss in take_staged")
+
+    {staged, _} = take_staged(bld)
+    staged |> dbg()
+
     case take_staged(bld) do
       {{:resolved, vkey}, %{resolver: resolver} = bld} ->
-        with :buildable <- check_buildable(all_validators, vkey),
+        with :buildable <- check_not_built(all_validators, vkey),
              {:ok, resolved} <- Resolver.fetch_resolved(resolver, vkey),
              {:ok, schema_validators, bld} <- build_resolved(bld, vkey, resolved) do
           build_all(bld, Map.put(all_validators, vkey, schema_validators))
@@ -86,7 +94,17 @@ defmodule Moonwalk.Schema.Builder do
         build_all(bld, all_validators)
 
       {resolvable, bld} when is_binary(resolvable) when is_struct(resolvable, Ref) when :root == resolvable ->
-        with :buildable <- check_buildable(all_validators, Key.of(resolvable)),
+        IO.puts("""
+
+
+
+        binary
+
+
+
+        """)
+
+        with :buildable <- check_not_built(all_validators, Key.of(resolvable)),
              {:ok, bld} <- resolve_and_stage(bld, resolvable) do
           build_all(bld, all_validators)
         else
@@ -106,7 +124,7 @@ defmodule Moonwalk.Schema.Builder do
 
     case Resolver.resolve(resolver, resolvable) do
       {:ok, new_resolver} -> {:ok, %__MODULE__{bld | resolver: new_resolver, staged: [{:resolved, vkey} | staged]}}
-      {:error, _} = err -> err
+      {:error, reason} -> {:error, {:resolver_error, reason}}
     end
   end
 
@@ -137,7 +155,7 @@ defmodule Moonwalk.Schema.Builder do
     %__MODULE__{bld | staged: dynamic_buildables ++ bld.staged}
   end
 
-  defp check_buildable(all_validators, vkey) do
+  defp check_not_built(all_validators, vkey) do
     case is_map_key(all_validators, vkey) do
       true -> {:already_built, vkey}
       false -> :buildable
@@ -154,6 +172,9 @@ defmodule Moonwalk.Schema.Builder do
           end
 
         bld = %__MODULE__{bld | vocabularies: vocabularies, ns: Key.namespace_of(vkey), parent_nss: parent_nss}
+
+        debug_ns(bld)
+
         do_build_sub(resolved.raw, bld)
 
       {:error, _} = err ->
@@ -163,8 +184,13 @@ defmodule Moonwalk.Schema.Builder do
 
   defp build_resolved(bld, _vkey, {:alias_of, key}) do
     # If the resolver returns an alias we know the target of the alias is
-    # already resolved, so we can just stage it as so.
+    # already resolved, so we can just stage it as such.
     {:ok, {:alias_of, key}, stage_build(bld, {:resolved, key})}
+  end
+
+  defp debug_ns(bld) do
+    IO.puts("**** using builder with #{inspect([bld.ns | bld.parent_nss])}")
+    bld
   end
 
   def build_sub(%{"$id" => id}, %__MODULE__{} = bld) do

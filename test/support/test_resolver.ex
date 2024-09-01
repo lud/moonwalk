@@ -6,6 +6,7 @@ defmodule Moonwalk.Test.TestResolver do
   require Logger
 
   def resolve("http://localhost:1234/" <> _ = url) do
+    Logger.debug("Returning local file for #{url}")
     uri = URI.parse(url)
     return_local_file(uri.path)
   end
