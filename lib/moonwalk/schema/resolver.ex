@@ -6,7 +6,9 @@ defmodule Moonwalk.Schema.Resolver do
   alias Moonwalk.Schema.Vocabulary
 
   defmodule Resolved do
-    defstruct [:raw, :meta, :vocabularies]
+    # TODO drop parent_ns once we do not support draft-7
+    @enforce_keys [:raw, :meta, :vocabularies, :ns, :parent_ns]
+    defstruct @enforce_keys
   end
 
   @default_draft "http://json-schema.org/draft-07/schema"
@@ -138,8 +140,22 @@ defmodule Moonwalk.Schema.Resolver do
     check_resolved(rsv, ns)
   end
 
+  IO.warn("""
+  @TODO external is should only serve to deref the top schema.
+
+  When addressing "http://somehost/some-schema/sub-id"
+  then "http://somehost/some-schema" should be deref as the actual id within
+  the schema and we should found <that-id>/sub-id in the cache.
+
+  Though we need the nss for anchors. But we should make clear that the nss
+  passed down to the scan functions are not derived in scan_subschema.
+
+  BUT that is not true. A subschema will replace nss with its id so ...
+  """)
+
   # Extract all $ids and achors. We receive the top schema
   defp scan_schema(top_schema, external_id) when not is_nil(external_id) do
+    external_id |> dbg()
     id = Map.get(top_schema, "$id", nil)
 
     nss =
@@ -148,9 +164,6 @@ defmodule Moonwalk.Schema.Resolver do
         {ext, ext} -> [ext]
         {local, ext} -> [local, ext]
       end
-
-    # The schema will be findable by its $id or external id.
-    id_aliases = nss
 
     # Anchor needs to be resolved from the $id or the external ID (an URL) if
     # set.
@@ -167,21 +180,24 @@ defmodule Moonwalk.Schema.Resolver do
         :error -> []
       end
 
+    # The schema will be findable by its $id or external id.
+    id_aliases = nss
     aliases = id_aliases ++ anchor ++ dynamic_anchor
 
     # If no metaschema is defined we will use the default draft as a fallback
     meta = Map.get(top_schema, "$schema", @default_draft)
 
-    top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases}
+    top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases, ns: id, parent_ns: nil}
+    acc = [top_descriptor]
 
-    with {:ok, acc} <- scan_map_values(top_schema, id, nss, meta, [top_descriptor]) do
+    with {:ok, acc} <- scan_map_values(top_schema, id, nss, meta, acc) do
       # reverse the found schemas order so the top-ones appear first and
       # dynamicAnchor scope priority is respected.
       {:ok, :lists.reverse(acc)}
     end
   end
 
-  defp scan_subschema(raw_schema, parent_id, nss, meta, acc) when is_map(raw_schema) do
+  defp scan_subschema(raw_schema, ns, nss, meta, acc) when is_map(raw_schema) do
     # If the subschema defines an id, we will discard the current namespaces, as
     # the sibling or nested anchors will now only relate to this id
 
@@ -193,11 +209,11 @@ defmodule Moonwalk.Schema.Resolver do
       end
 
     {id, id_aliases, nss} =
-      with bin_rel_id when is_binary(id) <- id,
-           {:ok, full_id} <- merge_id(parent_id, bin_rel_id) do
+      with true <- is_binary(id),
+           {:ok, full_id} <- merge_id(ns, id) do
         {full_id, [full_id], [full_id]}
       else
-        nil -> {nil, [], nss}
+        _ -> {nil, [], nss}
       end
 
     anchors =
@@ -220,20 +236,23 @@ defmodule Moonwalk.Schema.Resolver do
     # creating the cache entries so the dynamicAnchors are resolved in scope
     # order.
 
+    {new_ns, parent_ns} =
+      case id do
+        nil -> {ns, hd(nss)}
+        val -> {val, ns}
+      end
+
     acc =
       case(id_aliases ++ anchors ++ dynamic_anchors) do
         [] ->
           acc
 
         aliases ->
-          descriptor = %{raw: raw_schema, meta: meta, aliases: aliases}
+          descriptor = %{raw: raw_schema, meta: meta, aliases: aliases, ns: new_ns, parent_ns: parent_ns}
           [descriptor | acc]
       end
 
-    id |> IO.inspect(label: "id")
-    nss |> IO.inspect(label: "nss")
-
-    scan_map_values(raw_schema, id || parent_id, nss, meta, acc)
+    scan_map_values(raw_schema, new_ns, nss, meta, acc)
   end
 
   defp scan_subschema(scalar, _parent_id, _nss, _meta, acc)
@@ -289,13 +308,14 @@ defmodule Moonwalk.Schema.Resolver do
     {:ok, Enum.flat_map(identified_schemas, &to_cache_entries/1)}
   end
 
-  defp to_cache_entries(%{aliases: aliases, meta: meta, raw: raw}) do
-    case aliases do
-      [single] ->
-        [{single, %Resolved{meta: meta, raw: raw}}]
+  defp to_cache_entries(descriptor) do
+    %{aliases: aliases, meta: meta, raw: raw, ns: ns, parent_ns: parent_ns} = descriptor
 
-      [first | aliases] ->
-        [{first, %Resolved{meta: meta, raw: raw}} | Enum.map(aliases, &{&1, {:alias_of, first}})]
+    resolved = %Resolved{meta: meta, raw: raw, ns: ns, parent_ns: parent_ns, vocabularies: nil} |> dbg()
+
+    case aliases do
+      [single] -> [{single, resolved}]
+      [first | aliases] -> [{first, resolved} | Enum.map(aliases, &{&1, {:alias_of, first}})]
     end
   end
 
@@ -323,8 +343,11 @@ defmodule Moonwalk.Schema.Resolver do
     id = Map.fetch!(raw_schema, "$id")
 
     case load_vocabularies(vocabulary, id) do
-      {:ok, vocabularies} -> {:ok, %Resolved{vocabularies: vocabularies, meta: meta}}
-      {:error, _} = err -> err
+      {:ok, vocabularies} ->
+        {:ok, %Resolved{vocabularies: vocabularies, meta: meta, ns: id, parent_ns: nil, raw: :__meta__}}
+
+      {:error, _} = err ->
+        err
     end
   end
 
@@ -520,10 +543,11 @@ defmodule Moonwalk.Schema.Resolver do
   end
 
   def fetch_resolved(rsv, {:pointer, ns, docpath}) do
-    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, ns),
-         {:ok, nested} <- fetch_docpath(raw, docpath) do
-      {:ok, %Resolved{raw: nested, meta: meta}}
+    with {:ok, %Resolved{raw: raw, meta: meta, ns: ns, parent_ns: parent_ns}} <- deref_resolved(rsv, ns) |> dbg(),
+         {:ok, nested, ns, parent_ns} <- fetch_docpath(raw, docpath, ns, parent_ns) do
+      {:ok, %Resolved{raw: nested, meta: meta, vocabularies: nil, ns: ns, parent_ns: parent_ns}}
     end
+    |> dbg()
   end
 
   def fetch_resolved(rsv, {:dynamic_anchor, _, _} = k) do
@@ -557,8 +581,8 @@ defmodule Moonwalk.Schema.Resolver do
   defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: _, kind: :docpath} = ref) do
     %{ns: ns, arg: docpath} = ref
 
-    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, ns),
-         {:ok, raw} <- fetch_docpath(raw, docpath) do
+    with {:ok, %Resolved{raw: raw, meta: meta, ns: ^ns, parent_ns: parent_ns}} <- deref_resolved(rsv, ns),
+         {:ok, raw} <- fetch_docpath(raw, docpath, ns, parent_ns) do
       {:ok, raw, meta}
     end
   end
@@ -588,27 +612,42 @@ defmodule Moonwalk.Schema.Resolver do
     end
   end
 
-  defp fetch_docpath(raw_schema, docpath) do
-    case do_fetch_docpath(raw_schema, docpath) do
-      {:ok, v} -> {:ok, v}
+  defp fetch_docpath(raw_schema, docpath, ns, parent_ns) do
+    case do_fetch_docpath(raw_schema, docpath, ns, parent_ns) do
+      {:ok, sub, ns, parent_ns} -> {:ok, sub, ns, parent_ns}
       :error -> {:error, {:invalid_docpath, docpath, raw_schema}}
     end
   end
 
-  defp do_fetch_docpath(raw_schema, []) do
-    {:ok, raw_schema}
-  end
-
-  defp do_fetch_docpath(list, [h | t]) when is_list(list) and is_integer(h) do
+  defp do_fetch_docpath(list, [h | t], ns, parent_ns) when is_list(list) and is_integer(h) do
     with {:ok, item} <- Enum.fetch(list, h) do
-      do_fetch_docpath(item, t)
+      do_fetch_docpath(item, t, ns, parent_ns)
     end
   end
 
-  defp do_fetch_docpath(raw_schema, [h | t]) when is_map(raw_schema) and is_binary(h) do
-    case Map.fetch(raw_schema, h) do
-      {:ok, sub} -> do_fetch_docpath(sub, t)
+  defp do_fetch_docpath(raw_schema, [h | t], ns, parent_ns) when is_map(raw_schema) and is_binary(h) do
+    with {:ok, new_ns, new_parent_ns} <- derive_docpath_ns(raw_schema, ns, parent_ns),
+         {:ok, sub} <- Map.fetch(raw_schema, h) do
+      do_fetch_docpath(sub, t, new_ns, new_parent_ns)
+    else
+      {:error, _} = err -> err
       :error -> :error
     end
+  end
+
+  defp do_fetch_docpath(raw_schema, [], ns, parent_ns) do
+    with {:ok, new_ns, new_parent_ns} <- derive_docpath_ns(raw_schema, ns, parent_ns) do
+      {:ok, raw_schema, new_ns, new_parent_ns}
+    end
+  end
+
+  defp derive_docpath_ns(%{"$id" => id} = raw_schema, ns, _parent_ns) do
+    with {:ok, new_ns} <- RNS.derive(ns, id) do
+      {:ok, new_ns, ns}
+    end
+  end
+
+  defp derive_docpath_ns(_raw_schema, ns, parent_ns) do
+    {:ok, ns, parent_ns}
   end
 end

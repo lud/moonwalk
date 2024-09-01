@@ -9,10 +9,6 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
   @impl true
 
   def take_keyword({"$ref", raw_ref}, _acc, bld, raw_schema) do
-    raw_schema |> IO.inspect(label: "-------------\nraw_schema")
-    Map.get(raw_schema, "$id") |> IO.inspect(label: "Map.get(raw_schema, $id)")
-    bld.ns |> IO.inspect(label: "bld.ns")
-
     ref_relative_to_ns =
       case {raw_schema, bld} do
         # The ref is not relative to the current $id if defined at the same
@@ -31,7 +27,7 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
 
     with {:ok, ref} <- Ref.parse(raw_ref, ref_relative_to_ns) do
       # reset the acc as $ref overrides any other keyword
-      Fallback.ok_put_ref(ref |> dbg(), [], bld)
+      Fallback.ok_put_ref(ref, [], bld)
     end
   end
 

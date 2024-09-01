@@ -14,7 +14,7 @@ defmodule Moonwalk.Schema.Builder do
   end
 
   def stage_build(%{staged: staged} = bld, buildable) do
-    buildable |> IO.inspect(label: "staging buildable")
+    buildable |> IO.inspect(label: "staging")
     %__MODULE__{bld | staged: append_unique(staged, buildable)}
   end
 
@@ -33,7 +33,7 @@ defmodule Moonwalk.Schema.Builder do
   def ensure_resolved(%{resolver: resolver} = bld, resolvable) do
     case Resolver.resolve(resolver, resolvable) do
       {:ok, resolver} -> {:ok, %__MODULE__{bld | resolver: resolver}}
-      {:error, _} = err -> err
+      {:error, reason} -> {:error, {:resolver_error, reason}}
     end
   end
 
@@ -71,19 +71,12 @@ defmodule Moonwalk.Schema.Builder do
     # We need to do that 2-pass in the stage list because some resolvables
     # (dynamic refs) lead to stage and build multiple validators.
 
-    bld.staged |> IO.inspect(label: "bld.staged in take_staged")
-    bld.ns |> IO.inspect(label: "bld.ns in take_staged")
-    bld.parent_nss |> IO.inspect(label: "bld.parent_nss in take_staged")
-
-    {staged, _} = take_staged(bld)
-    staged |> dbg()
-
     case take_staged(bld) do
       {{:resolved, vkey}, %{resolver: resolver} = bld} ->
         with :buildable <- check_not_built(all_validators, vkey),
              {:ok, resolved} <- Resolver.fetch_resolved(resolver, vkey),
              {:ok, schema_validators, bld} <- build_resolved(bld, vkey, resolved) do
-          build_all(bld, Map.put(all_validators, vkey, schema_validators))
+          build_all(bld, register_validator(all_validators, vkey, schema_validators))
         else
           {:already_built, _} -> build_all(bld, all_validators)
           {:error, _} = err -> err
@@ -94,16 +87,6 @@ defmodule Moonwalk.Schema.Builder do
         build_all(bld, all_validators)
 
       {resolvable, bld} when is_binary(resolvable) when is_struct(resolvable, Ref) when :root == resolvable ->
-        IO.puts("""
-
-
-
-        binary
-
-
-
-        """)
-
         with :buildable <- check_not_built(all_validators, Key.of(resolvable)),
              {:ok, bld} <- resolve_and_stage(bld, resolvable) do
           build_all(bld, all_validators)
@@ -118,13 +101,20 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
+  defp register_validator(all_validators, vkey, {:alias_of, vkey}) do
+    raise "creating a alias to self: #{inspect({:alias_of, vkey})}"
+  end
+
+  defp register_validator(all_validators, vkey, schema_validators) do
+    Map.put(all_validators, vkey, schema_validators)
+  end
+
   defp resolve_and_stage(bld, resolvable) do
-    %{resolver: resolver, staged: staged} = bld
     vkey = Key.of(resolvable)
 
-    case Resolver.resolve(resolver, resolvable) do
-      {:ok, new_resolver} -> {:ok, %__MODULE__{bld | resolver: new_resolver, staged: [{:resolved, vkey} | staged]}}
-      {:error, reason} -> {:error, {:resolver_error, reason}}
+    case ensure_resolved(bld, resolvable) do
+      {:ok, new_bld} -> {:ok, stage_build(new_bld, {:resolved, vkey})}
+      {:error, _} = err -> err
     end
   end
 
@@ -162,19 +152,16 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
-  defp build_resolved(bld, vkey, %Resolved{} = resolved) do
+  defp build_resolved(bld, vkey, resolved) do
+    %Resolved{ns: ns, parent_ns: parent_ns} = resolved
+
     case Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
       {:ok, vocabularies} when is_list(vocabularies) ->
-        parent_nss =
-          case bld do
-            %{ns: nil, parent_nss: parents} -> parents
-            %{ns: ns, parent_nss: parents} -> [ns | parents]
-          end
+        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: ns, parent_nss: [parent_ns]}
 
-        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: Key.namespace_of(vkey), parent_nss: parent_nss}
-
-        debug_ns(bld)
-
+        resolved |> IO.inspect(label: "build resolved")
+        bld.ns |> IO.inspect(label: "bld.ns")
+        vkey |> IO.inspect(label: "vkey")
         do_build_sub(resolved.raw, bld)
 
       {:error, _} = err ->
@@ -188,18 +175,17 @@ defmodule Moonwalk.Schema.Builder do
     {:ok, {:alias_of, key}, stage_build(bld, {:resolved, key})}
   end
 
-  defp debug_ns(bld) do
-    IO.puts("**** using builder with #{inspect([bld.ns | bld.parent_nss])}")
-    bld
-  end
+  def build_sub(%{"$id" => id} = schema, %__MODULE__{} = bld) do
+    schema |> IO.inspect(label: "schema")
+    parent = self()
 
-  def build_sub(%{"$id" => id}, %__MODULE__{} = bld) do
     with {:ok, key} <- RNS.derive(bld.ns, id) do
       {:ok, {:alias_of, key}, stage_build(bld, key)}
     end
   end
 
   def build_sub(raw_schema, %__MODULE__{} = bld) when is_map(raw_schema) when is_boolean(raw_schema) do
+    bld.ns |> dbg()
     do_build_sub(raw_schema, bld)
   end
 
@@ -250,9 +236,14 @@ defmodule Moonwalk.Schema.Builder do
       Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), bld}, fn pair, {leftovers, mod_acc, bld} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.
+        pair |> IO.inspect(label: "    build by #{inspect(module)}")
+
         case module.take_keyword(pair, mod_acc, bld, raw_schema) do
-          {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
-          :ignore -> {[pair | leftovers], mod_acc, bld}
+          {:ok, mod_acc, bld} ->
+            {leftovers, mod_acc, bld}
+
+          :ignore ->
+            {[pair | leftovers], mod_acc, bld}
         end
       end)
 
