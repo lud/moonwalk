@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
   describe "patternProperties validates properties matching a regex:" do
     setup do
       json_schema = %{"patternProperties" => %{"f.*o" => %{"type" => "integer"}}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -68,7 +68,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -118,7 +118,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -150,7 +150,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
   describe "patternProperties with boolean schemas:" do
     setup do
       json_schema = %{"patternProperties" => %{"b.*" => false, "f.*" => true}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -188,7 +188,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
   describe "patternProperties with null valued instance properties:" do
     setup do
       json_schema = %{"patternProperties" => %{"^.*bar$" => %{"type" => "null"}}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

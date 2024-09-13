@@ -16,7 +16,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "oneOf" => [%{"type" => "integer"}, %{"minimum" => 2}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -53,7 +53,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "type" => "string"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -83,7 +83,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "oneOf" => [true, true, true]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -101,7 +101,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "oneOf" => [true, false, false]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -119,7 +119,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "oneOf" => [true, true, false]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -137,7 +137,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "oneOf" => [false, false, false]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -158,7 +158,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         ]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -194,7 +194,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "oneOf" => [%{"type" => "number"}, %{}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -219,7 +219,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "type" => "object"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -258,7 +258,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         ]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -294,7 +294,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
         "oneOf" => [%{"oneOf" => [%{"type" => "null"}]}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

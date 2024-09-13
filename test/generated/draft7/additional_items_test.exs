@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "additionalItems as schema:" do
     setup do
       json_schema = %{"additionalItems" => %{"type" => "integer"}, "items" => [%{}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -32,7 +32,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "when items is schema, additionalItems does nothing:" do
     setup do
       json_schema = %{"additionalItems" => %{"type" => "string"}, "items" => %{"type" => "integer"}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -52,7 +52,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "when items is schema, boolean additionalItems does nothing:" do
     setup do
       json_schema = %{"additionalItems" => false, "items" => %{}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -66,7 +66,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "array of items with no additionalItems permitted:" do
     setup do
       json_schema = %{"additionalItems" => false, "items" => [%{}, %{}, %{}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -104,7 +104,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "additionalItems as false without items:" do
     setup do
       json_schema = %{"additionalItems" => false}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -124,7 +124,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "additionalItems are allowed by default:" do
     setup do
       json_schema = %{"items" => [%{"type" => "integer"}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -142,7 +142,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
         "allOf" => [%{"items" => [%{"type" => "integer"}]}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -161,7 +161,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
         "items" => [%{"type" => "integer"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -179,7 +179,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
         "items" => [%{"type" => "string"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -199,7 +199,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "additionalItems with heterogeneous array:" do
     setup do
       json_schema = %{"additionalItems" => false, "items" => [%{}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -219,7 +219,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalItemsTest do
   describe "additionalItems with null instance elements:" do
     setup do
       json_schema = %{"additionalItems" => %{"type" => "null"}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

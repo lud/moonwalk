@@ -19,7 +19,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         ]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -60,7 +60,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "required" => ["bar"]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -102,7 +102,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [%{"maximum" => 30}, %{"minimum" => 20}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -126,7 +126,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [true, true]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -144,7 +144,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [true, false]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -162,7 +162,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [false, false]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -176,7 +176,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
   describe "allOf with one empty schema:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "allOf" => [%{}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -194,7 +194,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [%{}, %{}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -212,7 +212,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [%{}, %{"type" => "number"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -236,7 +236,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [%{"type" => "number"}, %{}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -260,7 +260,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "allOf" => [%{"allOf" => [%{"type" => "null"}]}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -286,7 +286,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AllOfTest do
         "oneOf" => [%{"multipleOf" => 5}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

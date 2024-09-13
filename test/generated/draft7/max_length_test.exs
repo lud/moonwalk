@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MaxLengthTest do
   describe "maxLength validation:" do
     setup do
       json_schema = %{"maxLength" => 2}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -50,7 +50,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MaxLengthTest do
   describe "maxLength validation with a decimal:" do
     setup do
       json_schema = %{"maxLength" => 2.0}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinLengthTest do
   describe "minLength validation:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "minLength" => 2}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -54,7 +54,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MinLengthTest do
         "minLength" => 2.0
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

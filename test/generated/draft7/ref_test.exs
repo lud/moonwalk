@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
   describe "root pointer ref:" do
     setup do
       json_schema = %{"additionalProperties" => false, "properties" => %{"foo" => %{"$ref" => "#"}}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -50,7 +50,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -70,7 +70,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
   describe "relative pointer ref to array:" do
     setup do
       json_schema = %{"items" => [%{"type" => "integer"}, %{"$ref" => "#/items/0"}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -102,7 +102,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -154,7 +154,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -180,7 +180,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -228,7 +228,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -248,7 +248,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
   describe "remote ref, containing refs itself:" do
     setup do
       json_schema = %{"$ref" => "http://json-schema.org/draft-07/schema#"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -268,7 +268,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
   describe "property named $ref that is not a reference:" do
     setup do
       json_schema = %{"properties" => %{"$ref" => %{"type" => "string"}}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -292,7 +292,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "properties" => %{"$ref" => %{"$ref" => "#/definitions/is-string"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -316,7 +316,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "definitions" => %{"bool" => true}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -334,7 +334,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "definitions" => %{"bool" => false}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -370,7 +370,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "type" => "object"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -432,7 +432,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "properties" => %{"foo\"bar" => %{"$ref" => "#/definitions/foo%22bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -456,7 +456,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "definitions" => %{"A" => %{"$id" => "#foo", "type" => "integer"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -481,7 +481,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "definitions" => %{"A" => %{"$id" => "#foo", "type" => "integer"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -511,7 +511,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -535,7 +535,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "enum" => [%{"$ref" => "#/definitions/a_string"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -574,7 +574,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -613,7 +613,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -651,7 +651,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -679,7 +679,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -705,7 +705,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/definitions/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -731,7 +731,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/definitions/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -757,7 +757,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/definitions/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -783,7 +783,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/definitions/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -812,7 +812,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -841,7 +841,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -867,7 +867,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         ]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -893,7 +893,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         ]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -919,7 +919,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         ]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -953,7 +953,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -978,7 +978,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "definitions" => %{"foo" => %{"type" => "number"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -1003,7 +1003,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "definitions" => %{"foo" => %{"type" => "number"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -1027,7 +1027,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefTest do
         "definitions" => %{"" => %{"definitions" => %{"" => %{"type" => "number"}}}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

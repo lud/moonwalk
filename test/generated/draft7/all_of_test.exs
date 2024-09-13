@@ -18,7 +18,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
         ]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -58,7 +58,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
         "required" => ["bar"]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -96,7 +96,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf simple types:" do
     setup do
       json_schema = %{"allOf" => [%{"maximum" => 30}, %{"minimum" => 20}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -116,7 +116,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf with boolean schemas, all true:" do
     setup do
       json_schema = %{"allOf" => [true, true]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -130,7 +130,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf with boolean schemas, some false:" do
     setup do
       json_schema = %{"allOf" => [true, false]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -144,7 +144,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf with boolean schemas, all false:" do
     setup do
       json_schema = %{"allOf" => [false, false]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -158,7 +158,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf with one empty schema:" do
     setup do
       json_schema = %{"allOf" => [%{}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -172,7 +172,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf with two empty schemas:" do
     setup do
       json_schema = %{"allOf" => [%{}, %{}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -186,7 +186,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf with the first empty schema:" do
     setup do
       json_schema = %{"allOf" => [%{}, %{"type" => "number"}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -206,7 +206,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "allOf with the last empty schema:" do
     setup do
       json_schema = %{"allOf" => [%{"type" => "number"}, %{}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -226,7 +226,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
   describe "nested allOf, to check validation semantics:" do
     setup do
       json_schema = %{"allOf" => [%{"allOf" => [%{"type" => "null"}]}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -251,7 +251,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
         "oneOf" => [%{"multipleOf" => 5}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

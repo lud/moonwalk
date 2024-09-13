@@ -14,6 +14,8 @@ defmodule Moonwalk.Schema do
   defstruct validators: %{}, root_key: nil
   @opaque t :: %__MODULE__{}
 
+  @default_draft_default "https://json-schema.org/draft/2020-12/schema"
+
   def validate(data, schema) do
     case validation_entrypoint(data, schema) do
       {:ok, casted_data, _} -> {:ok, casted_data}
@@ -31,8 +33,11 @@ defmodule Moonwalk.Schema do
 
   def build(raw_schema, opts) when is_map(raw_schema) do
     {resolver_impl, opts} = Keyword.pop!(opts, :resolver)
+    {default_draft, opts} = Keyword.pop(opts, :default_draft, @default_draft_default)
 
-    with {:ok, resolver} <- Resolver.new_root(raw_schema, %{resolver: resolver_impl}),
+    resolver_opts = %{resolver: resolver_impl, default_draft: default_draft}
+
+    with {:ok, resolver} <- Resolver.new_root(raw_schema, resolver_opts),
          bld = Builder.new(resolver: resolver, opts: opts),
          bld = Builder.stage_build(bld, resolver.root),
          root_key = Key.of(resolver.root),

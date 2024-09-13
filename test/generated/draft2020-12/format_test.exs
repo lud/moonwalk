@@ -16,7 +16,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "email"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -70,7 +70,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "idn-email"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -124,7 +124,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "regex"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -178,7 +178,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "ipv4"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -232,7 +232,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "ipv6"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -286,7 +286,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "idn-hostname"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -340,7 +340,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "hostname"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -394,7 +394,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "date"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -448,7 +448,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "date-time"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -502,7 +502,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "time"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -556,7 +556,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "json-pointer"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -610,7 +610,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "relative-json-pointer"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -664,7 +664,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "iri"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -718,7 +718,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "iri-reference"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -772,7 +772,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "uri"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -826,7 +826,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "uri-reference"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -880,7 +880,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "uri-template"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -934,7 +934,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "uuid"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -988,7 +988,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.FormatTest do
         "format" => "duration"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

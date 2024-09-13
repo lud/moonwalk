@@ -16,7 +16,12 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RegexTest do
         "format" => "regex"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, formats: true)
+      schema =
+        JsonSchemaSuite.build_schema(json_schema,
+          default_draft: "https://json-schema.org/draft/2020-12/schema",
+          formats: true
+        )
+
       {:ok, json_schema: json_schema, schema: schema}
     end
 

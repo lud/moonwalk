@@ -16,7 +16,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
         "prefixItems" => [%{"type" => "integer"}, %{"type" => "string"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -64,7 +64,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
         "prefixItems" => [true, false]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -94,7 +94,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
         "prefixItems" => [%{"type" => "integer"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -112,7 +112,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
         "prefixItems" => [%{"type" => "null"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

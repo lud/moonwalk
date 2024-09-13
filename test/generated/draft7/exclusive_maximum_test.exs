@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ExclusiveMaximumTest do
   describe "exclusiveMaximum validation:" do
     setup do
       json_schema = %{"exclusiveMaximum" => 3.0}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

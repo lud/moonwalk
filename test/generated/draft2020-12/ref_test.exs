@@ -17,7 +17,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -56,7 +56,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -80,7 +80,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "prefixItems" => [%{"type" => "integer"}, %{"$ref" => "#/prefixItems/0"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -113,7 +113,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -166,7 +166,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -191,7 +191,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/reffed", "maxItems" => 2}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -221,7 +221,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -245,7 +245,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"$ref" => %{"type" => "string"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -270,7 +270,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"$ref" => %{"$ref" => "#/$defs/is-string"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -295,7 +295,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -314,7 +314,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -351,7 +351,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "type" => "object"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -414,7 +414,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo\"bar" => %{"$ref" => "#/$defs/foo%22bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -440,7 +440,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"prop1" => %{"type" => "string"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -459,7 +459,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "enum" => [%{"$ref" => "#/$defs/a_string"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -499,7 +499,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -539,7 +539,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -576,7 +576,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "allOf" => [%{"$ref" => "http://example.com/b/d.json"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -614,7 +614,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -655,7 +655,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -684,7 +684,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -711,7 +711,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -738,7 +738,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -765,7 +765,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -792,7 +792,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -817,7 +817,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -841,7 +841,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -871,7 +871,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -902,7 +902,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -927,7 +927,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "if" => %{"$id" => "http://example.com/ref/if", "type" => "integer"}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -952,7 +952,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "then" => %{"$id" => "http://example.com/ref/then", "type" => "integer"}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -977,7 +977,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "else" => %{"$id" => "http://example.com/ref/else", "type" => "integer"}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -1012,7 +1012,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -1038,7 +1038,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -1064,7 +1064,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "$schema" => "https://json-schema.org/draft/2020-12/schema"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -1089,7 +1089,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
         "allOf" => [%{"$ref" => "#/$defs//$defs/"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

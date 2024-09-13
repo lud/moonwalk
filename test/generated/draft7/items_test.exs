@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
   describe "a schema given for items:" do
     setup do
       json_schema = %{"items" => %{"type" => "integer"}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -44,7 +44,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
   describe "an array of schemas for items:" do
     setup do
       json_schema = %{"items" => [%{"type" => "integer"}, %{"type" => "string"}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -88,7 +88,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
   describe "items with boolean schema (true):" do
     setup do
       json_schema = %{"items" => true}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -108,7 +108,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
   describe "items with boolean schema (false):" do
     setup do
       json_schema = %{"items" => false}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -128,7 +128,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
   describe "items with boolean schemas:" do
     setup do
       json_schema = %{"items" => [true, false]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -174,7 +174,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
         "type" => "array"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -254,7 +254,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
         "type" => "array"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -280,7 +280,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
   describe "single-form items with null instance elements:" do
     setup do
       json_schema = %{"items" => %{"type" => "null"}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -294,7 +294,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
   describe "array-form items with null instance elements:" do
     setup do
       json_schema = %{"items" => [%{"type" => "null"}]}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

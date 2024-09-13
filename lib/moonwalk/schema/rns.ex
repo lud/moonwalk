@@ -1,5 +1,4 @@
 defmodule Moonwalk.Schema.RNS do
-  IO.warn("@TODO if we keep the fragments in there, rename to URP (universal resource prefix) or SID (schema id)")
   # A "namespace" for a schema ID or reference
   # Universal Resource Reference. That is
   # basically a URI but with a hack to support URNs (urn:isbn:1234 is
@@ -29,19 +28,9 @@ defmodule Moonwalk.Schema.RNS do
     parent_rns = parse(parent)
     child_rns = parse(child)
 
-    ret =
-      with {:ok, merged} <- merge(parent_rns, child_rns) do
-        {:ok, to_ns(merged)}
-      end
-
-    IO.puts("""
-    DERIVE RNS
-    child:  #{inspect(child)}
-    parent: #{inspect(parent)}
-    =>      #{inspect(ret)}
-    """)
-
-    ret
+    with {:ok, merged} <- merge(parent_rns, child_rns) do
+      {:ok, to_ns(merged)}
+    end
   end
 
   defp merge(%{uri: :root} = parent, %{uri: %{host: nil, path: nil}}) do

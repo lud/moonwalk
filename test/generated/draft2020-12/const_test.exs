@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   describe "const validation:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => 2}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -42,7 +42,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => %{"baz" => "bax", "foo" => "bar"}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -78,7 +78,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => [%{"foo" => "bar"}]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -104,7 +104,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   describe "const with null:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => nil}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -124,7 +124,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   describe "const with false does not match 0:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => false}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -150,7 +150,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   describe "const with true does not match 1:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => true}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -180,7 +180,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => [false]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -210,7 +210,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => [true]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -240,7 +240,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => %{"a" => false}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -270,7 +270,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => %{"a" => true}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -296,7 +296,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   describe "const with 0 does not match other zero-like types:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => 0}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -340,7 +340,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   describe "const with 1 does not match true:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => 1}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -366,7 +366,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
   describe "const with -2.0 matches integer and float types:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "const" => -2.0}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -408,7 +408,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => 9_007_199_254_740_992
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -444,7 +444,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ConstTest do
         "const" => <<104, 101, 108, 108, 111, 0, 116, 104, 101, 114, 101>>
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

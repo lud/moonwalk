@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertyNamesTest do
   describe "propertyNames validation:" do
     setup do
       json_schema = %{"propertyNames" => %{"maxLength" => 3}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -56,7 +56,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertyNamesTest do
   describe "propertyNames validation with pattern:" do
     setup do
       json_schema = %{"propertyNames" => %{"pattern" => "^a+$"}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -82,7 +82,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertyNamesTest do
   describe "propertyNames with boolean schema true:" do
     setup do
       json_schema = %{"propertyNames" => true}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -102,7 +102,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertyNamesTest do
   describe "propertyNames with boolean schema false:" do
     setup do
       json_schema = %{"propertyNames" => false}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

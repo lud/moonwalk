@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.BooleanSchemaTest do
   describe "boolean schema 'true':" do
     setup do
       json_schema = true
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -74,7 +74,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.BooleanSchemaTest do
   describe "boolean schema 'false':" do
     setup do
       json_schema = false
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

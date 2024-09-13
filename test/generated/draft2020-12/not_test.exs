@@ -16,7 +16,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
         "not" => %{"type" => "integer"}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -40,7 +40,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
         "not" => %{"type" => ["integer", "boolean"]}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -73,7 +73,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -103,7 +103,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
         "properties" => %{"foo" => %{"not" => %{}}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -123,7 +123,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
   describe "forbid everything with empty schema:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "not" => %{}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -185,7 +185,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
   describe "forbid everything with boolean schema true:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "not" => true}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -247,7 +247,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
   describe "allow everything with boolean schema false:" do
     setup do
       json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "not" => false}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -313,7 +313,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
         "not" => %{"not" => %{}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -336,7 +336,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

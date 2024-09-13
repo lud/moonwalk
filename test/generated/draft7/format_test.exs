@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "email format:" do
     setup do
       json_schema = %{"format" => "email"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -56,7 +56,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "idn-email format:" do
     setup do
       json_schema = %{"format" => "idn-email"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -100,7 +100,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "regex format:" do
     setup do
       json_schema = %{"format" => "regex"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -144,7 +144,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "ipv4 format:" do
     setup do
       json_schema = %{"format" => "ipv4"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -188,7 +188,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "ipv6 format:" do
     setup do
       json_schema = %{"format" => "ipv6"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -232,7 +232,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "idn-hostname format:" do
     setup do
       json_schema = %{"format" => "idn-hostname"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -276,7 +276,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "hostname format:" do
     setup do
       json_schema = %{"format" => "hostname"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -320,7 +320,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "date format:" do
     setup do
       json_schema = %{"format" => "date"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -364,7 +364,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "date-time format:" do
     setup do
       json_schema = %{"format" => "date-time"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -408,7 +408,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "time format:" do
     setup do
       json_schema = %{"format" => "time"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -452,7 +452,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "json-pointer format:" do
     setup do
       json_schema = %{"format" => "json-pointer"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -496,7 +496,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "relative-json-pointer format:" do
     setup do
       json_schema = %{"format" => "relative-json-pointer"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -540,7 +540,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "iri format:" do
     setup do
       json_schema = %{"format" => "iri"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -584,7 +584,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "iri-reference format:" do
     setup do
       json_schema = %{"format" => "iri-reference"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -628,7 +628,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "uri format:" do
     setup do
       json_schema = %{"format" => "uri"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -672,7 +672,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "uri-reference format:" do
     setup do
       json_schema = %{"format" => "uri-reference"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -716,7 +716,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.FormatTest do
   describe "uri-template format:" do
     setup do
       json_schema = %{"format" => "uri-template"}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

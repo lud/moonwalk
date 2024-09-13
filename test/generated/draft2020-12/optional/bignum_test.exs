@@ -16,7 +16,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
         "type" => "integer"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -40,7 +40,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
         "type" => "number"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -64,7 +64,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
         "type" => "string"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -82,7 +82,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
         "maximum" => 18_446_744_073_709_551_615
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -100,7 +100,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
         "exclusiveMaximum" => 9.727837981879871e26
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -118,7 +118,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
         "minimum" => -18_446_744_073_709_551_615
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -136,7 +136,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.BignumTest do
         "exclusiveMinimum" => -9.727837981879871e26
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

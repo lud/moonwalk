@@ -16,7 +16,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertyNamesTest do
         "propertyNames" => %{"maxLength" => 3}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -64,7 +64,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertyNamesTest do
         "propertyNames" => true
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -88,7 +88,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PropertyNamesTest do
         "propertyNames" => false
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

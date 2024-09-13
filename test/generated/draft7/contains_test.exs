@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ContainsTest do
   describe "contains keyword validation:" do
     setup do
       json_schema = %{"contains" => %{"minimum" => 5}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -56,7 +56,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ContainsTest do
   describe "contains keyword with const keyword:" do
     setup do
       json_schema = %{"contains" => %{"const" => 5}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -82,7 +82,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ContainsTest do
   describe "contains keyword with boolean schema true:" do
     setup do
       json_schema = %{"contains" => true}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -102,7 +102,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ContainsTest do
   describe "contains keyword with boolean schema false:" do
     setup do
       json_schema = %{"contains" => false}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -128,7 +128,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ContainsTest do
   describe "items + contains:" do
     setup do
       json_schema = %{"contains" => %{"multipleOf" => 3}, "items" => %{"multipleOf" => 2}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -160,7 +160,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ContainsTest do
   describe "contains with false if subschema:" do
     setup do
       json_schema = %{"contains" => %{"else" => true, "if" => false}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -180,7 +180,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ContainsTest do
   describe "contains with null instance elements:" do
     setup do
       json_schema = %{"contains" => %{"type" => "null"}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

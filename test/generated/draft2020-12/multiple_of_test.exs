@@ -16,7 +16,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
         "multipleOf" => 2
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -46,7 +46,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
         "multipleOf" => 1.5
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -76,7 +76,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
         "multipleOf" => 0.0001
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -101,7 +101,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
         "type" => "integer"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -120,7 +120,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MultipleOfTest do
         "type" => "integer"
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

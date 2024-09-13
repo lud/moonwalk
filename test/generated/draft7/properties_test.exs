@@ -18,7 +18,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -70,7 +70,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -126,7 +126,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
   describe "properties with boolean schema:" do
     setup do
       json_schema = %{"properties" => %{"bar" => false, "foo" => true}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -168,7 +168,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -204,7 +204,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
   describe "properties with null valued instance properties:" do
     setup do
       json_schema = %{"properties" => %{"foo" => %{"type" => "null"}}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -225,7 +225,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

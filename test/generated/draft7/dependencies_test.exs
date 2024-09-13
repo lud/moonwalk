@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
   describe "dependencies:" do
     setup do
       json_schema = %{"dependencies" => %{"bar" => ["foo"]}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -62,7 +62,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
   describe "dependencies with empty array:" do
     setup do
       json_schema = %{"dependencies" => %{"bar" => []}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -88,7 +88,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
   describe "multiple dependencies:" do
     setup do
       json_schema = %{"dependencies" => %{"quux" => ["foo", "bar"]}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -142,7 +142,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -180,7 +180,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
   describe "dependencies with boolean subschemas:" do
     setup do
       json_schema = %{"dependencies" => %{"bar" => false, "foo" => true}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -220,7 +220,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -276,7 +276,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
         "properties" => %{"foo" => %{}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

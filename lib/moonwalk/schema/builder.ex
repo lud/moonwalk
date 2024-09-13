@@ -7,7 +7,7 @@ defmodule Moonwalk.Schema.Builder do
   alias Moonwalk.Schema.RNS
 
   @derive {Inspect, except: []}
-  defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, parent_nss: [], opts: []]
+  defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, parent_ns: nil, opts: []]
 
   def new(opts) do
     struct!(__MODULE__, Map.new(opts))
@@ -74,7 +74,7 @@ defmodule Moonwalk.Schema.Builder do
       {{:resolved, vkey}, %{resolver: resolver} = bld} ->
         with :buildable <- check_not_built(all_validators, vkey),
              {:ok, resolved} <- Resolver.fetch_resolved(resolver, vkey),
-             {:ok, schema_validators, bld} <- build_resolved(bld, vkey, resolved) do
+             {:ok, schema_validators, bld} <- build_resolved(bld, resolved) do
           build_all(bld, register_validator(all_validators, vkey, schema_validators))
         else
           {:already_built, _} -> build_all(bld, all_validators)
@@ -100,7 +100,7 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
-  defp register_validator(all_validators, vkey, {:alias_of, vkey}) do
+  defp register_validator(_all_validators, vkey, {:alias_of, vkey}) do
     raise "creating a alias to self: #{inspect({:alias_of, vkey})}"
   end
 
@@ -151,18 +151,18 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
-  defp build_resolved(bld, _vkey, {:alias_of, key}) do
+  defp build_resolved(bld, {:alias_of, key}) do
     # If the resolver returns an alias we know the target of the alias is
     # already resolved, so we can just stage it as such.
     {:ok, {:alias_of, key}, stage_build(bld, {:resolved, key})}
   end
 
-  defp build_resolved(bld, vkey, resolved) do
+  defp build_resolved(bld, resolved) do
     %Resolved{ns: ns, parent_ns: parent_ns} = resolved
 
     case Resolver.fetch_vocabularies_for(bld.resolver, resolved) do
       {:ok, vocabularies} when is_list(vocabularies) ->
-        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: ns, parent_nss: [parent_ns]}
+        bld = %__MODULE__{bld | vocabularies: vocabularies, ns: ns, parent_ns: parent_ns}
         do_build_sub(resolved.raw, bld)
 
       {:error, _} = err ->
@@ -170,7 +170,7 @@ defmodule Moonwalk.Schema.Builder do
     end
   end
 
-  def build_sub(%{"$id" => id} = schema, %__MODULE__{} = bld) do
+  def build_sub(%{"$id" => id}, %__MODULE__{} = bld) do
     with {:ok, key} <- RNS.derive(bld.ns, id) do
       {:ok, {:alias_of, key}, stage_build(bld, key)}
     end
@@ -227,6 +227,7 @@ defmodule Moonwalk.Schema.Builder do
       Enum.reduce(raw_pairs, {[], module.init_validators(init_opts), bld}, fn pair, {leftovers, mod_acc, bld} ->
         # "keyword" refers to the schema keywod, e.g. "type", "properties", etc,
         # supported by a vocabulary.
+
         case module.take_keyword(pair, mod_acc, bld, raw_schema) do
           {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
           :ignore -> {[pair | leftovers], mod_acc, bld}

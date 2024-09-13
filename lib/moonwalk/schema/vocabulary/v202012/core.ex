@@ -10,10 +10,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   def take_keyword({"$ref", raw_ref}, acc, bld, _) do
-    bld.ns |> dbg()
-    raw_ref |> dbg()
-
-    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) |> dbg() do
+    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) do
       ok_put_ref(ref, acc, bld)
     end
   end
@@ -120,7 +117,6 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   def validate_keyword({:ref, ref}, data, vdr) do
-    ref |> dbg()
     Validator.validate_ref(data, ref, vdr)
   end
 

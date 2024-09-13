@@ -12,7 +12,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
   describe "not:" do
     setup do
       json_schema = %{"not" => %{"type" => "integer"}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -32,7 +32,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
   describe "not multiple types:" do
     setup do
       json_schema = %{"not" => %{"type" => ["integer", "boolean"]}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -64,7 +64,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
         }
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -90,7 +90,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
   describe "forbidden property:" do
     setup do
       json_schema = %{"properties" => %{"foo" => %{"not" => %{}}}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -110,7 +110,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
   describe "forbid everything with empty schema:" do
     setup do
       json_schema = %{"not" => %{}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -172,7 +172,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
   describe "forbid everything with boolean schema true:" do
     setup do
       json_schema = %{"not" => true}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -234,7 +234,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
   describe "allow everything with boolean schema false:" do
     setup do
       json_schema = %{"not" => false}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -296,7 +296,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.NotTest do
   describe "double negation:" do
     setup do
       json_schema = %{"not" => %{"not" => %{}}}
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 

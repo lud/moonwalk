@@ -16,8 +16,7 @@ defmodule Moonwalk.Schema.Vocabulary.Draft7.Core do
         #
         # Parent cannot be :root because a ref cannot target :root, it must be a
         # defined $id.
-        {%{"$id" => current_id}, %{ns: current_id, parent_nss: [parent | _]}} when parent != :root ->
-          IO.warn("what if the current_id is partial ?")
+        {%{"$id" => _}, %{ns: _, parent_ns: parent}} when parent != :root ->
           parent
 
         # Otherwise take the $id at the same level or higher

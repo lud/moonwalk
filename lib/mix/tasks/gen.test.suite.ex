@@ -240,19 +240,28 @@ defmodule Mix.Tasks.Gen.Test.Suite do
         :error -> raise ArgumentError, "No suite configuration for #{inspect(suite)}"
       end
 
+    schema_options = [default_draft: default_draft(suite)]
+
     suite
     |> JsonSchemaSuite.stream_cases(config)
-    |> Enum.each(&gen_test_mod(&1, test_directory, namespace))
+    |> Enum.each(&gen_test_mod(&1, test_directory, namespace, schema_options))
   end
 
-  defp gen_test_mod(file_info, test_directory, namespace) do
-    module_name = module_name(file_info, namespace)
+  defp default_draft("draft7") do
+    "http://json-schema.org/draft-07/schema"
+  end
 
-    assigns =
-      Map.merge(file_info, %{
-        module_name: module_name,
-        schema_build_opts: get_in(file_info, [:opts, :schema_build_opts]) || []
-      })
+  defp default_draft("draft2020-12") do
+    "https://json-schema.org/draft/2020-12/schema"
+  end
+
+  defp gen_test_mod(mod_info, test_directory, namespace, schema_options) do
+    module_name = module_name(mod_info, namespace)
+
+    case_build_opts = get_in(mod_info, [:opts, :schema_build_opts]) || []
+    schema_build_opts = Keyword.merge(schema_options, case_build_opts)
+
+    assigns = Map.merge(mod_info, %{module_name: module_name, schema_build_opts: schema_build_opts})
 
     module_contents = module_template(assigns)
     module_path = module_path(test_directory, namespace, module_name)
@@ -273,9 +282,9 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     mod_path
   end
 
-  defp module_name(file_info, namespace) do
+  defp module_name(mod_info, namespace) do
     mod_name =
-      file_info.rel_path
+      mod_info.rel_path
       |> String.replace("optional/", "optional.")
       |> Path.basename(".json")
       |> Macro.underscore()

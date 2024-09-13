@@ -17,7 +17,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
         "required" => ["foo"]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -59,7 +59,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
         "properties" => %{"foo" => %{}}
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -78,7 +78,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
         "required" => []
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -96,7 +96,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
         "required" => ["foo\nbar", "foo\"bar", "foo\\bar", "foo\rbar", "foo\tbar", "foo\fbar"]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
@@ -128,7 +128,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
         "required" => ["__proto__", "toString", "constructor"]
       }
 
-      schema = JsonSchemaSuite.build_schema(json_schema, [])
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
 
