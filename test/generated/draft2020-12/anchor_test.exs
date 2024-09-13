@@ -129,34 +129,4 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
-
-  describe "invalid anchors:" do
-    setup do
-      json_schema = %{
-        "$ref" => "https://json-schema.org/draft/2020-12/schema",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
-
-      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
-      {:ok, json_schema: json_schema, schema: schema}
-    end
-
-    test "MUST start with a letter (and not #)", c do
-      data = %{"$anchor" => "#foo"}
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    test "JSON pointers are not valid", c do
-      data = %{"$anchor" => "/a/b"}
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-
-    test "invalid with valid beginning", c do
-      data = %{"$anchor" => "foo#something"}
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-  end
 end

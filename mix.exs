@@ -35,7 +35,7 @@ defmodule Moonwalk.MixProject do
       {:jason, "~> 1.4"},
       {:json_schema_test_suite,
        git: "https://github.com/json-schema-org/JSON-Schema-Test-Suite.git",
-       tag: "bf0360f4b7c51b8f968aabe7f3f49e12b120fc85",
+       ref: "9fc880bfb6d8ccd093bc82431f17d13681ffae8e",
        only: [:test],
        compile: false,
        app: false},
@@ -61,7 +61,7 @@ defmodule Moonwalk.MixProject do
   end
 
   def cli do
-    [preferred_envs: ["coveralls.html": :test]]
+    [preferred_envs: ["coveralls.html": :test, "gen.test.suite": :test]]
   end
 
   defp modkit do

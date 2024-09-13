@@ -809,25 +809,6 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
     end
   end
 
-  describe "URN base URI with f-component:" do
-    setup do
-      json_schema = %{
-        "$comment" => "RFC 8141 §2.3.3, but we don't allow fragments",
-        "$ref" => "https://json-schema.org/draft/2020-12/schema",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
-
-      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
-      {:ok, json_schema: json_schema, schema: schema}
-    end
-
-    test "is invalid", c do
-      data = %{"$id" => "urn:example:foo-bar-baz-qux#somepart"}
-      expected_valid = false
-      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
-    end
-  end
-
   describe "URN base URI with URN and JSON pointer ref:" do
     setup do
       json_schema = %{

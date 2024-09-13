@@ -1405,4 +1405,39 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedPropertiesTest do
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
+
+  describe "dependentSchemas with unevaluatedProperties:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "dependentSchemas" => %{
+          "foo" => %{},
+          "foo2" => %{"properties" => %{"bar" => %{}}}
+        },
+        "properties" => %{"foo2" => %{}},
+        "unevaluatedProperties" => false
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "unevaluatedProperties doesn't consider dependentSchemas", c do
+      data = %{"foo" => ""}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "unevaluatedProperties doesn't see bar when foo2 is absent", c do
+      data = %{"bar" => ""}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "unevaluatedProperties sees bar when foo2 is present", c do
+      data = %{"bar" => "", "foo2" => ""}
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
 end

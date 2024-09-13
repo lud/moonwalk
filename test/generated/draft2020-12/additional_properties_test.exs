@@ -193,4 +193,64 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AdditionalPropertiesTest do
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end
   end
+
+  describe "additionalProperties with propertyNames:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties" => %{"type" => "number"},
+        "propertyNames" => %{"maxLength" => 5}
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "Valid against both keywords", c do
+      data = %{"apple" => 4}
+      expected_valid = true
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "Valid against propertyNames, but not additionalProperties", c do
+      data = %{"fig" => 2, "pear" => "available"}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
+
+  describe "dependentSchemas with additionalProperties:" do
+    setup do
+      json_schema = %{
+        "$schema" => "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties" => false,
+        "dependentSchemas" => %{
+          "foo" => %{},
+          "foo2" => %{"properties" => %{"bar" => %{}}}
+        },
+        "properties" => %{"foo2" => %{}}
+      }
+
+      schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
+      {:ok, json_schema: json_schema, schema: schema}
+    end
+
+    test "additionalProperties doesn't consider dependentSchemas", c do
+      data = %{"foo" => ""}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "additionalProperties can't see bar", c do
+      data = %{"bar" => ""}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+
+    test "additionalProperties can't see bar even when foo2 is present", c do
+      data = %{"bar" => "", "foo2" => ""}
+      expected_valid = false
+      JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
+    end
+  end
 end

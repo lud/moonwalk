@@ -22,7 +22,6 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"exclusiveMaximum.json", []},
     {"exclusiveMinimum.json", []},
     {"format.json", []},
-    {"id.json", []},
     {"if-then-else.json", []},
     {"infinite-loop-detection.json", []},
     {"items.json", []},
@@ -113,14 +112,11 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"additionalItems.json", []},
     {"additionalProperties.json", []},
     {"allOf.json", []},
-    {"anchor.json", []},
     {"anyOf.json", []},
     {"boolean_schema.json", []},
     {"const.json", []},
     {"contains.json", []},
-    {"content.json", []},
     {"default.json", []},
-    {"defs.json", []},
     {"definitions.json", []},
     {"dependencies.json", []},
     {"enum.json", []},
@@ -233,18 +229,20 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     CLI.warn("Deleting current test files directory #{test_directory}")
     File.rm_rf!(test_directory)
 
-    config =
+    enabled =
       case Map.fetch(@enabled, suite) do
         {:ok, false} -> Map.new([])
-        {:ok, suite} when is_list(suite) -> Map.new(suite)
+        {:ok, list} when is_list(list) -> Map.new(list)
         :error -> raise ArgumentError, "No suite configuration for #{inspect(suite)}"
       end
 
     schema_options = [default_draft: default_draft(suite)]
 
     suite
-    |> JsonSchemaSuite.stream_cases(config)
-    |> Enum.each(&gen_test_mod(&1, test_directory, namespace, schema_options))
+    |> JsonSchemaSuite.stream_cases(enabled)
+    |> Stream.map(&gen_test_mod(&1, test_directory, namespace, schema_options))
+    |> Enum.count()
+    |> then(&IO.puts("Wrote #{&1} files"))
   end
 
   defp default_draft("draft7") do
@@ -268,7 +266,6 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
     File.mkdir_p!(Path.dirname(module_path))
     File.write!(module_path, module_contents)
-    CLI.writeln(["Created module ", inspect(module_name), " in ", module_path])
   end
 
   @re_modpath ~r/\.ex$/

@@ -5,33 +5,40 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
   require Logger
   import ExUnit.Assertions
 
-  def stream_cases(suite, config) do
+  def stream_cases(suite, all_enabled) do
     suite_dir = suite_dir!(suite)
 
     suite_dir
     |> Path.join("**/**.json")
     |> Path.wildcard()
     |> Stream.transform(
-      fn -> [] end,
-      fn path, discarded ->
+      fn -> {_discarded = [], all_enabled} end,
+      fn path, {discarded, enabled} ->
         rel_path = Path.relative_to(path, suite_dir)
 
-        case Map.fetch(config, rel_path) do
-          {:ok, :unsupported} -> {[], []}
-          {:ok, opts} -> {[%{path: path, rel_path: rel_path, opts: opts}], discarded}
-          :error -> {[], [rel_path | discarded]}
+        # We delete the {file, opts} entry in the enabled map when we use it, so
+        # we can print unexpected configs (useful when the JSON schema test
+        # suite maintainers delete some test files).
+
+        case Map.pop(enabled, rel_path, :error) do
+          {:unsupported, rest_enabled} -> {[], {[], rest_enabled}}
+          {:error, ^enabled} -> {[], {[rel_path | discarded], enabled}}
+          {opts, rest_enabled} -> {[%{path: path, rel_path: rel_path, opts: opts}], {discarded, rest_enabled}}
         end
       end,
-      &print_unchecked(suite, &1)
+      fn {discarded, rest_enabled} ->
+        print_unchecked(suite, discarded)
+        print_unexpected(suite, rest_enabled)
+      end
     )
     |> Stream.map(fn item ->
       %{path: path, opts: opts} = item
 
-      Map.put(item, :test_cases, mashall_file(path, opts))
+      Map.put(item, :test_cases, marshall_file(path, opts))
     end)
   end
 
-  defp mashall_file(source_path, opts) do
+  defp marshall_file(source_path, opts) do
     # If validate is false, all tests in the file are skipped
     validate = Keyword.get(opts, :validate, true)
     ignored = Keyword.get(opts, :ignore, [])
@@ -172,6 +179,18 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
     Unchecked test cases in #{suite}:
     #{print_list}
     #{(more? && "... (#{total - maxprint} more)") || ""}
+    """
+    |> IO.warn([])
+  end
+
+  defp print_unexpected(_suite, map) when map_size(map) == 0 do
+    # no noise
+  end
+
+  defp print_unexpected(suite, map) do
+    """
+    Unexpected test cases in #{suite}:
+    #{map |> Map.to_list() |> Enum.map_join("\n", &inspect/1)}
     """
     |> IO.warn([])
   end
