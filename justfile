@@ -11,8 +11,11 @@ lint:
   mix credo
   # mix compile --force --warnings-as-errors
 
+_mix_format:
+  mix format
+
 _git_status:
   git status
 
-check: test lint _git_status
+check: _mix_format test lint _git_status
 
