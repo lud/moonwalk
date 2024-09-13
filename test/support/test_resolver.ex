@@ -1,12 +1,12 @@
 defmodule Moonwalk.Test.TestResolver do
   @mutex __MODULE__.Mutex
-  @root_dir Path.join([File.cwd!(), "_build", "test", "resolved"])
+  @root_dir Path.join([File.cwd!(), "_build", "resolver-cache"])
   @suite_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "remotes"])
   File.mkdir_p!(@root_dir)
   require Logger
 
   def resolve("http://localhost:1234/" <> _ = url) do
-    Logger.debug("Returning local file for #{url}")
+    # Logger.debug("Returning local file for #{url}")
     uri = URI.parse(url)
     return_local_file(uri.path)
   end

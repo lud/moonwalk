@@ -256,14 +256,10 @@ defmodule Moonwalk.Schema.Validator do
     Map.fetch!(vds, vkey)
   end
 
-  defp checkout_dynamic_ref([nil | scope], vdr, anchor) do
-    checkout_dynamic_ref(scope, vdr, anchor)
-  end
-
   defp checkout_dynamic_ref([h | scope], vdr, anchor) do
-    # Recurse first as the outermost scope should have priority. If the dynamic
-    # ref resolution fails with all outer scopes, then actually try to resolve
-    # from this scope.
+    # Recursion first as the outermost scope should have priority. If the
+    # dynamic ref resolution fails with all outer scopes, then actually try to
+    # resolve from this scope.
     with :error <- checkout_dynamic_ref(scope, vdr, anchor) do
       Map.fetch(vdr.validators, {:dynamic_anchor, h, anchor})
     end

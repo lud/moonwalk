@@ -35,7 +35,7 @@ defmodule Moonwalk.Schema.Resolver do
 
   @vocabulary %{} |> Map.merge(@draft_202012_vocabulary) |> Map.merge(@draft7_vocabulary)
 
-  # @derive {Inspect, only: [:resolved, :dynamic_scope, :opts]}
+  # @derive {Inspect, only: [:resolved,  :opts]}
   @enforce_keys [:root]
   defstruct [
     :ns,
@@ -43,8 +43,7 @@ defmodule Moonwalk.Schema.Resolver do
     opts: %{resolver: UnknownResolver, default_draft: nil},
     fetch_cache: %{},
     resolved: %{},
-    vocabularies: %{},
-    dynamic_scope: []
+    vocabularies: %{}
   ]
 
   @opaque t :: %__MODULE__{}
@@ -75,7 +74,7 @@ defmodule Moonwalk.Schema.Resolver do
 
   defp do_resolve(rsv, resolvable) do
     with {:ok, raw_schema, rsv} <- ensure_fetched(rsv, resolvable),
-         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable), rsv.opts.default_draft) |> dbg(),
+         {:ok, identified_schemas} <- scan_schema(raw_schema, external_id(resolvable), rsv.opts.default_draft),
          {:ok, cache_entries} <- create_cache_entries(identified_schemas),
          {:ok, rsv} <- insert_cache_entries(rsv, cache_entries) do
       resolve_meta_loop(rsv, metas_of(cache_entries))
@@ -443,50 +442,6 @@ defmodule Moonwalk.Schema.Resolver do
     end)
   end
 
-  def as_root(rsv, fun) when is_function(fun, 2) do
-    %{vocabularies: current_vocabs, ns: current_ns, root: root_ns} = rsv
-
-    with {:ok, sub_vocabs} <- fetch_vocabularies_for(rsv, root_ns),
-         {:ok, raw_schema} <- fetch_raw(rsv, root_ns),
-         subrsv = %__MODULE__{rsv | ns: root_ns, vocabularies: sub_vocabs},
-         {:ok, result, new_rsv} <- fun.(raw_schema, subrsv) do
-      {:ok, result, %__MODULE__{new_rsv | ns: current_ns, vocabularies: current_vocabs}}
-    else
-      {:error, _} = err -> err
-    end
-  end
-
-  def as_ref(rsv, %Ref{ns: ns} = ref, fun) when is_function(fun, 2) do
-    %{vocabularies: current_vocabs, ns: current_ns} = rsv
-
-    with {:ok, raw_subschema, meta} <- fetch_ref_raw_meta(rsv, ref),
-         {:ok, sub_vocabs} <- fetch_vocabularies_of(rsv, meta),
-         subrsv = %__MODULE__{rsv | ns: ns, vocabularies: sub_vocabs},
-         {:ok, result, new_rsv} <- fun.(raw_subschema, subrsv) do
-      {:ok, result, %__MODULE__{new_rsv | ns: current_ns, vocabularies: current_vocabs}}
-    else
-      {:error, _} = err -> err
-    end
-  end
-
-  # If we build a subschema that has an $id we need to change the current
-  # namespace so refs are relative to it.
-  def as_sub(rsv, %{"$id" => sub_id} = raw_subschema, fun) when is_function(fun, 2) do
-    %{ns: current_ns, dynamic_scope: current_scope} = rsv
-
-    with {:ok, full_sub_id} <- merge_id(current_ns, sub_id),
-         subrsv = %__MODULE__{rsv | ns: full_sub_id, dynamic_scope: [full_sub_id | current_scope]},
-         {:ok, result, new_rsv} <- fun.(raw_subschema, subrsv) do
-      {:ok, result, %__MODULE__{new_rsv | ns: current_ns, dynamic_scope: current_scope}}
-    else
-      {:error, _} = err -> err
-    end
-  end
-
-  def as_sub(rsv, raw_subschema, fun) when is_function(fun, 2) when is_map(raw_subschema) do
-    fun.(raw_subschema, rsv)
-  end
-
   def fetch_vocabularies_for(rsv, %Resolved{meta: meta}) do
     fetch_vocabularies_of(rsv, meta)
   end
@@ -501,13 +456,6 @@ defmodule Moonwalk.Schema.Resolver do
   defp fetch_vocabularies_of(rsv, meta) do
     case deref_resolved(rsv, {:meta, meta}) do
       {:ok, %{vocabularies: vocabularies}} -> {:ok, vocabularies}
-      {:error, _} = err -> err
-    end
-  end
-
-  defp fetch_raw(rsv, ns) do
-    case deref_resolved(rsv, ns) do
-      {:ok, %{raw: raw}} -> {:ok, raw}
       {:error, _} = err -> err
     end
   end
@@ -555,53 +503,6 @@ defmodule Moonwalk.Schema.Resolver do
     end
   end
 
-  # When fetching a ref we deref aliases for anchors and docpaths as we need to
-  # retrieve some potentially nested part of the JSON schema. For :top
-  # references we can safely return the :alias_of tuple.
-
-  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: false, kind: :top} = ref) do
-    %{ns: ns} = ref
-
-    with {:ok, %{raw: raw, meta: meta}} <- fetch_resolved(rsv, ns) do
-      {:ok, raw, meta}
-    end
-  end
-
-  # TODO $dynamicRef with docpath should be resolved too.
-  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: _, kind: :docpath} = ref) do
-    %{ns: ns, arg: docpath} = ref
-
-    with {:ok, %Resolved{raw: raw, meta: meta, ns: ^ns}} <- deref_resolved(rsv, ns),
-         {:ok, raw} <- fetch_docpath(raw, docpath) do
-      {:ok, raw, meta}
-    end
-  end
-
-  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: false, kind: :anchor} = ref) do
-    %{ns: ns, arg: anchor} = ref
-
-    with {:ok, %{raw: raw, meta: meta}} <- deref_resolved(rsv, {:anchor, ns, anchor}) do
-      {:ok, raw, meta}
-    end
-  end
-
-  # Dynamic anchor
-  defp fetch_ref_raw_meta(rsv, %Ref{dynamic?: true, kind: :anchor} = ref) do
-    raise "is this used?"
-    %{ns: ns, arg: anchor} = ref
-
-    # Try to resolve as a regular ref if no dynamic anchor is found
-    cached_result =
-      with {:error, {:missed_cache, first_error}} <- deref_resolved(rsv, {:dynamic_anchor, anchor}),
-           {:error, {:missed_cache, _}} <- deref_resolved(rsv, {:anchor, ns, anchor}) do
-        {:error, {:missed_cache, first_error}}
-      end
-
-    with {:ok, %{raw: raw, meta: meta}} <- cached_result do
-      {:ok, raw, meta}
-    end
-  end
-
   defp fetch_docpath(raw_schema, docpath) do
     case do_fetch_docpath(raw_schema, docpath, []) do
       {:ok, sub} -> {:ok, sub}
@@ -627,6 +528,7 @@ defmodule Moonwalk.Schema.Resolver do
 
   # TODO remove  derive_docpath_ns/3, this is only to support Draft7
   defp derive_docpath_ns([%{"$id" => id} | [_ | _] = tail], parent_ns, parent_parent_ns) do
+    # Recursion first to go back to the top schema of the docpath
     with {:ok, parent_ns, _parent_parent_ns} <- derive_docpath_ns(tail, parent_ns, parent_parent_ns),
          {:ok, new_ns} <- RNS.derive(parent_ns, id) do
       {:ok, new_ns, parent_ns}
