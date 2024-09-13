@@ -139,7 +139,7 @@ defmodule Moonwalk.Schema.Resolver do
 
   # Extract all $ids and achors. We receive the top schema
   defp scan_schema(top_schema, external_id, default_draft) when not is_nil(external_id) do
-    id = Map.get(top_schema, "$id", nil)
+    {id, anchor, dynamic_anchor} = extract_keys(top_schema)
 
     # For self references that target "#" or "#some/path" in the document, when
     # the document does not have an id, we will force it. This is for the
@@ -150,31 +150,26 @@ defmodule Moonwalk.Schema.Resolver do
         _ -> id
       end
 
-    nss =
-      case {id, external_id} do
-        {nil, ext} -> [ext]
-        {ext, ext} -> [ext]
-        {local, ext} -> [local, ext]
-      end
+    nss = [id, external_id] |> Enum.reject(&is_nil/1) |> Enum.uniq()
 
     # Anchor needs to be resolved from the $id or the external ID (an URL) if
     # set.
-    anchor =
-      case Map.fetch(top_schema, "$anchor") do
-        {:ok, anchor} -> Enum.map(nss, &Key.for_anchor(&1, anchor))
-        :error -> []
+    anchors =
+      case anchor do
+        nil -> []
+        _ -> Enum.map(nss, &Key.for_anchor(&1, anchor))
       end
 
-    dynamic_anchor =
-      case Map.fetch(top_schema, "$dynamicAnchor") do
+    dynamic_anchors =
+      case dynamic_anchor do
         # a dynamic anchor is also adressable as a regular anchor for the given namespace
-        {:ok, da} -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, da), Key.for_anchor(&1, da)])
-        :error -> []
+        nil -> []
+        _ -> Enum.flat_map(nss, &[Key.for_dynamic_anchor(&1, dynamic_anchor), Key.for_anchor(&1, dynamic_anchor)])
       end
 
     # The schema will be findable by its $id or external id.
     id_aliases = nss
-    aliases = id_aliases ++ anchor ++ dynamic_anchor
+    aliases = id_aliases ++ anchors ++ dynamic_anchors
 
     # If no metaschema is defined we will use the default draft as a fallback
     meta = Map.get(top_schema, "$schema", default_draft)
@@ -182,9 +177,7 @@ defmodule Moonwalk.Schema.Resolver do
     top_descriptor = %{raw: top_schema, meta: meta, aliases: aliases, ns: ns, parent_ns: nil}
     acc = [top_descriptor]
 
-    with {:ok, acc} <- scan_map_values(top_schema, id, nss, meta, acc) do
-      {:ok, acc}
-    end
+    scan_map_values(top_schema, id, nss, meta, acc)
   end
 
   defp scan_subschema(raw_schema, ns, nss, meta, acc) when is_map(raw_schema) do

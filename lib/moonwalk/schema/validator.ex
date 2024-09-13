@@ -273,12 +273,6 @@ defmodule Moonwalk.Schema.Validator do
     %Error{kind: :boolean_schema, data: data, path: vdr.path, formatter: nil, args: []}
   end
 
-  defmacro return_error(data, vdr, kind, args) do
-    quote bind_quoted: binding() do
-      {:error, Moonwalk.Schema.Validator.__with_error__(__MODULE__, data, vdr, kind, args)}
-    end
-  end
-
   defmacro with_error(vdr, kind, data, args) do
     quote bind_quoted: binding() do
       Moonwalk.Schema.Validator.__with_error__(__MODULE__, vdr, kind, data, args)

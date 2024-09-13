@@ -4,7 +4,15 @@ gen-test-suite:
   # mix gen.test.suite latest
   mix format
 
+test:
+  mix test
 
-check:
+lint:
   mix credo
-  mix compile --warnings-as-errors
+  # mix compile --force --warnings-as-errors
+
+_git_status:
+  git status
+
+check: test lint _git_status
+
