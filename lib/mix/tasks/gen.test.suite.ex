@@ -104,6 +104,9 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"optional/format/json-pointer.json", :unsupported},
     {"optional/format/relative-json-pointer.json", :unsupported},
     {"optional/format/uri-reference.json", :unsupported},
+    {"optional/format/uri-template.json", :unsupported},
+    {"optional/format/uri.json", :unsupported},
+    {"optional/format/uuid.json", :unsupported},
 
     # We need to make a change so each vocabulary module exports a strict list
     # of supported keywords, and the resolver schema scanner does not
