@@ -11,7 +11,12 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RegexTest do
 
   describe "validation of regular expressions:" do
     setup do
-      json_schema = %{"format" => "regex"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "format": "regex"
+        }
+        """)
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,

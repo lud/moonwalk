@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MultipleOfTest do
 
   describe "by int:" do
     setup do
-      json_schema = %{"multipleOf" => 2}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "multipleOf": 2
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -37,7 +43,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MultipleOfTest do
 
   describe "by number:" do
     setup do
-      json_schema = %{"multipleOf" => 1.5}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "multipleOf": 1.5
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -63,7 +75,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MultipleOfTest do
 
   describe "by small number:" do
     setup do
-      json_schema = %{"multipleOf" => 0.0001}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "multipleOf": 0.0001
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -83,7 +101,14 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MultipleOfTest do
 
   describe "float division = inf:" do
     setup do
-      json_schema = %{"multipleOf" => 0.123456789, "type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "integer",
+          "multipleOf": 0.123456789
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -97,7 +122,14 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MultipleOfTest do
 
   describe "small multiple of large integer:" do
     setup do
-      json_schema = %{"multipleOf" => 1.0e-8, "type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "integer",
+          "multipleOf": 1.0e-8
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

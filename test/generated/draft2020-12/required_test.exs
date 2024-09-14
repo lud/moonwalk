@@ -11,11 +11,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
 
   describe "required validation:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"bar" => %{}, "foo" => %{}},
-        "required" => ["foo"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "bar": {},
+            "foo": {}
+          },
+          "required": [
+            "foo"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -54,10 +62,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
 
   describe "required default validation:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "foo": {}
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -72,11 +85,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
 
   describe "required with empty array:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{}},
-        "required" => []
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "foo": {}
+          },
+          "required": []
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -91,10 +109,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
 
   describe "required with escaped characters:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "required" => ["foo\nbar", "foo\"bar", "foo\\bar", "foo\rbar", "foo\tbar", "foo\fbar"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "required": [
+            "foo\nbar",
+            "foo\"bar",
+            "foo\\bar",
+            "foo\rbar",
+            "foo\tbar",
+            "foo\fbar"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -123,10 +151,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RequiredTest do
 
   describe "required properties whose names are Javascript object property names:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "required" => ["__proto__", "toString", "constructor"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "required": [
+            "__proto__",
+            "toString",
+            "constructor"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

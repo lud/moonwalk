@@ -11,10 +11,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "anyOf:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [%{"type" => "integer"}, %{"minimum" => 2}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "minimum": 2
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -47,11 +57,21 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "anyOf with base schema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [%{"maxLength" => 2}, %{"minLength" => 4}],
-        "type" => "string"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "string",
+          "anyOf": [
+            {
+              "maxLength": 2
+            },
+            {
+              "minLength": 4
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -78,10 +98,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "anyOf with boolean schemas, all true:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [true, true]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            true,
+            true
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -96,10 +122,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "anyOf with boolean schemas, some true:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [true, false]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            true,
+            false
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -114,10 +146,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "anyOf with boolean schemas, all false:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [false, false]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            false,
+            false
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -132,13 +170,34 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "anyOf complex types:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [
-          %{"properties" => %{"bar" => %{"type" => "integer"}}, "required" => ["bar"]},
-          %{"properties" => %{"foo" => %{"type" => "string"}}, "required" => ["foo"]}
-        ]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            {
+              "properties": {
+                "bar": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "bar"
+              ]
+            },
+            {
+              "properties": {
+                "foo": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "foo"
+              ]
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -171,10 +230,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "anyOf with one empty schema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [%{"type" => "number"}, %{}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {}
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -195,10 +262,21 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnyOfTest do
 
   describe "nested anyOf, to check validation semantics:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [%{"anyOf" => [%{"type" => "null"}]}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

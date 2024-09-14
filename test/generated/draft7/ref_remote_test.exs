@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "remote ref:" do
     setup do
-      json_schema = %{"$ref" => "http://localhost:1234/integer.json"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$ref": "http://localhost:1234/integer.json"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -31,7 +37,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "fragment within remote ref:" do
     setup do
-      json_schema = %{"$ref" => "http://localhost:1234/subSchemas.json#/definitions/integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$ref": "http://localhost:1234/subSchemas.json#/definitions/integer"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -51,7 +63,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "ref within remote ref:" do
     setup do
-      json_schema = %{"$ref" => "http://localhost:1234/subSchemas.json#/definitions/refToInteger"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$ref": "http://localhost:1234/subSchemas.json#/definitions/refToInteger"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -71,13 +89,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "base URI change:" do
     setup do
-      json_schema = %{
-        "$id" => "http://localhost:1234/",
-        "items" => %{
-          "$id" => "baseUriChange/",
-          "items" => %{"$ref" => "folderInteger.json"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$id": "http://localhost:1234/",
+          "items": {
+            "$id": "baseUriChange/",
+            "items": {
+              "$ref": "folderInteger.json"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -98,18 +121,27 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "base URI change - change folder:" do
     setup do
-      json_schema = %{
-        "$id" => "http://localhost:1234/scope_change_defs1.json",
-        "definitions" => %{
-          "baz" => %{
-            "$id" => "baseUriChangeFolder/",
-            "items" => %{"$ref" => "folderInteger.json"},
-            "type" => "array"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$id": "http://localhost:1234/scope_change_defs1.json",
+          "definitions": {
+            "baz": {
+              "$id": "baseUriChangeFolder/",
+              "type": "array",
+              "items": {
+                "$ref": "folderInteger.json"
+              }
+            }
+          },
+          "type": "object",
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/baz"
+            }
           }
-        },
-        "properties" => %{"list" => %{"$ref" => "#/definitions/baz"}},
-        "type" => "object"
-      }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -130,22 +162,31 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "base URI change - change folder in subschema:" do
     setup do
-      json_schema = %{
-        "$id" => "http://localhost:1234/scope_change_defs2.json",
-        "definitions" => %{
-          "baz" => %{
-            "$id" => "baseUriChangeFolderInSubschema/",
-            "definitions" => %{
-              "bar" => %{
-                "items" => %{"$ref" => "folderInteger.json"},
-                "type" => "array"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$id": "http://localhost:1234/scope_change_defs2.json",
+          "definitions": {
+            "baz": {
+              "$id": "baseUriChangeFolderInSubschema/",
+              "definitions": {
+                "bar": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "folderInteger.json"
+                  }
+                }
               }
             }
+          },
+          "type": "object",
+          "properties": {
+            "list": {
+              "$ref": "#/definitions/baz/definitions/bar"
+            }
           }
-        },
-        "properties" => %{"list" => %{"$ref" => "#/definitions/baz/definitions/bar"}},
-        "type" => "object"
-      }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -166,11 +207,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "root ref in remote ref:" do
     setup do
-      json_schema = %{
-        "$id" => "http://localhost:1234/object",
-        "properties" => %{"name" => %{"$ref" => "name.json#/definitions/orNull"}},
-        "type" => "object"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$id": "http://localhost:1234/object",
+          "type": "object",
+          "properties": {
+            "name": {
+              "$ref": "name.json#/definitions/orNull"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -197,10 +245,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "remote ref with ref to definitions:" do
     setup do
-      json_schema = %{
-        "$id" => "http://localhost:1234/schema-remote-ref-ref-defs1.json",
-        "allOf" => [%{"$ref" => "ref-and-definitions.json"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$id": "http://localhost:1234/schema-remote-ref-ref-defs1.json",
+          "allOf": [
+            {
+              "$ref": "ref-and-definitions.json"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -221,9 +276,12 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "Location-independent identifier in remote ref:" do
     setup do
-      json_schema = %{
-        "$ref" => "http://localhost:1234/locationIndependentIdentifierPre2019.json#/definitions/refToInteger"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$ref": "http://localhost:1234/locationIndependentIdentifierPre2019.json#/definitions/refToInteger"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -244,10 +302,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "retrieved nested refs resolve relative to their URI not $id:" do
     setup do
-      json_schema = %{
-        "$id" => "http://localhost:1234/some-id",
-        "properties" => %{"name" => %{"$ref" => "nested/foo-ref-string.json"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$id": "http://localhost:1234/some-id",
+          "properties": {
+            "name": {
+              "$ref": "nested/foo-ref-string.json"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -268,7 +333,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
 
   describe "$ref to $ref finds location-independent $id:" do
     setup do
-      json_schema = %{"$ref" => "http://localhost:1234/draft7/detached-ref.json#/definitions/foo"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$ref": "http://localhost:1234/draft7/detached-ref.json#/definitions/foo"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

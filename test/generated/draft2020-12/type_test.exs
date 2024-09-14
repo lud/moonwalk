@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "integer type matches integers:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => "integer"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "integer"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -77,10 +80,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "number type matches numbers:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => "number"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "number"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -143,10 +149,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "string type matches strings:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => "string"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "string"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -209,10 +218,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "object type matches objects:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => "object"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -263,10 +275,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "array type matches arrays:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => "array"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "array"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -317,10 +332,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "boolean type matches booleans:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => "boolean"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "boolean"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -389,7 +407,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "null type matches only the null object:" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "type" => "null"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "null"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -457,10 +482,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "multiple types can be specified in an array:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => ["integer", "string"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": [
+            "integer",
+            "string"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -511,10 +542,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "type as array with one item:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => ["string"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": [
+            "string"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -535,10 +571,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "type: array or object:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => ["array", "object"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": [
+            "array",
+            "object"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -577,10 +619,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.TypeTest do
 
   describe "type: array, object or null:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "type" => ["array", "object", "null"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": [
+            "array",
+            "object",
+            "null"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

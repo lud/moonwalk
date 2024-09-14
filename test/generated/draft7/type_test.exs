@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "integer type matches integers:" do
     setup do
-      json_schema = %{"type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "integer"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -73,7 +79,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "number type matches numbers:" do
     setup do
-      json_schema = %{"type" => "number"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "number"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -135,7 +147,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "string type matches strings:" do
     setup do
-      json_schema = %{"type" => "string"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "string"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -197,7 +215,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "object type matches objects:" do
     setup do
-      json_schema = %{"type" => "object"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "object"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -247,7 +271,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "array type matches arrays:" do
     setup do
-      json_schema = %{"type" => "array"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "array"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -297,7 +327,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "boolean type matches booleans:" do
     setup do
-      json_schema = %{"type" => "boolean"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "boolean"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -365,7 +401,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "null type matches only the null object:" do
     setup do
-      json_schema = %{"type" => "null"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "null"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -433,7 +475,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "multiple types can be specified in an array:" do
     setup do
-      json_schema = %{"type" => ["integer", "string"]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": [
+            "integer",
+            "string"
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -483,7 +534,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "type as array with one item:" do
     setup do
-      json_schema = %{"type" => ["string"]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": [
+            "string"
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -503,7 +562,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "type: array or object:" do
     setup do
-      json_schema = %{"type" => ["array", "object"]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": [
+            "array",
+            "object"
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -541,7 +609,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.TypeTest do
 
   describe "type: array, object or null:" do
     setup do
-      json_schema = %{"type" => ["array", "object", "null"]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": [
+            "array",
+            "object",
+            "null"
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

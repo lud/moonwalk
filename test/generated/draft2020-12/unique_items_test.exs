@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
 
   describe "uniqueItems validation:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "uniqueItems" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "uniqueItems": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -199,11 +202,21 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
 
   describe "uniqueItems with an array of items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -260,12 +273,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
 
   describe "uniqueItems with an array of items and additionalItems=false:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => false,
-        "prefixItems" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": false,
+          "prefixItems": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -304,10 +327,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
 
   describe "uniqueItems=false validation:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "uniqueItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "uniqueItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -414,11 +440,21 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
 
   describe "uniqueItems=false with an array of items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -475,12 +511,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UniqueItemsTest do
 
   describe "uniqueItems=false with an array of items and additionalItems=false:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => false,
-        "prefixItems" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": false,
+          "prefixItems": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems true:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "unevaluatedItems" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "unevaluatedItems": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -35,10 +38,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems false:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -59,10 +65,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems as schema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "unevaluatedItems" => %{"type" => "string"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "unevaluatedItems": {
+            "type": "string"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -89,11 +100,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with uniform items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => %{"type" => "string"},
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": {
+            "type": "string"
+          },
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -108,11 +124,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with tuple:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "string"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            {
+              "type": "string"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -133,12 +156,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with items and prefixItems:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => true,
-        "prefixItems" => [%{"type" => "string"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": true,
+          "prefixItems": [
+            {
+              "type": "string"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -153,11 +183,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => %{"type" => "number"},
-        "unevaluatedItems" => %{"type" => "string"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": {
+            "type": "number"
+          },
+          "unevaluatedItems": {
+            "type": "string"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -178,12 +215,28 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with nested tuple:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [%{"prefixItems" => [true, %{"type" => "number"}]}],
-        "prefixItems" => [%{"type" => "string"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "allOf": [
+            {
+              "prefixItems": [
+                true,
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          ],
+          "prefixItems": [
+            {
+              "type": "string"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -204,11 +257,23 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with nested items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [%{"items" => %{"type" => "string"}}, true],
-        "unevaluatedItems" => %{"type" => "boolean"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              }
+            },
+            true
+          ],
+          "unevaluatedItems": {
+            "type": "boolean"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -235,11 +300,23 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with nested prefixItems and items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [%{"items" => true, "prefixItems" => [%{"type" => "string"}]}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "allOf": [
+            {
+              "items": true,
+              "prefixItems": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -260,14 +337,25 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with nested unevaluatedItems:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [
-          %{"prefixItems" => [%{"type" => "string"}]},
-          %{"unevaluatedItems" => true}
-        ],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "allOf": [
+            {
+              "prefixItems": [
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "unevaluatedItems": true
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -288,15 +376,37 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with anyOf:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [
-          %{"prefixItems" => [true, %{"const" => "bar"}]},
-          %{"prefixItems" => [true, true, %{"const" => "baz"}]}
-        ],
-        "prefixItems" => [%{"const" => "foo"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            {
+              "prefixItems": [
+                true,
+                {
+                  "const": "bar"
+                }
+              ]
+            },
+            {
+              "prefixItems": [
+                true,
+                true,
+                {
+                  "const": "baz"
+                }
+              ]
+            }
+          ],
+          "prefixItems": [
+            {
+              "const": "foo"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -329,15 +439,36 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with oneOf:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [
-          %{"prefixItems" => [true, %{"const" => "bar"}]},
-          %{"prefixItems" => [true, %{"const" => "baz"}]}
-        ],
-        "prefixItems" => [%{"const" => "foo"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            {
+              "prefixItems": [
+                true,
+                {
+                  "const": "bar"
+                }
+              ]
+            },
+            {
+              "prefixItems": [
+                true,
+                {
+                  "const": "baz"
+                }
+              ]
+            }
+          ],
+          "prefixItems": [
+            {
+              "const": "foo"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -358,12 +489,28 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with not:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "not" => %{"not" => %{"prefixItems" => [true, %{"const" => "bar"}]}},
-        "prefixItems" => [%{"const" => "foo"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": {
+            "not": {
+              "prefixItems": [
+                true,
+                {
+                  "const": "bar"
+                }
+              ]
+            }
+          },
+          "prefixItems": [
+            {
+              "const": "foo"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -378,14 +525,45 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with if/then/else:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "else" => %{"prefixItems" => [true, true, true, %{"const" => "else"}]},
-        "if" => %{"prefixItems" => [true, %{"const" => "bar"}]},
-        "prefixItems" => [%{"const" => "foo"}],
-        "then" => %{"prefixItems" => [true, true, %{"const" => "then"}]},
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "else": {
+            "prefixItems": [
+              true,
+              true,
+              true,
+              {
+                "const": "else"
+              }
+            ]
+          },
+          "if": {
+            "prefixItems": [
+              true,
+              {
+                "const": "bar"
+              }
+            ]
+          },
+          "prefixItems": [
+            {
+              "const": "foo"
+            }
+          ],
+          "then": {
+            "prefixItems": [
+              true,
+              true,
+              {
+                "const": "then"
+              }
+            ]
+          },
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -418,11 +596,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with boolean schemas:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [true],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "allOf": [
+            true
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -443,13 +626,29 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with $ref:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"bar" => %{"prefixItems" => [true, %{"type" => "string"}]}},
-        "$ref" => "#/$defs/bar",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "string"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "bar": {
+              "prefixItems": [
+                true,
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "$ref": "#/$defs/bar",
+          "prefixItems": [
+            {
+              "type": "string"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -470,13 +669,29 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems before $ref:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"bar" => %{"prefixItems" => [true, %{"type" => "string"}]}},
-        "$ref" => "#/$defs/bar",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "string"}],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "bar": {
+              "prefixItems": [
+                true,
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "$ref": "#/$defs/bar",
+          "prefixItems": [
+            {
+              "type": "string"
+            }
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -497,32 +712,43 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with $dynamicRef:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "baseSchema" => %{
-            "$comment" =>
-              "unevaluatedItems comes first so it's more likely to catch bugs with implementations that are sensitive to keyword ordering",
-            "$defs" => %{
-              "defaultAddons" => %{
-                "$comment" => "Needed to satisfy the bookending requirement",
-                "$dynamicAnchor" => "addons"
-              }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://example.com/unevaluated-items-with-dynamic-ref/derived",
+          "$defs": {
+            "baseSchema": {
+              "$id": "./baseSchema",
+              "$defs": {
+                "defaultAddons": {
+                  "$comment": "Needed to satisfy the bookending requirement",
+                  "$dynamicAnchor": "addons"
+                }
+              },
+              "type": "array",
+              "$comment": "unevaluatedItems comes first so it's more likely to catch bugs with implementations that are sensitive to keyword ordering",
+              "$dynamicRef": "#addons",
+              "prefixItems": [
+                {
+                  "type": "string"
+                }
+              ],
+              "unevaluatedItems": false
             },
-            "$dynamicRef" => "#addons",
-            "$id" => "./baseSchema",
-            "prefixItems" => [%{"type" => "string"}],
-            "type" => "array",
-            "unevaluatedItems" => false
+            "derived": {
+              "$dynamicAnchor": "addons",
+              "prefixItems": [
+                true,
+                {
+                  "type": "string"
+                }
+              ]
+            }
           },
-          "derived" => %{
-            "$dynamicAnchor" => "addons",
-            "prefixItems" => [true, %{"type" => "string"}]
-          }
-        },
-        "$id" => "https://example.com/unevaluated-items-with-dynamic-ref/derived",
-        "$ref" => "./baseSchema",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+          "$ref": "./baseSchema"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -543,10 +769,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems can't see inside cousins:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [%{"prefixItems" => [true]}, %{"unevaluatedItems" => false}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "allOf": [
+            {
+              "prefixItems": [
+                true
+              ]
+            },
+            {
+              "unevaluatedItems": false
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -561,22 +799,36 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "item is evaluated in an uncle schema to unevaluatedItems:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [
-          %{
-            "properties" => %{
-              "foo" => %{"prefixItems" => [true, %{"type" => "string"}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "anyOf": [
+            {
+              "properties": {
+                "foo": {
+                  "prefixItems": [
+                    true,
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "properties": {
+            "foo": {
+              "prefixItems": [
+                {
+                  "type": "string"
+                }
+              ],
+              "unevaluatedItems": false
             }
           }
-        ],
-        "properties" => %{
-          "foo" => %{
-            "prefixItems" => [%{"type" => "string"}],
-            "unevaluatedItems" => false
-          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -597,12 +849,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems depends on adjacent contains:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => %{"type" => "string"},
-        "prefixItems" => [true],
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": {
+            "type": "string"
+          },
+          "prefixItems": [
+            true
+          ],
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -629,14 +888,27 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems depends on multiple nested contains:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [
-          %{"contains" => %{"multipleOf" => 2}},
-          %{"contains" => %{"multipleOf" => 3}}
-        ],
-        "unevaluatedItems" => %{"multipleOf" => 5}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "allOf": [
+            {
+              "contains": {
+                "multipleOf": 2
+              }
+            },
+            {
+              "contains": {
+                "multipleOf": 3
+              }
+            }
+          ],
+          "unevaluatedItems": {
+            "multipleOf": 5
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -657,15 +929,32 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems and contains interact to control item dependency relationship:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "if" => %{"contains" => %{"const" => "a"}},
-        "then" => %{
-          "if" => %{"contains" => %{"const" => "b"}},
-          "then" => %{"if" => %{"contains" => %{"const" => "c"}}}
-        },
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "if": {
+            "contains": {
+              "const": "a"
+            }
+          },
+          "then": {
+            "if": {
+              "contains": {
+                "const": "b"
+              }
+            },
+            "then": {
+              "if": {
+                "contains": {
+                  "const": "c"
+                }
+              }
+            }
+          },
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -722,10 +1011,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "non-array instances are valid:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -770,10 +1062,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems with null instance elements:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "unevaluatedItems" => %{"type" => "null"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "unevaluatedItems": {
+            "type": "null"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -788,11 +1085,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.UnevaluatedItemsTest do
 
   describe "unevaluatedItems can see annotations from if without then and else:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "if" => %{"prefixItems" => [%{"const" => "a"}]},
-        "unevaluatedItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "if": {
+            "prefixItems": [
+              {
+                "const": "a"
+              }
+            ]
+          },
+          "unevaluatedItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

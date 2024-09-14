@@ -11,7 +11,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "ignore if without then or else:" do
     setup do
-      json_schema = %{"if" => %{"const" => 0}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "if": {
+            "const": 0
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -31,7 +39,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "ignore then without if:" do
     setup do
-      json_schema = %{"then" => %{"const" => 0}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "then": {
+            "const": 0
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -51,7 +67,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "ignore else without if:" do
     setup do
-      json_schema = %{"else" => %{"const" => 0}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "else": {
+            "const": 0
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -71,7 +95,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "if and then without else:" do
     setup do
-      json_schema = %{"if" => %{"exclusiveMaximum" => 0}, "then" => %{"minimum" => -10}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "if": {
+            "exclusiveMaximum": 0
+          },
+          "then": {
+            "minimum": -10
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -97,7 +132,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "if and else without then:" do
     setup do
-      json_schema = %{"else" => %{"multipleOf" => 2}, "if" => %{"exclusiveMaximum" => 0}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "else": {
+            "multipleOf": 2
+          },
+          "if": {
+            "exclusiveMaximum": 0
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -123,11 +169,20 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "validate against correct branch, then vs else:" do
     setup do
-      json_schema = %{
-        "else" => %{"multipleOf" => 2},
-        "if" => %{"exclusiveMaximum" => 0},
-        "then" => %{"minimum" => -10}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "else": {
+            "multipleOf": 2
+          },
+          "if": {
+            "exclusiveMaximum": 0
+          },
+          "then": {
+            "minimum": -10
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -160,13 +215,28 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "non-interference across combined schemas:" do
     setup do
-      json_schema = %{
-        "allOf" => [
-          %{"if" => %{"exclusiveMaximum" => 0}},
-          %{"then" => %{"minimum" => -10}},
-          %{"else" => %{"multipleOf" => 2}}
-        ]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {
+              "if": {
+                "exclusiveMaximum": 0
+              }
+            },
+            {
+              "then": {
+                "minimum": -10
+              }
+            },
+            {
+              "else": {
+                "multipleOf": 2
+              }
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -187,7 +257,19 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "if with boolean schema true:" do
     setup do
-      json_schema = %{"else" => %{"const" => "else"}, "if" => true, "then" => %{"const" => "then"}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "else": {
+            "const": "else"
+          },
+          "if": true,
+          "then": {
+            "const": "then"
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -207,7 +289,19 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "if with boolean schema false:" do
     setup do
-      json_schema = %{"else" => %{"const" => "else"}, "if" => false, "then" => %{"const" => "then"}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "else": {
+            "const": "else"
+          },
+          "if": false,
+          "then": {
+            "const": "then"
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -227,11 +321,20 @@ defmodule Elixir.Moonwalk.Generated.Draft7.IfThenElseTest do
 
   describe "if appears at the end when serialized (keyword processing sequence):" do
     setup do
-      json_schema = %{
-        "else" => %{"const" => "other"},
-        "if" => %{"maxLength" => 4},
-        "then" => %{"const" => "yes"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "else": {
+            "const": "other"
+          },
+          "if": {
+            "maxLength": 4
+          },
+          "then": {
+            "const": "yes"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

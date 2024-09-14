@@ -11,10 +11,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefaultTest do
 
   describe "invalid type for default:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{"default" => [], "type" => "integer"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "foo": {
+              "type": "integer",
+              "default": []
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -35,12 +43,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefaultTest do
 
   describe "invalid string value for default:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "bar" => %{"default" => "bad", "minLength" => 4, "type" => "string"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "bar": {
+              "type": "string",
+              "default": "bad",
+              "minLength": 4
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -61,13 +76,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefaultTest do
 
   describe "the default keyword does not do anything if the property is missing:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "alpha" => %{"default" => 5, "maximum" => 3, "type" => "number"}
-        },
-        "type" => "object"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "alpha": {
+              "type": "number",
+              "default": 5,
+              "maximum": 3
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

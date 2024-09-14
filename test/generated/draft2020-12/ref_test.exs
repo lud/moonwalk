@@ -11,11 +11,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "root pointer ref:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties" => false,
-        "properties" => %{"foo" => %{"$ref" => "#"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "foo": {
+              "$ref": "#"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -48,13 +55,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "relative pointer ref to object:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "bar" => %{"$ref" => "#/properties/foo"},
-          "foo" => %{"type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "bar": {
+              "$ref": "#/properties/foo"
+            },
+            "foo": {
+              "type": "integer"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -75,10 +89,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "relative pointer ref to array:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "integer"}, %{"$ref" => "#/prefixItems/0"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "$ref": "#/prefixItems/0"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -99,19 +123,34 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "escaped pointer ref:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "percent%field" => %{"type" => "integer"},
-          "slash/field" => %{"type" => "integer"},
-          "tilde~field" => %{"type" => "integer"}
-        },
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "percent" => %{"$ref" => "#/$defs/percent%25field"},
-          "slash" => %{"$ref" => "#/$defs/slash~1field"},
-          "tilde" => %{"$ref" => "#/$defs/tilde~0field"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "percent%field": {
+              "type": "integer"
+            },
+            "slash/field": {
+              "type": "integer"
+            },
+            "tilde~field": {
+              "type": "integer"
+            }
+          },
+          "properties": {
+            "percent": {
+              "$ref": "#/$defs/percent%25field"
+            },
+            "slash": {
+              "$ref": "#/$defs/slash~1field"
+            },
+            "tilde": {
+              "$ref": "#/$defs/tilde~0field"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -156,15 +195,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "nested refs:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "a" => %{"type" => "integer"},
-          "b" => %{"$ref" => "#/$defs/a"},
-          "c" => %{"$ref" => "#/$defs/b"}
-        },
-        "$ref" => "#/$defs/c",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "a": {
+              "type": "integer"
+            },
+            "b": {
+              "$ref": "#/$defs/a"
+            },
+            "c": {
+              "$ref": "#/$defs/b"
+            }
+          },
+          "$ref": "#/$defs/c"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -185,11 +233,23 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "ref applies alongside sibling keywords:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"reffed" => %{"type" => "array"}},
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{"$ref" => "#/$defs/reffed", "maxItems" => 2}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "reffed": {
+              "type": "array"
+            }
+          },
+          "properties": {
+            "foo": {
+              "$ref": "#/$defs/reffed",
+              "maxItems": 2
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -216,10 +276,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "remote ref, containing refs itself:" do
     setup do
-      json_schema = %{
-        "$ref" => "https://json-schema.org/draft/2020-12/schema",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$ref": "https://json-schema.org/draft/2020-12/schema"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -240,10 +303,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "property named $ref that is not a reference:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"$ref" => %{"type" => "string"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "$ref": {
+              "type": "string"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -264,11 +334,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "property named $ref, containing an actual $ref:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"is-string" => %{"type" => "string"}},
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"$ref" => %{"$ref" => "#/$defs/is-string"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "is-string": {
+              "type": "string"
+            }
+          },
+          "properties": {
+            "$ref": {
+              "$ref": "#/$defs/is-string"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -289,11 +370,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "$ref to boolean schema true:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"bool" => true},
-        "$ref" => "#/$defs/bool",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "bool": true
+          },
+          "$ref": "#/$defs/bool"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -308,11 +394,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "$ref to boolean schema false:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"bool" => false},
-        "$ref" => "#/$defs/bool",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "bool": false
+          },
+          "$ref": "#/$defs/bool"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -327,29 +418,48 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "Recursive references between schemas:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "node" => %{
-            "$id" => "http://localhost:1234/draft2020-12/node",
-            "description" => "node",
-            "properties" => %{
-              "subtree" => %{"$ref" => "tree"},
-              "value" => %{"type" => "number"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "http://localhost:1234/draft2020-12/tree",
+          "$defs": {
+            "node": {
+              "$id": "http://localhost:1234/draft2020-12/node",
+              "type": "object",
+              "description": "node",
+              "properties": {
+                "subtree": {
+                  "$ref": "tree"
+                },
+                "value": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ]
+            }
+          },
+          "type": "object",
+          "description": "tree of nodes",
+          "properties": {
+            "meta": {
+              "type": "string"
             },
-            "required" => ["value"],
-            "type" => "object"
-          }
-        },
-        "$id" => "http://localhost:1234/draft2020-12/tree",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "description" => "tree of nodes",
-        "properties" => %{
-          "meta" => %{"type" => "string"},
-          "nodes" => %{"items" => %{"$ref" => "node"}, "type" => "array"}
-        },
-        "required" => ["meta", "nodes"],
-        "type" => "object"
-      }
+            "nodes": {
+              "type": "array",
+              "items": {
+                "$ref": "node"
+              }
+            }
+          },
+          "required": [
+            "meta",
+            "nodes"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -408,11 +518,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "refs with quote:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"foo\"bar" => %{"type" => "number"}},
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo\"bar" => %{"$ref" => "#/$defs/foo%22bar"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "foo\"bar": {
+              "type": "number"
+            }
+          },
+          "properties": {
+            "foo\"bar": {
+              "$ref": "#/$defs/foo%22bar"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -433,12 +554,23 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "ref creates new scope when adjacent to keywords:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"A" => %{"unevaluatedProperties" => false}},
-        "$ref" => "#/$defs/A",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"prop1" => %{"type" => "string"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "A": {
+              "unevaluatedProperties": false
+            }
+          },
+          "$ref": "#/$defs/A",
+          "properties": {
+            "prop1": {
+              "type": "string"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -453,11 +585,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "naive replacement of $ref with its destination is not correct:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"a_string" => %{"type" => "string"}},
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "enum" => [%{"$ref" => "#/$defs/a_string"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "a_string": {
+              "type": "string"
+            }
+          },
+          "enum": [
+            {
+              "$ref": "#/$defs/a_string"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -484,20 +627,29 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "refs with relative uris and defs:" do
     setup do
-      json_schema = %{
-        "$id" => "http://example.com/schema-relative-uri-defs1.json",
-        "$ref" => "schema-relative-uri-defs2.json",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "foo" => %{
-            "$defs" => %{
-              "inner" => %{"properties" => %{"bar" => %{"type" => "string"}}}
-            },
-            "$id" => "schema-relative-uri-defs2.json",
-            "$ref" => "#/$defs/inner"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "http://example.com/schema-relative-uri-defs1.json",
+          "$ref": "schema-relative-uri-defs2.json",
+          "properties": {
+            "foo": {
+              "$id": "schema-relative-uri-defs2.json",
+              "$defs": {
+                "inner": {
+                  "properties": {
+                    "bar": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "$ref": "#/$defs/inner"
+            }
           }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -524,20 +676,29 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "relative refs with absolute uris and defs:" do
     setup do
-      json_schema = %{
-        "$id" => "http://example.com/schema-refs-absolute-uris-defs1.json",
-        "$ref" => "schema-refs-absolute-uris-defs2.json",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "foo" => %{
-            "$defs" => %{
-              "inner" => %{"properties" => %{"bar" => %{"type" => "string"}}}
-            },
-            "$id" => "http://example.com/schema-refs-absolute-uris-defs2.json",
-            "$ref" => "#/$defs/inner"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "http://example.com/schema-refs-absolute-uris-defs1.json",
+          "$ref": "schema-refs-absolute-uris-defs2.json",
+          "properties": {
+            "foo": {
+              "$id": "http://example.com/schema-refs-absolute-uris-defs2.json",
+              "$defs": {
+                "inner": {
+                  "properties": {
+                    "bar": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "$ref": "#/$defs/inner"
+            }
           }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -564,17 +725,31 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "$id must be resolved against nearest parent, not just immediate parent:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "x" => %{
-            "$id" => "http://example.com/b/c.json",
-            "not" => %{"$defs" => %{"y" => %{"$id" => "d.json", "type" => "number"}}}
-          }
-        },
-        "$id" => "http://example.com/a.json",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [%{"$ref" => "http://example.com/b/d.json"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "http://example.com/a.json",
+          "$defs": {
+            "x": {
+              "$id": "http://example.com/b/c.json",
+              "not": {
+                "$defs": {
+                  "y": {
+                    "$id": "d.json",
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "http://example.com/b/d.json"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -595,24 +770,27 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "order of evaluation: $id and $ref:" do
     setup do
-      json_schema = %{
-        "$comment" => "$id must be evaluated before $ref to get the proper $ref destination",
-        "$defs" => %{
-          "bigint" => %{
-            "$comment" => "canonical uri: https://example.com/ref-and-id1/int.json",
-            "$id" => "int.json",
-            "maximum" => 10
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://example.com/draft2020-12/ref-and-id1/base.json",
+          "$defs": {
+            "bigint": {
+              "$id": "int.json",
+              "$comment": "canonical uri: https://example.com/ref-and-id1/int.json",
+              "maximum": 10
+            },
+            "smallint": {
+              "$id": "/draft2020-12/ref-and-id1-int.json",
+              "$comment": "canonical uri: https://example.com/ref-and-id1-int.json",
+              "maximum": 2
+            }
           },
-          "smallint" => %{
-            "$comment" => "canonical uri: https://example.com/ref-and-id1-int.json",
-            "$id" => "/draft2020-12/ref-and-id1-int.json",
-            "maximum" => 2
-          }
-        },
-        "$id" => "https://example.com/draft2020-12/ref-and-id1/base.json",
-        "$ref" => "int.json",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+          "$comment": "$id must be evaluated before $ref to get the proper $ref destination",
+          "$ref": "int.json"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -633,27 +811,28 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "order of evaluation: $id and $anchor and $ref:" do
     setup do
-      json_schema = %{
-        "$comment" => "$id must be evaluated before $ref to get the proper $ref destination",
-        "$defs" => %{
-          "bigint" => %{
-            "$anchor" => "bigint",
-            "$comment" =>
-              "canonical uri: /ref-and-id2/base.json#/$defs/bigint; another valid uri for this location: /ref-and-id2/base.json#bigint",
-            "maximum" => 10
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://example.com/draft2020-12/ref-and-id2/base.json",
+          "$defs": {
+            "bigint": {
+              "$anchor": "bigint",
+              "$comment": "canonical uri: /ref-and-id2/base.json#/$defs/bigint; another valid uri for this location: /ref-and-id2/base.json#bigint",
+              "maximum": 10
+            },
+            "smallint": {
+              "$id": "https://example.com/draft2020-12/ref-and-id2/",
+              "$anchor": "bigint",
+              "$comment": "canonical uri: https://example.com/ref-and-id2#/$defs/smallint; another valid uri for this location: https://example.com/ref-and-id2/#bigint",
+              "maximum": 2
+            }
           },
-          "smallint" => %{
-            "$anchor" => "bigint",
-            "$comment" =>
-              "canonical uri: https://example.com/ref-and-id2#/$defs/smallint; another valid uri for this location: https://example.com/ref-and-id2/#bigint",
-            "$id" => "https://example.com/draft2020-12/ref-and-id2/",
-            "maximum" => 2
-          }
-        },
-        "$id" => "https://example.com/draft2020-12/ref-and-id2/base.json",
-        "$ref" => "#bigint",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+          "$comment": "$id must be evaluated before $ref to get the proper $ref destination",
+          "$ref": "#bigint"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -674,15 +853,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "simple URN base URI with $ref via the URN:" do
     setup do
-      json_schema = %{
-        "$comment" => "URIs do not have to have HTTP(s) schemes",
-        "$id" => "urn:uuid:deadbeef-1234-ffff-ffff-4321feebdaed",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "minimum" => 30,
-        "properties" => %{
-          "foo" => %{"$ref" => "urn:uuid:deadbeef-1234-ffff-ffff-4321feebdaed"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:uuid:deadbeef-1234-ffff-ffff-4321feebdaed",
+          "$comment": "URIs do not have to have HTTP(s) schemes",
+          "minimum": 30,
+          "properties": {
+            "foo": {
+              "$ref": "urn:uuid:deadbeef-1234-ffff-ffff-4321feebdaed"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -703,13 +887,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "simple URN base URI with JSON pointer:" do
     setup do
-      json_schema = %{
-        "$comment" => "URIs do not have to have HTTP(s) schemes",
-        "$defs" => %{"bar" => %{"type" => "string"}},
-        "$id" => "urn:uuid:deadbeef-1234-00ff-ff00-4321feebdaed",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:uuid:deadbeef-1234-00ff-ff00-4321feebdaed",
+          "$defs": {
+            "bar": {
+              "type": "string"
+            }
+          },
+          "$comment": "URIs do not have to have HTTP(s) schemes",
+          "properties": {
+            "foo": {
+              "$ref": "#/$defs/bar"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -730,13 +925,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "URN base URI with NSS:" do
     setup do
-      json_schema = %{
-        "$comment" => "RFC 8141 §2.2",
-        "$defs" => %{"bar" => %{"type" => "string"}},
-        "$id" => "urn:example:1/406/47452/2",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:example:1/406/47452/2",
+          "$defs": {
+            "bar": {
+              "type": "string"
+            }
+          },
+          "$comment": "RFC 8141 §2.2",
+          "properties": {
+            "foo": {
+              "$ref": "#/$defs/bar"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -757,13 +963,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "URN base URI with r-component:" do
     setup do
-      json_schema = %{
-        "$comment" => "RFC 8141 §2.3.1",
-        "$defs" => %{"bar" => %{"type" => "string"}},
-        "$id" => "urn:example:foo-bar-baz-qux?+CCResolve:cc=uk",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:example:foo-bar-baz-qux?+CCResolve:cc=uk",
+          "$defs": {
+            "bar": {
+              "type": "string"
+            }
+          },
+          "$comment": "RFC 8141 §2.3.1",
+          "properties": {
+            "foo": {
+              "$ref": "#/$defs/bar"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -784,13 +1001,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "URN base URI with q-component:" do
     setup do
-      json_schema = %{
-        "$comment" => "RFC 8141 §2.3.2",
-        "$defs" => %{"bar" => %{"type" => "string"}},
-        "$id" => "urn:example:weather?=op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{"$ref" => "#/$defs/bar"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:example:weather?=op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z",
+          "$defs": {
+            "bar": {
+              "type": "string"
+            }
+          },
+          "$comment": "RFC 8141 §2.3.2",
+          "properties": {
+            "foo": {
+              "$ref": "#/$defs/bar"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -811,16 +1039,23 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "URN base URI with URN and JSON pointer ref:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"bar" => %{"type" => "string"}},
-        "$id" => "urn:uuid:deadbeef-1234-0000-0000-4321feebdaed",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "foo" => %{
-            "$ref" => "urn:uuid:deadbeef-1234-0000-0000-4321feebdaed#/$defs/bar"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:uuid:deadbeef-1234-0000-0000-4321feebdaed",
+          "$defs": {
+            "bar": {
+              "type": "string"
+            }
+          },
+          "properties": {
+            "foo": {
+              "$ref": "urn:uuid:deadbeef-1234-0000-0000-4321feebdaed#/$defs/bar"
+            }
           }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -841,16 +1076,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "URN base URI with URN and anchor ref:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"bar" => %{"$anchor" => "something", "type" => "string"}},
-        "$id" => "urn:uuid:deadbeef-1234-ff00-00ff-4321feebdaed",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{
-          "foo" => %{
-            "$ref" => "urn:uuid:deadbeef-1234-ff00-00ff-4321feebdaed#something"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:uuid:deadbeef-1234-ff00-00ff-4321feebdaed",
+          "$defs": {
+            "bar": {
+              "type": "string",
+              "$anchor": "something"
+            }
+          },
+          "properties": {
+            "foo": {
+              "$ref": "urn:uuid:deadbeef-1234-ff00-00ff-4321feebdaed#something"
+            }
           }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -871,17 +1114,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "URN ref with nested pointer ref:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "foo" => %{
-            "$defs" => %{"bar" => %{"type" => "string"}},
-            "$id" => "urn:uuid:deadbeef-4321-ffff-ffff-1234feebdaed",
-            "$ref" => "#/$defs/bar"
-          }
-        },
-        "$ref" => "urn:uuid:deadbeef-4321-ffff-ffff-1234feebdaed",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "foo": {
+              "$id": "urn:uuid:deadbeef-4321-ffff-ffff-1234feebdaed",
+              "$defs": {
+                "bar": {
+                  "type": "string"
+                }
+              },
+              "$ref": "#/$defs/bar"
+            }
+          },
+          "$ref": "urn:uuid:deadbeef-4321-ffff-ffff-1234feebdaed"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -902,11 +1152,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "ref to if:" do
     setup do
-      json_schema = %{
-        "$ref" => "http://example.com/ref/if",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "if" => %{"$id" => "http://example.com/ref/if", "type" => "integer"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$ref": "http://example.com/ref/if",
+          "if": {
+            "$id": "http://example.com/ref/if",
+            "type": "integer"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -927,11 +1183,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "ref to then:" do
     setup do
-      json_schema = %{
-        "$ref" => "http://example.com/ref/then",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "then" => %{"$id" => "http://example.com/ref/then", "type" => "integer"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$ref": "http://example.com/ref/then",
+          "then": {
+            "$id": "http://example.com/ref/then",
+            "type": "integer"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -952,11 +1214,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "ref to else:" do
     setup do
-      json_schema = %{
-        "$ref" => "http://example.com/ref/else",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "else" => %{"$id" => "http://example.com/ref/else", "type" => "integer"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$ref": "http://example.com/ref/else",
+          "else": {
+            "$id": "http://example.com/ref/else",
+            "type": "integer"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -977,21 +1245,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "ref with absolute-path-reference:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "a" => %{
-            "$id" => "http://example.com/ref/absref/foobar.json",
-            "type" => "number"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "http://example.com/ref/absref.json",
+          "$defs": {
+            "a": {
+              "$id": "http://example.com/ref/absref/foobar.json",
+              "type": "number"
+            },
+            "b": {
+              "$id": "http://example.com/absref/foobar.json",
+              "type": "string"
+            }
           },
-          "b" => %{
-            "$id" => "http://example.com/absref/foobar.json",
-            "type" => "string"
-          }
-        },
-        "$id" => "http://example.com/ref/absref.json",
-        "$ref" => "/absref/foobar.json",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+          "$ref": "/absref/foobar.json"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -1012,12 +1283,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "$id with file URI still resolves pointers - *nix:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"foo" => %{"type" => "number"}},
-        "$id" => "file:///folder/file.json",
-        "$ref" => "#/$defs/foo",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "file:///folder/file.json",
+          "$defs": {
+            "foo": {
+              "type": "number"
+            }
+          },
+          "$ref": "#/$defs/foo"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -1038,12 +1316,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "$id with file URI still resolves pointers - windows:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"foo" => %{"type" => "number"}},
-        "$id" => "file:///c:/folder/file.json",
-        "$ref" => "#/$defs/foo",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "file:///c:/folder/file.json",
+          "$defs": {
+            "foo": {
+              "type": "number"
+            }
+          },
+          "$ref": "#/$defs/foo"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -1064,11 +1349,26 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RefTest do
 
   describe "empty tokens in $ref json-pointer:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"" => %{"$defs" => %{"" => %{"type" => "number"}}}},
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [%{"$ref" => "#/$defs//$defs/"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "": {
+              "$defs": {
+                "": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs//$defs/"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

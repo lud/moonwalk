@@ -11,10 +11,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "a schema given for items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => %{"type" => "integer"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": {
+            "type": "integer"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -47,7 +52,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "items with boolean schema (true):" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "items" => true}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": true
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -67,7 +79,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "items with boolean schema (false):" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "items" => false}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": false
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -87,27 +106,45 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "items and subitems:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "item" => %{
-            "items" => false,
-            "prefixItems" => [
-              %{"$ref" => "#/$defs/sub-item"},
-              %{"$ref" => "#/$defs/sub-item"}
-            ],
-            "type" => "array"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "item": {
+              "type": "array",
+              "items": false,
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/sub-item"
+                },
+                {
+                  "$ref": "#/$defs/sub-item"
+                }
+              ]
+            },
+            "sub-item": {
+              "type": "object",
+              "required": [
+                "foo"
+              ]
+            }
           },
-          "sub-item" => %{"required" => ["foo"], "type" => "object"}
-        },
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => false,
-        "prefixItems" => [
-          %{"$ref" => "#/$defs/item"},
-          %{"$ref" => "#/$defs/item"},
-          %{"$ref" => "#/$defs/item"}
-        ],
-        "type" => "array"
-      }
+          "type": "array",
+          "items": false,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/item"
+            },
+            {
+              "$ref": "#/$defs/item"
+            },
+            {
+              "$ref": "#/$defs/item"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -178,17 +215,25 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "nested items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => %{
-          "items" => %{
-            "items" => %{"items" => %{"type" => "number"}, "type" => "array"},
-            "type" => "array"
-          },
-          "type" => "array"
-        },
-        "type" => "array"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -215,11 +260,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "prefixItems with no additional items allowed:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => false,
-        "prefixItems" => [%{}, %{}, %{}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": false,
+          "prefixItems": [
+            {},
+            {},
+            {}
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -258,11 +310,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "items does not look in applicators, valid case:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "allOf" => [%{"prefixItems" => [%{"minimum" => 3}]}],
-        "items" => %{"minimum" => 5}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "allOf": [
+            {
+              "prefixItems": [
+                {
+                  "minimum": 3
+                }
+              ]
+            }
+          ],
+          "items": {
+            "minimum": 5
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -283,11 +348,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "prefixItems validation adjusts the starting index for items:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => %{"type" => "integer"},
-        "prefixItems" => [%{"type" => "string"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": {
+            "type": "integer"
+          },
+          "prefixItems": [
+            {
+              "type": "string"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -308,11 +382,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "items with heterogeneous array:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => false,
-        "prefixItems" => [%{}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": false,
+          "prefixItems": [
+            {}
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -333,10 +412,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ItemsTest do
 
   describe "items with null instance elements:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "items" => %{"type" => "null"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "items": {
+            "type": "null"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

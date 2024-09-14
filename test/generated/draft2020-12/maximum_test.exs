@@ -11,7 +11,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaximumTest do
 
   describe "maximum validation:" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "maximum" => 3.0}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "maximum": 3.0
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -43,7 +50,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.MaximumTest do
 
   describe "maximum validation with unsigned integer:" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "maximum" => 300}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "maximum": 300
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

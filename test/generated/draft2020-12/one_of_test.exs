@@ -11,10 +11,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [%{"type" => "integer"}, %{"minimum" => 2}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "minimum": 2
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -47,11 +57,21 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with base schema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [%{"minLength" => 2}, %{"maxLength" => 4}],
-        "type" => "string"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "string",
+          "oneOf": [
+            {
+              "minLength": 2
+            },
+            {
+              "maxLength": 4
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -78,10 +98,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with boolean schemas, all true:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [true, true, true]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            true,
+            true,
+            true
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -96,10 +123,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with boolean schemas, one true:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [true, false, false]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            true,
+            false,
+            false
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -114,10 +148,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with boolean schemas, more than one true:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [true, true, false]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            true,
+            true,
+            false
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -132,10 +173,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with boolean schemas, all false:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [false, false, false]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            false,
+            false,
+            false
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -150,13 +198,34 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf complex types:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [
-          %{"properties" => %{"bar" => %{"type" => "integer"}}, "required" => ["bar"]},
-          %{"properties" => %{"foo" => %{"type" => "string"}}, "required" => ["foo"]}
-        ]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            {
+              "properties": {
+                "bar": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "bar"
+              ]
+            },
+            {
+              "properties": {
+                "foo": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "foo"
+              ]
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -189,10 +258,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with empty schema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [%{"type" => "number"}, %{}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {}
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -213,11 +290,27 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with required:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [%{"required" => ["foo", "bar"]}, %{"required" => ["foo", "baz"]}],
-        "type" => "object"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "foo",
+                "bar"
+              ]
+            },
+            {
+              "required": [
+                "foo",
+                "baz"
+              ]
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -250,13 +343,31 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "oneOf with missing optional property:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [
-          %{"properties" => %{"bar" => true, "baz" => true}, "required" => ["bar"]},
-          %{"properties" => %{"foo" => true}, "required" => ["foo"]}
-        ]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            {
+              "properties": {
+                "bar": true,
+                "baz": true
+              },
+              "required": [
+                "bar"
+              ]
+            },
+            {
+              "properties": {
+                "foo": true
+              },
+              "required": [
+                "foo"
+              ]
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -289,10 +400,21 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.OneOfTest do
 
   describe "nested oneOf, to check validation semantics:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "oneOf" => [%{"oneOf" => [%{"type" => "null"}]}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "oneOf": [
+            {
+              "oneOf": [
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

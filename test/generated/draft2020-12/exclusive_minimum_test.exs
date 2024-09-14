@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ExclusiveMinimumTest do
 
   describe "exclusiveMinimum validation:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "exclusiveMinimum" => 1.1
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "exclusiveMinimum": 1.1
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

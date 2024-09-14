@@ -11,12 +11,19 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
 
   describe "object properties validation:" do
     setup do
-      json_schema = %{
-        "properties" => %{
-          "bar" => %{"type" => "string"},
-          "foo" => %{"type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "bar": {
+              "type": "string"
+            },
+            "foo": {
+              "type": "integer"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -61,14 +68,28 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
 
   describe "properties, patternProperties, additionalProperties interaction:" do
     setup do
-      json_schema = %{
-        "additionalProperties" => %{"type" => "integer"},
-        "patternProperties" => %{"f.o" => %{"minItems" => 2}},
-        "properties" => %{
-          "bar" => %{"type" => "array"},
-          "foo" => %{"maxItems" => 3, "type" => "array"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "patternProperties": {
+            "f.o": {
+              "minItems": 2
+            }
+          },
+          "properties": {
+            "bar": {
+              "type": "array"
+            },
+            "foo": {
+              "type": "array",
+              "maxItems": 3
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -125,7 +146,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
 
   describe "properties with boolean schema:" do
     setup do
-      json_schema = %{"properties" => %{"bar" => false, "foo" => true}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "bar": false,
+            "foo": true
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -157,16 +187,31 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
 
   describe "properties with escaped characters:" do
     setup do
-      json_schema = %{
-        "properties" => %{
-          "foo\tbar" => %{"type" => "number"},
-          "foo\nbar" => %{"type" => "number"},
-          "foo\fbar" => %{"type" => "number"},
-          "foo\rbar" => %{"type" => "number"},
-          "foo\"bar" => %{"type" => "number"},
-          "foo\\bar" => %{"type" => "number"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "foo\tbar": {
+              "type": "number"
+            },
+            "foo\nbar": {
+              "type": "number"
+            },
+            "foo\fbar": {
+              "type": "number"
+            },
+            "foo\rbar": {
+              "type": "number"
+            },
+            "foo\"bar": {
+              "type": "number"
+            },
+            "foo\\bar": {
+              "type": "number"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -203,7 +248,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
 
   describe "properties with null valued instance properties:" do
     setup do
-      json_schema = %{"properties" => %{"foo" => %{"type" => "null"}}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "foo": {
+              "type": "null"
+            }
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -217,13 +272,26 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PropertiesTest do
 
   describe "properties whose names are Javascript object property names:" do
     setup do
-      json_schema = %{
-        "properties" => %{
-          "__proto__" => %{"type" => "number"},
-          "constructor" => %{"type" => "number"},
-          "toString" => %{"properties" => %{"length" => %{"type" => "string"}}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "__proto__": {
+              "type": "number"
+            },
+            "constructor": {
+              "type": "number"
+            },
+            "toString": {
+              "properties": {
+                "length": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

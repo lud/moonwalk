@@ -11,14 +11,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.VocabularyTest do
 
   describe "schema that uses custom metaschema with with no validation vocabulary:" do
     setup do
-      json_schema = %{
-        "$id" => "https://schema/using/no/validation",
-        "$schema" => "http://localhost:1234/draft2020-12/metaschema-no-validation.json",
-        "properties" => %{
-          "badProperty" => false,
-          "numberProperty" => %{"minimum" => 10}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "http://localhost:1234/draft2020-12/metaschema-no-validation.json",
+          "$id": "https://schema/using/no/validation",
+          "properties": {
+            "badProperty": false,
+            "numberProperty": {
+              "minimum": 10
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -45,10 +50,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.VocabularyTest do
 
   describe "ignore unrecognized optional vocabulary:" do
     setup do
-      json_schema = %{
-        "$schema" => "http://localhost:1234/draft2020-12/metaschema-optional-vocabulary.json",
-        "type" => "number"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "http://localhost:1234/draft2020-12/metaschema-optional-vocabulary.json",
+          "type": "number"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

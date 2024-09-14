@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DateTimeTest do
 
   describe "validation of date-time strings:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "format" => "date-time"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "format": "date-time"
+        }
+        """)
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,

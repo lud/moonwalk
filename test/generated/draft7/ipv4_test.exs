@@ -11,7 +11,12 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Ipv4Test do
 
   describe "validation of IP addresses:" do
     setup do
-      json_schema = %{"format" => "ipv4"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "format": "ipv4"
+        }
+        """)
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,

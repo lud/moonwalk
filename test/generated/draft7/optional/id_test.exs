@@ -11,32 +11,39 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.IdTest do
 
   describe "id inside an enum is not a real identifier:" do
     setup do
-      json_schema = %{
-        "anyOf" => [
-          %{"$ref" => "#/definitions/id_in_enum"},
-          %{"$ref" => "https://localhost:1234/id/my_identifier.json"}
-        ],
-        "definitions" => %{
-          "id_in_enum" => %{
-            "enum" => [
-              %{
-                "$id" => "https://localhost:1234/id/my_identifier.json",
-                "type" => "null"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "definitions": {
+            "id_in_enum": {
+              "enum": [
+                {
+                  "$id": "https://localhost:1234/id/my_identifier.json",
+                  "type": "null"
+                }
+              ]
+            },
+            "real_id_in_schema": {
+              "$id": "https://localhost:1234/id/my_identifier.json",
+              "type": "string"
+            },
+            "zzz_id_in_const": {
+              "const": {
+                "$id": "https://localhost:1234/id/my_identifier.json",
+                "type": "null"
               }
-            ]
-          },
-          "real_id_in_schema" => %{
-            "$id" => "https://localhost:1234/id/my_identifier.json",
-            "type" => "string"
-          },
-          "zzz_id_in_const" => %{
-            "const" => %{
-              "$id" => "https://localhost:1234/id/my_identifier.json",
-              "type" => "null"
             }
-          }
+          },
+          "anyOf": [
+            {
+              "$ref": "#/definitions/id_in_enum"
+            },
+            {
+              "$ref": "https://localhost:1234/id/my_identifier.json"
+            }
+          ]
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -63,14 +70,25 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.IdTest do
 
   describe "non-schema object containing a plain-name $id property:" do
     setup do
-      json_schema = %{
-        "definitions" => %{
-          "const_not_anchor" => %{"const" => %{"$id" => "#not_a_real_anchor"}}
-        },
-        "else" => %{"$ref" => "#/definitions/const_not_anchor"},
-        "if" => %{"const" => "skip not_a_real_anchor"},
-        "then" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "definitions": {
+            "const_not_anchor": {
+              "const": {
+                "$id": "#not_a_real_anchor"
+              }
+            }
+          },
+          "else": {
+            "$ref": "#/definitions/const_not_anchor"
+          },
+          "if": {
+            "const": "skip not_a_real_anchor"
+          },
+          "then": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -91,14 +109,25 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.IdTest do
 
   describe "non-schema object containing an $id property:" do
     setup do
-      json_schema = %{
-        "definitions" => %{
-          "const_not_id" => %{"const" => %{"$id" => "not_a_real_id"}}
-        },
-        "else" => %{"$ref" => "#/definitions/const_not_id"},
-        "if" => %{"const" => "skip not_a_real_id"},
-        "then" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "definitions": {
+            "const_not_id": {
+              "const": {
+                "$id": "not_a_real_id"
+              }
+            }
+          },
+          "else": {
+            "$ref": "#/definitions/const_not_id"
+          },
+          "if": {
+            "const": "skip not_a_real_id"
+          },
+          "then": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

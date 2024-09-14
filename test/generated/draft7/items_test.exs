@@ -11,7 +11,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "a schema given for items:" do
     setup do
-      json_schema = %{"items" => %{"type" => "integer"}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": {
+            "type": "integer"
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -43,7 +51,20 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "an array of schemas for items:" do
     setup do
-      json_schema = %{"items" => [%{"type" => "integer"}, %{"type" => "string"}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -87,7 +108,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "items with boolean schema (true):" do
     setup do
-      json_schema = %{"items" => true}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": true
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -107,7 +134,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "items with boolean schema (false):" do
     setup do
-      json_schema = %{"items" => false}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": false
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -127,7 +160,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "items with boolean schemas:" do
     setup do
-      json_schema = %{"items" => [true, false]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": [
+            true,
+            false
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -153,26 +195,44 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "items and subitems:" do
     setup do
-      json_schema = %{
-        "additionalItems" => false,
-        "definitions" => %{
-          "item" => %{
-            "additionalItems" => false,
-            "items" => [
-              %{"$ref" => "#/definitions/sub-item"},
-              %{"$ref" => "#/definitions/sub-item"}
-            ],
-            "type" => "array"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "definitions": {
+            "item": {
+              "type": "array",
+              "additionalItems": false,
+              "items": [
+                {
+                  "$ref": "#/definitions/sub-item"
+                },
+                {
+                  "$ref": "#/definitions/sub-item"
+                }
+              ]
+            },
+            "sub-item": {
+              "type": "object",
+              "required": [
+                "foo"
+              ]
+            }
           },
-          "sub-item" => %{"required" => ["foo"], "type" => "object"}
-        },
-        "items" => [
-          %{"$ref" => "#/definitions/item"},
-          %{"$ref" => "#/definitions/item"},
-          %{"$ref" => "#/definitions/item"}
-        ],
-        "type" => "array"
-      }
+          "type": "array",
+          "additionalItems": false,
+          "items": [
+            {
+              "$ref": "#/definitions/item"
+            },
+            {
+              "$ref": "#/definitions/item"
+            },
+            {
+              "$ref": "#/definitions/item"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -243,16 +303,24 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "nested items:" do
     setup do
-      json_schema = %{
-        "items" => %{
-          "items" => %{
-            "items" => %{"items" => %{"type" => "number"}, "type" => "array"},
-            "type" => "array"
-          },
-          "type" => "array"
-        },
-        "type" => "array"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -279,7 +347,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "single-form items with null instance elements:" do
     setup do
-      json_schema = %{"items" => %{"type" => "null"}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": {
+            "type": "null"
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -293,7 +369,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.ItemsTest do
 
   describe "array-form items with null instance elements:" do
     setup do
-      json_schema = %{"items" => [%{"type" => "null"}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": [
+            {
+              "type": "null"
+            }
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

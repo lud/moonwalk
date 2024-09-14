@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.RegexTest do
 
   describe "validation of regular expressions:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "format" => "regex"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "format": "regex"
+        }
+        """)
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,

@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.BignumTest do
 
   describe "integer:" do
     setup do
-      json_schema = %{"type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "integer"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -31,7 +37,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.BignumTest do
 
   describe "number:" do
     setup do
-      json_schema = %{"type" => "number"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "number"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -51,7 +63,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.BignumTest do
 
   describe "string:" do
     setup do
-      json_schema = %{"type" => "string"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "string"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -65,7 +83,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.BignumTest do
 
   describe "maximum integer comparison:" do
     setup do
-      json_schema = %{"maximum" => 18_446_744_073_709_551_615}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "maximum": 18446744073709551615
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -79,7 +103,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.BignumTest do
 
   describe "float comparison with high precision:" do
     setup do
-      json_schema = %{"exclusiveMaximum" => 9.727837981879871e26}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "exclusiveMaximum": 9.727837981879871e26
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -93,7 +123,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.BignumTest do
 
   describe "minimum integer comparison:" do
     setup do
-      json_schema = %{"minimum" => -18_446_744_073_709_551_615}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "minimum": -18446744073709551615
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -107,7 +143,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Optional.BignumTest do
 
   describe "float comparison with high precision on negative numbers:" do
     setup do
-      json_schema = %{"exclusiveMinimum" => -9.727837981879871e26}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "exclusiveMinimum": -9.727837981879871e26
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

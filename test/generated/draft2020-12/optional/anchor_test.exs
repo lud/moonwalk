@@ -11,22 +11,40 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.AnchorTest do
 
   describe "$anchor inside an enum is not a real identifier:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "anchor_in_enum" => %{
-            "enum" => [%{"$anchor" => "my_anchor", "type" => "null"}]
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "anchor_in_enum": {
+              "enum": [
+                {
+                  "type": "null",
+                  "$anchor": "my_anchor"
+                }
+              ]
+            },
+            "real_identifier_in_schema": {
+              "type": "string",
+              "$anchor": "my_anchor"
+            },
+            "zzz_anchor_in_const": {
+              "const": {
+                "type": "null",
+                "$anchor": "my_anchor"
+              }
+            }
           },
-          "real_identifier_in_schema" => %{
-            "$anchor" => "my_anchor",
-            "type" => "string"
-          },
-          "zzz_anchor_in_const" => %{
-            "const" => %{"$anchor" => "my_anchor", "type" => "null"}
-          }
-        },
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "anyOf" => [%{"$ref" => "#/$defs/anchor_in_enum"}, %{"$ref" => "#my_anchor"}]
-      }
+          "anyOf": [
+            {
+              "$ref": "#/$defs/anchor_in_enum"
+            },
+            {
+              "$ref": "#my_anchor"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

@@ -11,13 +11,30 @@ defmodule Elixir.Moonwalk.Generated.Draft7.InfiniteLoopDetectionTest do
 
   describe "evaluating the same schema location against the same data location twice is not a sign of an infinite loop:" do
     setup do
-      json_schema = %{
-        "allOf" => [
-          %{"properties" => %{"foo" => %{"$ref" => "#/definitions/int"}}},
-          %{"additionalProperties" => %{"$ref" => "#/definitions/int"}}
-        ],
-        "definitions" => %{"int" => %{"type" => "integer"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "definitions": {
+            "int": {
+              "type": "integer"
+            }
+          },
+          "allOf": [
+            {
+              "properties": {
+                "foo": {
+                  "$ref": "#/definitions/int"
+                }
+              }
+            },
+            {
+              "additionalProperties": {
+                "$ref": "#/definitions/int"
+              }
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

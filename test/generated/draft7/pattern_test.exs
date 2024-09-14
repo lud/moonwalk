@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternTest do
 
   describe "pattern validation:" do
     setup do
-      json_schema = %{"pattern" => "^a*$"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "pattern": "^a*$"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -67,7 +73,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternTest do
 
   describe "pattern is not anchored:" do
     setup do
-      json_schema = %{"pattern" => "a+"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "pattern": "a+"
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

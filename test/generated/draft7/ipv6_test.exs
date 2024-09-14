@@ -11,7 +11,12 @@ defmodule Elixir.Moonwalk.Generated.Draft7.Ipv6Test do
 
   describe "validation of IPv6 addresses:" do
     setup do
-      json_schema = %{"format" => "ipv6"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "format": "ipv6"
+        }
+        """)
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,

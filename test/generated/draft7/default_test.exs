@@ -11,7 +11,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DefaultTest do
 
   describe "invalid type for default:" do
     setup do
-      json_schema = %{"properties" => %{"foo" => %{"default" => [], "type" => "integer"}}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "foo": {
+              "type": "integer",
+              "default": []
+            }
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -31,11 +42,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DefaultTest do
 
   describe "invalid string value for default:" do
     setup do
-      json_schema = %{
-        "properties" => %{
-          "bar" => %{"default" => "bad", "minLength" => 4, "type" => "string"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "bar": {
+              "type": "string",
+              "default": "bad",
+              "minLength": 4
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -56,12 +74,19 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DefaultTest do
 
   describe "the default keyword does not do anything if the property is missing:" do
     setup do
-      json_schema = %{
-        "properties" => %{
-          "alpha" => %{"default" => 5, "maximum" => 3, "type" => "number"}
-        },
-        "type" => "object"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "type": "object",
+          "properties": {
+            "alpha": {
+              "type": "number",
+              "default": 5,
+              "maximum": 3
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

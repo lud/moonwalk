@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Gen.Test.Suite do
+  alias Moonwalk.JsonTools
   alias CliMate.CLI
   alias Moonwalk.Test.JsonSchemaSuite
   require EEx
@@ -201,11 +202,14 @@ defmodule Mix.Tasks.Gen.Test.Suite do
   ]
 
   @enabled %{
-    # "latest" => @enabled_202012,
     "draft2020-12" => @enabled_202012,
     "draft7" => @enabled_7
-    # "draft7" => false
   }
+
+  # @enabled %{
+  #   "draft2020-12" => false,
+  #   "draft7" => [{"enum.json", []}]
+  # }
 
   @command [
     module: __MODULE__,
@@ -240,8 +244,11 @@ defmodule Mix.Tasks.Gen.Test.Suite do
       <%= for tcase <- @test_cases do %>
         describe <%= inspect(tcase.description <> ":") %> do
 
+
+
           setup do
-            json_schema = <%= inspect(tcase.schema, limit: :infinity, pretty: true) %>
+
+            json_schema = Jason.decode!(<%= decoding_schema(tcase.schema) %>)
             schema = JsonSchemaSuite.build_schema(json_schema, <%= inspect(@schema_build_opts, limit: :infinity, pretty: true) %>)
             {:ok, json_schema: json_schema, schema: schema}
           end
@@ -344,5 +351,30 @@ defmodule Mix.Tasks.Gen.Test.Suite do
       ~s(:"Elixir) <> _ -> raise "invalid module: #{inspect(module)}"
       _ -> module
     end
+  end
+
+  @key_order ~w(
+    $schema
+    $id
+    comment
+    $defs
+    definitions
+    type
+  ) |> Enum.with_index() |> Map.new()
+
+  defp decoding_schema(data) do
+    # return a string encloded with triple double quotes without indentation.
+    # Using sigil ~S to allow UTF-8 escape sequences.
+    inner =
+      JsonTools.encode_ordered!(
+        data,
+        fn {k, _} ->
+          order = Map.get(@key_order, k, 99999)
+          {order, k}
+        end,
+        pretty: true
+      )
+
+    [~c'\n~S"""\n', inner, ~c'\n"""\n']
   end
 end

@@ -11,7 +11,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
 
   describe "patternProperties validates properties matching a regex:" do
     setup do
-      json_schema = %{"patternProperties" => %{"f.*o" => %{"type" => "integer"}}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "patternProperties": {
+            "f.*o": {
+              "type": "integer"
+            }
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -61,12 +71,19 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
 
   describe "multiple simultaneous patternProperties are validated:" do
     setup do
-      json_schema = %{
-        "patternProperties" => %{
-          "a*" => %{"type" => "integer"},
-          "aaa*" => %{"maximum" => 20}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "patternProperties": {
+            "a*": {
+              "type": "integer"
+            },
+            "aaa*": {
+              "maximum": 20
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -111,12 +128,19 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
 
   describe "regexes are not anchored by default and are case sensitive:" do
     setup do
-      json_schema = %{
-        "patternProperties" => %{
-          "X_" => %{"type" => "string"},
-          "[0-9]{2,}" => %{"type" => "boolean"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "patternProperties": {
+            "X_": {
+              "type": "string"
+            },
+            "[0-9]{2,}": {
+              "type": "boolean"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -149,7 +173,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
 
   describe "patternProperties with boolean schemas:" do
     setup do
-      json_schema = %{"patternProperties" => %{"b.*" => false, "f.*" => true}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "patternProperties": {
+            "b.*": false,
+            "f.*": true
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -187,7 +220,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.PatternPropertiesTest do
 
   describe "patternProperties with null valued instance properties:" do
     setup do
-      json_schema = %{"patternProperties" => %{"^.*bar$" => %{"type" => "null"}}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "patternProperties": {
+            "^.*bar$": {
+              "type": "null"
+            }
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

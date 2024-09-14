@@ -11,10 +11,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "not:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "not" => %{"type" => "integer"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": {
+            "type": "integer"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -35,10 +40,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "not multiple types:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "not" => %{"type" => ["integer", "boolean"]}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": {
+            "type": [
+              "integer",
+              "boolean"
+            ]
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -65,13 +78,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "not more complex schema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "not" => %{
-          "properties" => %{"foo" => %{"type" => "string"}},
-          "type" => "object"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": {
+            "type": "object",
+            "properties": {
+              "foo": {
+                "type": "string"
+              }
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -98,10 +118,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "forbidden property:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "properties" => %{"foo" => %{"not" => %{}}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "properties": {
+            "foo": {
+              "not": {}
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -122,7 +149,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "forbid everything with empty schema:" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "not" => %{}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": {}
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -184,7 +218,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "forbid everything with boolean schema true:" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "not" => true}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": true
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -246,7 +287,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "allow everything with boolean schema false:" do
     setup do
-      json_schema = %{"$schema" => "https://json-schema.org/draft/2020-12/schema", "not" => false}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": false
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -308,10 +356,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "double negation:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "not" => %{"not" => %{}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": {
+            "not": {}
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -326,15 +379,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.NotTest do
 
   describe "collect annotations inside a 'not', even if collection is disabled:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "not" => %{
-          "$comment" =>
-            "this subschema must still produce annotations internally, even though the 'not' will ultimately discard them",
-          "anyOf" => [true, %{"properties" => %{"foo" => true}}],
-          "unevaluatedProperties" => false
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "not": {
+            "$comment": "this subschema must still produce annotations internally, even though the 'not' will ultimately discard them",
+            "anyOf": [
+              true,
+              {
+                "properties": {
+                  "foo": true
+                }
+              }
+            ],
+            "unevaluatedProperties": false
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

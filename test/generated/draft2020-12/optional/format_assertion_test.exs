@@ -11,11 +11,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.FormatAssertionTest do
 
   describe "schema that uses custom metaschema with format-assertion: false:" do
     setup do
-      json_schema = %{
-        "$id" => "https://schema/using/format-assertion/false",
-        "$schema" => "http://localhost:1234/draft2020-12/format-assertion-false.json",
-        "format" => "ipv4"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "http://localhost:1234/draft2020-12/format-assertion-false.json",
+          "$id": "https://schema/using/format-assertion/false",
+          "format": "ipv4"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -36,11 +39,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.FormatAssertionTest do
 
   describe "schema that uses custom metaschema with format-assertion: true:" do
     setup do
-      json_schema = %{
-        "$id" => "https://schema/using/format-assertion/true",
-        "$schema" => "http://localhost:1234/draft2020-12/format-assertion-true.json",
-        "format" => "ipv4"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "http://localhost:1234/draft2020-12/format-assertion-true.json",
+          "$id": "https://schema/using/format-assertion/true",
+          "format": "ipv4"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

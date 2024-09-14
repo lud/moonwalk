@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DefsTest do
 
   describe "validate definition against metaschema:" do
     setup do
-      json_schema = %{
-        "$ref" => "https://json-schema.org/draft/2020-12/schema",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$ref": "https://json-schema.org/draft/2020-12/schema"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

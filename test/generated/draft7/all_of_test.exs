@@ -11,12 +11,33 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf:" do
     setup do
-      json_schema = %{
-        "allOf" => [
-          %{"properties" => %{"bar" => %{"type" => "integer"}}, "required" => ["bar"]},
-          %{"properties" => %{"foo" => %{"type" => "string"}}, "required" => ["foo"]}
-        ]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {
+              "properties": {
+                "bar": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "bar"
+              ]
+            },
+            {
+              "properties": {
+                "foo": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "foo"
+              ]
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -49,14 +70,41 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with base schema:" do
     setup do
-      json_schema = %{
-        "allOf" => [
-          %{"properties" => %{"foo" => %{"type" => "string"}}, "required" => ["foo"]},
-          %{"properties" => %{"baz" => %{"type" => "null"}}, "required" => ["baz"]}
-        ],
-        "properties" => %{"bar" => %{"type" => "integer"}},
-        "required" => ["bar"]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {
+              "properties": {
+                "foo": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "foo"
+              ]
+            },
+            {
+              "properties": {
+                "baz": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "baz"
+              ]
+            }
+          ],
+          "properties": {
+            "bar": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "bar"
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -95,7 +143,20 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf simple types:" do
     setup do
-      json_schema = %{"allOf" => [%{"maximum" => 30}, %{"minimum" => 20}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {
+              "maximum": 30
+            },
+            {
+              "minimum": 20
+            }
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -115,7 +176,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with boolean schemas, all true:" do
     setup do
-      json_schema = %{"allOf" => [true, true]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            true,
+            true
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -129,7 +199,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with boolean schemas, some false:" do
     setup do
-      json_schema = %{"allOf" => [true, false]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            true,
+            false
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -143,7 +222,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with boolean schemas, all false:" do
     setup do
-      json_schema = %{"allOf" => [false, false]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            false,
+            false
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -157,7 +245,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with one empty schema:" do
     setup do
-      json_schema = %{"allOf" => [%{}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {}
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -171,7 +267,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with two empty schemas:" do
     setup do
-      json_schema = %{"allOf" => [%{}, %{}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {},
+            {}
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -185,7 +290,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with the first empty schema:" do
     setup do
-      json_schema = %{"allOf" => [%{}, %{"type" => "number"}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {},
+            {
+              "type": "number"
+            }
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -205,7 +321,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf with the last empty schema:" do
     setup do
-      json_schema = %{"allOf" => [%{"type" => "number"}, %{}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {
+              "type": "number"
+            },
+            {}
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -225,7 +352,21 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "nested allOf, to check validation semantics:" do
     setup do
-      json_schema = %{"allOf" => [%{"allOf" => [%{"type" => "null"}]}]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {
+              "allOf": [
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          ]
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -245,11 +386,26 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AllOfTest do
 
   describe "allOf combined with anyOf, oneOf:" do
     setup do
-      json_schema = %{
-        "allOf" => [%{"multipleOf" => 2}],
-        "anyOf" => [%{"multipleOf" => 3}],
-        "oneOf" => [%{"multipleOf" => 5}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "allOf": [
+            {
+              "multipleOf": 2
+            }
+          ],
+          "anyOf": [
+            {
+              "multipleOf": 3
+            }
+          ],
+          "oneOf": [
+            {
+              "multipleOf": 5
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

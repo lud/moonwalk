@@ -11,10 +11,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
 
   describe "patternProperties validates properties matching a regex:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "patternProperties" => %{"f.*o" => %{"type" => "integer"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "patternProperties": {
+            "f.*o": {
+              "type": "integer"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -65,13 +72,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
 
   describe "multiple simultaneous patternProperties are validated:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "patternProperties" => %{
-          "a*" => %{"type" => "integer"},
-          "aaa*" => %{"maximum" => 20}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "patternProperties": {
+            "a*": {
+              "type": "integer"
+            },
+            "aaa*": {
+              "maximum": 20
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -116,13 +130,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
 
   describe "regexes are not anchored by default and are case sensitive:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "patternProperties" => %{
-          "X_" => %{"type" => "string"},
-          "[0-9]{2,}" => %{"type" => "boolean"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "patternProperties": {
+            "X_": {
+              "type": "string"
+            },
+            "[0-9]{2,}": {
+              "type": "boolean"
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -155,10 +176,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
 
   describe "patternProperties with boolean schemas:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "patternProperties" => %{"b.*" => false, "f.*" => true}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "patternProperties": {
+            "b.*": false,
+            "f.*": true
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -197,10 +224,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PatternPropertiesTest do
 
   describe "patternProperties with null valued instance properties:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "patternProperties" => %{"^.*bar$" => %{"type" => "null"}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "patternProperties": {
+            "^.*bar$": {
+              "type": "null"
+            }
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

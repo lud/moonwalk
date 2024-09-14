@@ -11,7 +11,12 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DateTest do
 
   describe "validation of date strings:" do
     setup do
-      json_schema = %{"format" => "date"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "format": "date"
+        }
+        """)
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,

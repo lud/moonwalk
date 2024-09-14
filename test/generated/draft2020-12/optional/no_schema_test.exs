@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.NoSchemaTest do
 
   describe "validation without $schema:" do
     setup do
-      json_schema = %{"minLength" => 2}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "minLength": 2
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

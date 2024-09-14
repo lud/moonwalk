@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.UniqueItemsTest do
 
   describe "uniqueItems validation:" do
     setup do
-      json_schema = %{"uniqueItems" => true}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "uniqueItems": true
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -195,10 +201,20 @@ defmodule Elixir.Moonwalk.Generated.Draft7.UniqueItemsTest do
 
   describe "uniqueItems with an array of items:" do
     setup do
-      json_schema = %{
-        "items" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -255,11 +271,21 @@ defmodule Elixir.Moonwalk.Generated.Draft7.UniqueItemsTest do
 
   describe "uniqueItems with an array of items and additionalItems=false:" do
     setup do
-      json_schema = %{
-        "additionalItems" => false,
-        "items" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalItems": false,
+          "items": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -298,7 +324,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.UniqueItemsTest do
 
   describe "uniqueItems=false validation:" do
     setup do
-      json_schema = %{"uniqueItems" => false}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "uniqueItems": false
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -404,10 +436,20 @@ defmodule Elixir.Moonwalk.Generated.Draft7.UniqueItemsTest do
 
   describe "uniqueItems=false with an array of items:" do
     setup do
-      json_schema = %{
-        "items" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "items": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -464,11 +506,21 @@ defmodule Elixir.Moonwalk.Generated.Draft7.UniqueItemsTest do
 
   describe "uniqueItems=false with an array of items and additionalItems=false:" do
     setup do
-      json_schema = %{
-        "additionalItems" => false,
-        "items" => [%{"type" => "boolean"}, %{"type" => "boolean"}],
-        "uniqueItems" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalItems": false,
+          "items": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "uniqueItems": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

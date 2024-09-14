@@ -11,17 +11,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
 
   describe "single dependency:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentSchemas" => %{
-          "bar" => %{
-            "properties" => %{
-              "bar" => %{"type" => "integer"},
-              "foo" => %{"type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependentSchemas": {
+            "bar": {
+              "properties": {
+                "bar": {
+                  "type": "integer"
+                },
+                "foo": {
+                  "type": "integer"
+                }
+              }
             }
           }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -78,10 +85,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
 
   describe "boolean subschemas:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentSchemas" => %{"bar" => false, "foo" => true}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependentSchemas": {
+            "bar": false,
+            "foo": true
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -114,13 +127,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
 
   describe "dependencies with escaped characters:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentSchemas" => %{
-          "foo\tbar" => %{"minProperties" => 4},
-          "foo'bar" => %{"required" => ["foo\"bar"]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependentSchemas": {
+            "foo\tbar": {
+              "minProperties": 4
+            },
+            "foo'bar": {
+              "required": [
+                "foo\"bar"
+              ]
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -153,13 +175,23 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.DependentSchemasTest do
 
   describe "dependent subschema incompatible with root:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependentSchemas" => %{
-          "foo" => %{"additionalProperties" => false, "properties" => %{"bar" => %{}}}
-        },
-        "properties" => %{"foo" => %{}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependentSchemas": {
+            "foo": {
+              "additionalProperties": false,
+              "properties": {
+                "bar": {}
+              }
+            }
+          },
+          "properties": {
+            "foo": {}
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

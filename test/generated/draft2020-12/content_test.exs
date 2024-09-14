@@ -11,10 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
 
   describe "validation of string-encoded content based on media type:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contentMediaType" => "application/json"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contentMediaType": "application/json"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -41,10 +44,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
 
   describe "validation of binary string-encoding:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contentEncoding" => "base64"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contentEncoding": "base64"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -71,11 +77,14 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
 
   describe "validation of binary-encoded media type documents:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contentEncoding" => "base64",
-        "contentMediaType" => "application/json"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contentEncoding": "base64",
+          "contentMediaType": "application/json"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -108,16 +117,25 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContentTest do
 
   describe "validation of binary-encoded media type documents with schema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contentEncoding" => "base64",
-        "contentMediaType" => "application/json",
-        "contentSchema" => %{
-          "properties" => %{"foo" => %{"type" => "string"}},
-          "required" => ["foo"],
-          "type" => "object"
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contentEncoding": "base64",
+          "contentMediaType": "application/json",
+          "contentSchema": {
+            "type": "object",
+            "properties": {
+              "foo": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "foo"
+            ]
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

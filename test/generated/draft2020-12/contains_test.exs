@@ -11,10 +11,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
 
   describe "contains keyword validation:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => %{"minimum" => 5}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": {
+            "minimum": 5
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -59,10 +64,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
 
   describe "contains keyword with const keyword:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => %{"const" => 5}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": {
+            "const": 5
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -89,10 +99,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
 
   describe "contains keyword with boolean schema true:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => true
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": true
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -113,10 +126,13 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
 
   describe "contains keyword with boolean schema false:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => false
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": false
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -143,11 +159,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
 
   describe "items + contains:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => %{"multipleOf" => 3},
-        "items" => %{"multipleOf" => 2}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": {
+            "multipleOf": 3
+          },
+          "items": {
+            "multipleOf": 2
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -180,10 +203,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
 
   describe "contains with false if subschema:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => %{"else" => true, "if" => false}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": {
+            "else": true,
+            "if": false
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -204,10 +233,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.ContainsTest do
 
   describe "contains with null instance elements:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "contains" => %{"type" => "null"}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "contains": {
+            "type": "null"
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

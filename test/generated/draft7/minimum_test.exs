@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MinimumTest do
 
   describe "minimum validation:" do
     setup do
-      json_schema = %{"minimum" => 1.1}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "minimum": 1.1
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -43,7 +49,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MinimumTest do
 
   describe "minimum validation with signed integer:" do
     setup do
-      json_schema = %{"minimum" => -2}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "minimum": -2
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

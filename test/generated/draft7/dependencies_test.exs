@@ -11,7 +11,17 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
 
   describe "dependencies:" do
     setup do
-      json_schema = %{"dependencies" => %{"bar" => ["foo"]}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "dependencies": {
+            "bar": [
+              "foo"
+            ]
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -61,7 +71,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
 
   describe "dependencies with empty array:" do
     setup do
-      json_schema = %{"dependencies" => %{"bar" => []}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "dependencies": {
+            "bar": []
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -87,7 +105,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
 
   describe "multiple dependencies:" do
     setup do
-      json_schema = %{"dependencies" => %{"quux" => ["foo", "bar"]}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "dependencies": {
+            "quux": [
+              "foo",
+              "bar"
+            ]
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -131,16 +160,23 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
 
   describe "multiple dependencies subschema:" do
     setup do
-      json_schema = %{
-        "dependencies" => %{
-          "bar" => %{
-            "properties" => %{
-              "bar" => %{"type" => "integer"},
-              "foo" => %{"type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "dependencies": {
+            "bar": {
+              "properties": {
+                "bar": {
+                  "type": "integer"
+                },
+                "foo": {
+                  "type": "integer"
+                }
+              }
             }
           }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -179,7 +215,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
 
   describe "dependencies with boolean subschemas:" do
     setup do
-      json_schema = %{"dependencies" => %{"bar" => false, "foo" => true}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "dependencies": {
+            "bar": false,
+            "foo": true
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -211,14 +256,27 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
 
   describe "dependencies with escaped characters:" do
     setup do
-      json_schema = %{
-        "dependencies" => %{
-          "foo\tbar" => %{"minProperties" => 4},
-          "foo\nbar" => ["foo\rbar"],
-          "foo\"bar" => ["foo'bar"],
-          "foo'bar" => %{"required" => ["foo\"bar"]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "dependencies": {
+            "foo\tbar": {
+              "minProperties": 4
+            },
+            "foo\nbar": [
+              "foo\rbar"
+            ],
+            "foo\"bar": [
+              "foo'bar"
+            ],
+            "foo'bar": {
+              "required": [
+                "foo\"bar"
+              ]
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -269,12 +327,22 @@ defmodule Elixir.Moonwalk.Generated.Draft7.DependenciesTest do
 
   describe "dependent subschema incompatible with root:" do
     setup do
-      json_schema = %{
-        "dependencies" => %{
-          "foo" => %{"additionalProperties" => false, "properties" => %{"bar" => %{}}}
-        },
-        "properties" => %{"foo" => %{}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "dependencies": {
+            "foo": {
+              "additionalProperties": false,
+              "properties": {
+                "bar": {}
+              }
+            }
+          },
+          "properties": {
+            "foo": {}
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}

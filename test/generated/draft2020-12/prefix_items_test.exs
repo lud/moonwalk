@@ -11,10 +11,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
 
   describe "a schema given for prefixItems:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "integer"}, %{"type" => "string"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -59,10 +69,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
 
   describe "prefixItems with boolean schemas:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [true, false]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            true,
+            false
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -89,10 +105,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
 
   describe "additional items are allowed by default:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "integer"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            {
+              "type": "integer"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -107,10 +130,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.PrefixItemsTest do
 
   describe "prefixItems with null instance elements:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "prefixItems" => [%{"type" => "null"}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "prefixItems": [
+            {
+              "type": "null"
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

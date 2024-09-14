@@ -11,7 +11,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MinItemsTest do
 
   describe "minItems validation:" do
     setup do
-      json_schema = %{"minItems" => 1}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "minItems": 1
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -43,7 +49,13 @@ defmodule Elixir.Moonwalk.Generated.Draft7.MinItemsTest do
 
   describe "minItems validation with a decimal:" do
     setup do
-      json_schema = %{"minItems" => 1.0}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "minItems": 1.0
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end

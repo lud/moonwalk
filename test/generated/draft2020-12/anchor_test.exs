@@ -11,11 +11,19 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
 
   describe "Location-independent identifier:" do
     setup do
-      json_schema = %{
-        "$defs" => %{"A" => %{"$anchor" => "foo", "type" => "integer"}},
-        "$ref" => "#foo",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "A": {
+              "type": "integer",
+              "$anchor": "foo"
+            }
+          },
+          "$ref": "#foo"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -36,17 +44,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
 
   describe "Location-independent identifier with absolute URI:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "A" => %{
-            "$anchor" => "foo",
-            "$id" => "http://localhost:1234/draft2020-12/bar",
-            "type" => "integer"
-          }
-        },
-        "$ref" => "http://localhost:1234/draft2020-12/bar#foo",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$defs": {
+            "A": {
+              "$id": "http://localhost:1234/draft2020-12/bar",
+              "type": "integer",
+              "$anchor": "foo"
+            }
+          },
+          "$ref": "http://localhost:1234/draft2020-12/bar#foo"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -67,17 +78,25 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
 
   describe "Location-independent identifier with base URI change in subschema:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "A" => %{
-            "$defs" => %{"B" => %{"$anchor" => "foo", "type" => "integer"}},
-            "$id" => "nested.json"
-          }
-        },
-        "$id" => "http://localhost:1234/draft2020-12/root",
-        "$ref" => "http://localhost:1234/draft2020-12/nested.json#foo",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "http://localhost:1234/draft2020-12/root",
+          "$defs": {
+            "A": {
+              "$id": "nested.json",
+              "$defs": {
+                "B": {
+                  "type": "integer",
+                  "$anchor": "foo"
+                }
+              }
+            }
+          },
+          "$ref": "http://localhost:1234/draft2020-12/nested.json#foo"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -98,20 +117,30 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.AnchorTest do
 
   describe "same $anchor with different base uri:" do
     setup do
-      json_schema = %{
-        "$defs" => %{
-          "A" => %{
-            "$id" => "child1",
-            "allOf" => [
-              %{"$anchor" => "my_anchor", "$id" => "child2", "type" => "number"},
-              %{"$anchor" => "my_anchor", "type" => "string"}
-            ]
-          }
-        },
-        "$id" => "http://localhost:1234/draft2020-12/foobar",
-        "$ref" => "child1#my_anchor",
-        "$schema" => "https://json-schema.org/draft/2020-12/schema"
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "http://localhost:1234/draft2020-12/foobar",
+          "$defs": {
+            "A": {
+              "$id": "child1",
+              "allOf": [
+                {
+                  "$id": "child2",
+                  "type": "number",
+                  "$anchor": "my_anchor"
+                },
+                {
+                  "type": "string",
+                  "$anchor": "my_anchor"
+                }
+              ]
+            }
+          },
+          "$ref": "child1#my_anchor"
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

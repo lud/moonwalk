@@ -11,7 +11,12 @@ defmodule Elixir.Moonwalk.Generated.Draft7.UnknownTest do
 
   describe "unknown format:" do
     setup do
-      json_schema = %{"format" => "unknown"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "format": "unknown"
+        }
+        """)
 
       schema =
         JsonSchemaSuite.build_schema(json_schema,

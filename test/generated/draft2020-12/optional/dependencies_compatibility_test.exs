@@ -11,10 +11,17 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibili
 
   describe "single dependency:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependencies" => %{"bar" => ["foo"]}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependencies": {
+            "bar": [
+              "foo"
+            ]
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -65,10 +72,15 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibili
 
   describe "empty dependents:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependencies" => %{"bar" => []}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependencies": {
+            "bar": []
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -95,10 +107,18 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibili
 
   describe "multiple dependents required:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependencies" => %{"quux" => ["foo", "bar"]}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependencies": {
+            "quux": [
+              "foo",
+              "bar"
+            ]
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -143,10 +163,20 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibili
 
   describe "dependencies with escaped characters:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependencies" => %{"foo\nbar" => ["foo\rbar"], "foo\"bar" => ["foo'bar"]}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependencies": {
+            "foo\nbar": [
+              "foo\rbar"
+            ],
+            "foo\"bar": [
+              "foo'bar"
+            ]
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -179,17 +209,24 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibili
 
   describe "single schema dependency:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependencies" => %{
-          "bar" => %{
-            "properties" => %{
-              "bar" => %{"type" => "integer"},
-              "foo" => %{"type" => "integer"}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependencies": {
+            "bar": {
+              "properties": {
+                "bar": {
+                  "type": "integer"
+                },
+                "foo": {
+                  "type": "integer"
+                }
+              }
             }
           }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -246,10 +283,16 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibili
 
   describe "boolean subschemas:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependencies" => %{"bar" => false, "foo" => true}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependencies": {
+            "bar": false,
+            "foo": true
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -282,13 +325,22 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.DependenciesCompatibili
 
   describe "schema dependencies with escaped characters:" do
     setup do
-      json_schema = %{
-        "$schema" => "https://json-schema.org/draft/2020-12/schema",
-        "dependencies" => %{
-          "foo\tbar" => %{"minProperties" => 4},
-          "foo'bar" => %{"required" => ["foo\"bar"]}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "dependencies": {
+            "foo\tbar": {
+              "minProperties": 4
+            },
+            "foo'bar": {
+              "required": [
+                "foo\"bar"
+              ]
+            }
+          }
         }
-      }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "https://json-schema.org/draft/2020-12/schema")
       {:ok, json_schema: json_schema, schema: schema}

@@ -11,11 +11,19 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalPropertiesTest do
 
   describe "additionalProperties being false does not allow other properties:" do
     setup do
-      json_schema = %{
-        "additionalProperties" => false,
-        "patternProperties" => %{"^v" => %{}},
-        "properties" => %{"bar" => %{}, "foo" => %{}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^v": {}
+          },
+          "properties": {
+            "bar": {},
+            "foo": {}
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -60,7 +68,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalPropertiesTest do
 
   describe "non-ASCII pattern with additionalProperties:" do
     setup do
-      json_schema = %{"additionalProperties" => false, "patternProperties" => %{"^á" => %{}}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^á": {}
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -80,10 +97,18 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalPropertiesTest do
 
   describe "additionalProperties with schema:" do
     setup do
-      json_schema = %{
-        "additionalProperties" => %{"type" => "boolean"},
-        "properties" => %{"bar" => %{}, "foo" => %{}}
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "properties": {
+            "bar": {},
+            "foo": {}
+          }
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -110,7 +135,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalPropertiesTest do
 
   describe "additionalProperties can exist by itself:" do
     setup do
-      json_schema = %{"additionalProperties" => %{"type" => "boolean"}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -130,7 +163,16 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalPropertiesTest do
 
   describe "additionalProperties are allowed by default:" do
     setup do
-      json_schema = %{"properties" => %{"bar" => %{}, "foo" => %{}}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "properties": {
+            "bar": {},
+            "foo": {}
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
@@ -144,10 +186,21 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalPropertiesTest do
 
   describe "additionalProperties does not look in applicators:" do
     setup do
-      json_schema = %{
-        "additionalProperties" => %{"type" => "boolean"},
-        "allOf" => [%{"properties" => %{"foo" => %{}}}]
-      }
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "allOf": [
+            {
+              "properties": {
+                "foo": {}
+              }
+            }
+          ]
+        }
+        """)
 
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
@@ -162,7 +215,15 @@ defmodule Elixir.Moonwalk.Generated.Draft7.AdditionalPropertiesTest do
 
   describe "additionalProperties with null valued instance properties:" do
     setup do
-      json_schema = %{"additionalProperties" => %{"type" => "null"}}
+      json_schema =
+        Jason.decode!(~S"""
+        {
+          "additionalProperties": {
+            "type": "null"
+          }
+        }
+        """)
+
       schema = JsonSchemaSuite.build_schema(json_schema, default_draft: "http://json-schema.org/draft-07/schema")
       {:ok, json_schema: json_schema, schema: schema}
     end
