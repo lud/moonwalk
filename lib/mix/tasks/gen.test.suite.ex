@@ -105,6 +105,13 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     # We need to make a change so each vocabulary module exports a strict list
     # of supported keywords, and the resolver schema scanner does not
     # automatically build schemas under unknown keywords.
+    #
+    # Another problem is that we need to convert the raw schemas to know if it
+    # is a sub schema is a real schema or an object that contains "$id" but is
+    # not under a supported keyword. For that we should traverse the whole
+    # schema and tag the "real" schemas we find, and then when a path points to
+    # a definition with "$id" inside we check if the tag is present, or we
+    # disregard that "$id".
     {"optional/unknownKeyword.json", :unsupported}
   ]
 
@@ -143,11 +150,53 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"propertyNames.json", []},
     {"ref.json", []},
     {"refRemote.json", []},
-    # {"required.json", []},
+    {"required.json", []},
     {"type.json", []},
-    # # {"uniqueItems.json", []},
+    {"uniqueItems.json", []},
 
+    # Optional
+
+    {"optional/id.json", []},
+    {"optional/bignum.json", []},
+    {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
+    {"optional/ecmascript-regex.json", :unsupported},
+    {"optional/content.json", :unsupported},
+
+    # Uses schema 2019 which we do not support
+    {"optional/cross-draft.json", :unsupported},
+
+    # Language incompatibilities. Elixir vs Javascript mostly.
     #
+    {"optional/non-bmp-regex.json", :unsupported},
+    {"optional/float-overflow.json", :unsupported},
+    {"optional/format/time.json", :unsupported},
+
+    # Formats
+    {"optional/format/ipv6.json", schema_build_opts: [formats: true]},
+    {"optional/format/regex.json", schema_build_opts: [formats: true]},
+    {"optional/format/unknown.json", schema_build_opts: [formats: true]},
+    {"optional/format/date-time.json",
+     schema_build_opts: [formats: true],
+     ignore: [
+       "case-insensitive T and Z",
+       "a valid date-time with a leap second, UTC",
+       "a valid date-time with a leap second, with minus offset"
+     ]},
+    {"optional/format/date.json", schema_build_opts: [formats: true]},
+    {"optional/format/email.json", :unsupported},
+    {"optional/format/hostname.json", :unsupported},
+    {"optional/format/idn-email.json", :unsupported},
+    {"optional/format/idn-hostname.json", :unsupported},
+    {"optional/format/iri-reference.json", :unsupported},
+    {"optional/format/iri.json", :unsupported},
+    {"optional/format/json-pointer.json", :unsupported},
+    {"optional/format/relative-json-pointer.json", :unsupported},
+    {"optional/format/uri-reference.json", :unsupported},
+    {"optional/format/uri-template.json", :unsupported},
+    {"optional/format/uri.json", :unsupported},
+
+    # Needs custom implementations
+    {"optional/unknownKeyword.json", :unsupported},
     {"additionalItems.json", []}
   ]
 

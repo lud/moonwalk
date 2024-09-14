@@ -20,6 +20,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
     #     Vocabulary.V202012.Format,
     # "https://json-schema.org/draft/2020-12/vocab/format-assertion" =>
     #     {Vocabulary.V202012.Format, assert: true},
+
     default_assert =
       case Keyword.fetch(opts, :assert) do
         {:ok, true} -> true

@@ -24,10 +24,10 @@ defmodule Moonwalk.Schema.Resolver do
   @draft7_vocabulary %{
     "https://json-schema.org/draft-07/--fallback--vocab/core" => Vocabulary.Draft7.Core,
     "https://json-schema.org/draft-07/--fallback--vocab/validation" => Vocabulary.Draft7.Validation,
-    "https://json-schema.org/draft-07/--fallback--vocab/applicator" => Vocabulary.Draft7.Applicator
+    "https://json-schema.org/draft-07/--fallback--vocab/applicator" => Vocabulary.Draft7.Applicator,
     # "https://json-schema.org/draft-07/--fallback--vocab/content" => Vocabulary.Draft7.Content,
-    # "https://json-schema.org/draft-07/--fallback--vocab/format-annotation" => Vocabulary.Draft7.Format,
-    # "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.Draft7.Format, assert: true},
+    "https://json-schema.org/draft-07/--fallback--vocab/format-annotation" => Vocabulary.Draft7.Format,
+    "https://json-schema.org/draft-07/--fallback--vocab/format-assertion" => {Vocabulary.Draft7.Format, assert: true}
     # "https://json-schema.org/draft-07/--fallback--vocab/meta-data" => Vocabulary.Draft7.MetaData,
     # "https://json-schema.org/draft-07/--fallback--vocab/unevaluated" => Vocabulary.Draft7.Unevaluated
   }

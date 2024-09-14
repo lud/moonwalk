@@ -21,7 +21,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
         # suite maintainers delete some test files).
 
         case Map.pop(enabled, rel_path, :error) do
-          {:unsupported, rest_enabled} -> {[], {[], rest_enabled}}
+          {:unsupported, rest_enabled} -> {[], {discarded, rest_enabled}}
           {:error, ^enabled} -> {[], {[rel_path | discarded], enabled}}
           {opts, rest_enabled} -> {[%{path: path, rel_path: rel_path, opts: opts}], {discarded, rest_enabled}}
         end
