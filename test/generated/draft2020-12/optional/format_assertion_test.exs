@@ -53,7 +53,7 @@ defmodule Elixir.Moonwalk.Generated.Draft202012.Optional.FormatAssertionTest do
     end
 
     test "format-assertion: true: valid string", c do
-      data = 1234
+      data = "127.0.0.1"
       expected_valid = true
       JsonSchemaSuite.run_test(c.json_schema, c.schema, data, expected_valid)
     end

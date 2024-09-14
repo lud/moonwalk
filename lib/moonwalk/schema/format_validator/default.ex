@@ -1,9 +1,25 @@
+supports_duration? =
+  case Version.parse!(System.version()) do
+    %{major: major, minor: minor} when minor >= 17 or major > 1 -> true
+    _ -> false
+  end
+
 defmodule Moonwalk.Schema.FormatValidator.Default do
   @behaviour Moonwalk.Schema.FormatValidator
 
+  # TODO document the fact that support for durations must be added by users to
+  # support durations in elixir < 1.17
+
+  @formats ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time"]
   @impl true
-  def supported_formats do
-    ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time"]
+  if supports_duration? do
+    def supported_formats do
+      ["duration" | @formats]
+    end
+  else
+    def supported_formats do
+      @formats
+    end
   end
 
   @impl true
@@ -18,12 +34,16 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
     Date.from_iso8601(data)
   end
 
-  # def validate_cast("time", data) do
-  #   case Time.from_iso8601(data) do
-  #     {:ok, _} -> true
-  #     _ -> false
-  #   end
-  # end
+  def validate_cast("duration", data) do
+    # JSON schema adheres closely to the spec, the duration cannot mix Week and
+    # other P-level elements. But we are allowing it because Elixir allows it,
+    # we do not want to put arbitrary limit to capabilities.
+    Duration.from_iso8601(data)
+  end
+
+  def validate_cast("time", data) do
+    Time.from_iso8601(String.replace(data, "z", "Z"))
+  end
 
   def validate_cast("ipv4", data) do
     :inet.parse_strict_address(String.to_charlist(data))

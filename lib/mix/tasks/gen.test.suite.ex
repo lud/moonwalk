@@ -60,7 +60,6 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"optional/no-schema.json", []},
     {"optional/bignum.json", []},
     {"optional/dependencies-compatibility.json", []},
-    {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
     {"optional/ecmascript-regex.json", :unsupported},
     {"optional/dynamicRef.json", []},
     {"optional/refOfUnknownKeyword.json", []},
@@ -72,10 +71,28 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     #
     {"optional/non-bmp-regex.json", :unsupported},
     {"optional/float-overflow.json", :unsupported},
-    {"optional/format/time.json", :unsupported},
 
     # Formats
     {"optional/format-assertion.json", []},
+    {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
+    {"optional/format/time.json",
+     schema_build_opts: [formats: true],
+     ignore: [
+       # Elixir built-in calendar does not support leap seconds
+       "valid leap second, large positive time-offset",
+       "valid leap second, positive time-offset",
+       "valid leap second, zero time-offset",
+       "valid leap second, large negative time-offset",
+       "a valid time string with leap second, Zulu",
+       "valid leap second, negative time-offset",
+
+       # Elixir does not require a time offset to be set
+       "no time offset",
+       "no time offset with second fraction",
+
+       # Elixir supports more formats that RFC3339
+       "only RFC3339 not all of ISO 8601 are valid"
+     ]},
     {"optional/format/ipv6.json", schema_build_opts: [formats: true]},
     {"optional/format/regex.json", schema_build_opts: [formats: true]},
     {"optional/format/unknown.json", schema_build_opts: [formats: true]},
@@ -91,7 +108,8 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     # Not supported yet. TODO Maybe elixir 1.17 if the new Duration modules has
     # a correct parser.
     #
-    {"optional/format/duration.json", :unsupported},
+    {"optional/format/duration.json",
+     schema_build_opts: [formats: true], ignore: ["weeks cannot be combined with other units"]},
 
     # Needs custom implementations
     #
@@ -175,7 +193,24 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     #
     {"optional/non-bmp-regex.json", :unsupported},
     {"optional/float-overflow.json", :unsupported},
-    {"optional/format/time.json", :unsupported},
+    {"optional/format/time.json",
+     schema_build_opts: [formats: true],
+     ignore: [
+       # Elixir built-in calendar does not support leap seconds
+       "valid leap second, large positive time-offset",
+       "valid leap second, positive time-offset",
+       "valid leap second, zero time-offset",
+       "valid leap second, large negative time-offset",
+       "a valid time string with leap second, Zulu",
+       "valid leap second, negative time-offset",
+
+       # Elixir does not require a time offset to be set
+       "no time offset",
+       "no time offset with second fraction",
+
+       # Elixir supports more formats that RFC3339
+       "only RFC3339 not all of ISO 8601 are valid"
+     ]},
 
     # Formats
     {"optional/format/ipv6.json", schema_build_opts: [formats: true]},
