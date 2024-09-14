@@ -16,6 +16,10 @@ defmodule Moonwalk.Schema do
 
   @default_draft_default "https://json-schema.org/draft/2020-12/schema"
 
+  def default_format_validator_modules do
+    [Moonwalk.Schema.FormatValidator.Default]
+  end
+
   def validate(%__MODULE__{} = schema, data) do
     case validation_entrypoint(schema, data) do
       {:ok, casted_data, _} -> {:ok, casted_data}
