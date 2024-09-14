@@ -9,6 +9,8 @@ defmodule Moonwalk.Schema.RNS do
 
   defstruct [:uri, urn?: false]
 
+  def parse(uri_or_urn)
+
   def parse("urn:" <> _ = urn) do
     %{host: nil, path: path} = uri = URI.parse(urn)
     [host, path] = String.split(path, ":", parts: 2)

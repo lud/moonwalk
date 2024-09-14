@@ -63,6 +63,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
     {"optional/ecmascript-regex.json", :unsupported},
     {"optional/dynamicRef.json", []},
+    {"optional/refOfUnknownKeyword.json", []},
 
     # TODO we should be able to do cross-schema once we implement all the specs.
     {"optional/cross-draft.json", :unsupported},

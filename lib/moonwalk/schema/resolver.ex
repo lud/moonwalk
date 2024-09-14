@@ -35,6 +35,9 @@ defmodule Moonwalk.Schema.Resolver do
 
   @vocabulary %{} |> Map.merge(@draft_202012_vocabulary) |> Map.merge(@draft7_vocabulary)
 
+  @fix_host "moonwalk-no-host"
+  @fix_scheme "moonwalk-no-scheme"
+
   # @derive {Inspect, only: [:resolved,  :opts]}
   @enforce_keys [:root]
   defstruct [
@@ -144,6 +147,9 @@ defmodule Moonwalk.Schema.Resolver do
     # For self references that target "#" or "#some/path" in the document, when
     # the document does not have an id, we will force it. This is for the
     # document top only.
+
+    id = ensure_uri_ns(id)
+
     ns =
       case id do
         nil -> external_id
@@ -178,6 +184,26 @@ defmodule Moonwalk.Schema.Resolver do
     acc = [top_descriptor]
 
     scan_map_values(top_schema, id, nss, meta, acc)
+  end
+
+  defp ensure_uri_ns(nil) do
+    nil
+  end
+
+  defp ensure_uri_ns("urn:" <> _ = urn) do
+    urn
+  end
+
+  defp ensure_uri_ns(url) do
+    uri =
+      case URI.parse(url) do
+        %{scheme: nil, host: nil} = uri -> %URI{uri | scheme: @fix_scheme, host: @fix_host}
+        %{scheme: nil} = uri -> %URI{uri | scheme: @fix_scheme}
+        %{host: nil} = uri -> %URI{uri | host: @fix_host}
+        uri -> uri
+      end
+
+    URI.to_string(uri)
   end
 
   defp scan_subschema(raw_schema, ns, nss, meta, acc) when is_map(raw_schema) do
