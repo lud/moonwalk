@@ -215,11 +215,12 @@ defmodule Moonwalk.Schema.Builder do
     {:ok, %Moonwalk.Schema.Subschema{validators: schema_validators}, bld}
   end
 
-  defp mod_and_init_opts(module_or_tuple) do
-    case module_or_tuple do
-      {module, opts} -> {module, opts}
-      module -> {module, []}
-    end
+  defp mod_and_init_opts({module, opts}) when is_atom(module) and is_list(opts) do
+    {module, opts}
+  end
+
+  defp mod_and_init_opts(module) when is_atom(module) do
+    {module, []}
   end
 
   defp build_mod_validators(raw_pairs, module, init_opts, bld, raw_schema) when is_map(raw_schema) do
