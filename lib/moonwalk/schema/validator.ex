@@ -39,6 +39,7 @@ defmodule Moonwalk.Schema.Validator do
 
   def new(%Schema{} = schema) do
     %{validators: validators, root_key: root_key} = schema
+
     %__MODULE__{path: [], validators: validators, root_key: root_key, scope: [root_key], errors: [], evaluated: [%{}]}
   end
 

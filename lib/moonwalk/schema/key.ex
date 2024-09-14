@@ -27,7 +27,7 @@ defmodule Moonwalk.Schema.Key do
 
     case kind do
       :top -> ns
-      :docpath -> for_pointer(ns, arg)
+      :pointer -> for_pointer(ns, arg)
       :anchor -> for_anchor(ns, arg)
     end
   end

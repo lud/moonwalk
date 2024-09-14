@@ -2,6 +2,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   alias Moonwalk.Schema.Builder
   alias Moonwalk.Schema.Key
   alias Moonwalk.Schema.Ref
+  alias Moonwalk.Schema.Resolver.Resolved
   alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary, priority: 100
 
@@ -10,7 +11,8 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
   end
 
   def take_keyword({"$ref", raw_ref}, acc, bld, _) do
-    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) do
+    with {:ok, ref} <- Ref.parse(raw_ref, bld.ns),
+         {:ok, ref, bld} <- maybe_swap_ref(ref, bld) do
       ok_put_ref(ref, acc, bld)
     end
   end
@@ -68,6 +70,27 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Core do
     with {:ok, ref} <- Ref.parse(raw_ref, bld.ns) do
       ok_put_ref(ref, acc, bld)
     end
+  end
+
+  # If the ref is a pointer but points to a schema with an $id we will swap the
+  # ref to target that ID instead, so we can support skipping over boundaries
+  # when resolving dynamic refs by not adding intermediary scopes.
+  def maybe_swap_ref(%{kind: :pointer} = ref, bld) do
+    with {:ok, bld} <- Builder.ensure_resolved(bld, ref),
+         {:ok, resolved} <- Builder.fetch_resolved(bld, Key.of(ref)) do
+      case resolved do
+        %Resolved{raw: %{"$id" => _}, ns: ns} ->
+          {:ok, new_ref} = Ref.parse(ns, :root)
+          {:ok, new_ref, bld}
+
+        _ ->
+          {:ok, ref, bld}
+      end
+    end
+  end
+
+  def maybe_swap_ref(ref, bld) do
+    {:ok, ref, bld}
   end
 
   # Look for a dynamic anchor in this schema without looking down in subschemas

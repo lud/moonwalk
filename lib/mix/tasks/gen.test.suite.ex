@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Gen.Test.Suite do
-  alias Moonwalk.JsonTools
   alias CliMate.CLI
+  alias Moonwalk.JsonTools
   alias Moonwalk.Test.JsonSchemaSuite
   require EEx
   use Mix.Task
@@ -62,6 +62,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     {"optional/dependencies-compatibility.json", []},
     {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
     {"optional/ecmascript-regex.json", :unsupported},
+    {"optional/dynamicRef.json", []},
 
     # TODO we should be able to do cross-schema once we implement all the specs.
     {"optional/cross-draft.json", :unsupported},
@@ -369,7 +370,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
       JsonTools.encode_ordered!(
         data,
         fn {k, _} ->
-          order = Map.get(@key_order, k, 99999)
+          order = Map.get(@key_order, k, 999_999)
           {order, k}
         end,
         pretty: true

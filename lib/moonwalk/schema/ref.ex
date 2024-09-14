@@ -35,18 +35,18 @@ defmodule Moonwalk.Schema.Ref do
   end
 
   defp parse_fragment("/" <> path = fragment) do
-    {:docpath, fragment, parse_docpath(path)}
+    {:pointer, fragment, parse_pointer(path)}
   end
 
   defp parse_fragment(anchor) do
     {:anchor, anchor, anchor}
   end
 
-  defp parse_docpath(raw_docpath) do
-    raw_docpath |> String.split("/") |> Enum.map(&parse_docpath_segment/1)
+  defp parse_pointer(raw_docpath) do
+    raw_docpath |> String.split("/") |> Enum.map(&parse_pointer_segment/1)
   end
 
-  defp parse_docpath_segment(string) do
+  defp parse_pointer_segment(string) do
     case Integer.parse(string) do
       {int, ""} -> int
       _ -> unescape_json_pointer(string)
