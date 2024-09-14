@@ -3,7 +3,7 @@ gen-test-suite:
   mix gen.test.suite draft7
   # mix gen.test.suite latest
   mix format
-  git status --porcelain > /dev/null | rg "test/generated" && mix test || true
+  git status --porcelain | rg "test/generated" --count && mix test || true
 
 
 test:
