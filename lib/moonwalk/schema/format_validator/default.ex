@@ -28,6 +28,8 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
 
   # TODO document idn-email not supported, and email with limited support.
 
+  # TODO document uri will only check for scheme and host presence
+
   @supports_duration mod_exists?(Duration)
   @supports_email mod_exists?(MailAddress.Parser)
 
@@ -38,7 +40,7 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
   @formats [
              optional_support("duration", @supports_duration),
              optional_support("email", @supports_email),
-             ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time", "email", "hostname"]
+             ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time", "email", "hostname", "uri"]
            ]
            |> :lists.flatten()
 
@@ -108,6 +110,14 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
       {:ok, data}
     else
       {:error, :invalid_hostname}
+    end
+  end
+
+  def validate_cast("uri", data) do
+    case URI.parse(data) do
+      %{scheme: nil} -> {:error, :no_uri_scheme}
+      %{host: nil} -> {:error, :no_uri_host}
+      uri -> {:ok, uri}
     end
   end
 end

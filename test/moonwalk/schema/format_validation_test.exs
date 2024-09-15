@@ -122,49 +122,46 @@ defmodule Moonwalk.Schema.FormatValidationTest do
     end
   end
 
+  IO.warn("@todo test output of error messages")
+
   describe "common formats" do
-    defp run_cases(format, cases) do
+    defp run_cases(format, valids, invalids) do
       schema = format_schema(format)
 
-      Enum.each(cases, fn {value, expected_valid?} ->
+      Enum.each(valids, fn value ->
         case Schema.validate(schema, value) do
-          {:ok, ^value} when expected_valid? ->
+          {:ok, ^value} ->
             :ok
 
-          {:ok, ^value} when not expected_valid? ->
-            flunk("""
-            Expected value #{inspect(value)} to not be valid against format #{inspect(format)}.
-            """)
-
-          {:error, _} when not expected_valid? ->
-            :ok
-
-          {:error, _} when expected_valid? ->
+          {:error, _} ->
             flunk("""
             Expected value #{inspect(value)} to be valid against format #{inspect(format)}.
             """)
         end
       end)
-    end
 
-    defp valids(list) do
-      Map.new(list, &{&1, true})
-    end
+      Enum.each(invalids, fn value ->
+        case Schema.validate(schema, value) do
+          {:ok, ^value} ->
+            flunk("""
+            Expected value #{inspect(value)} to not be valid against format #{inspect(format)}.
+            """)
 
-    defp invalids(list) do
-      Map.new(list, &{&1, false})
+          {:error, _} ->
+            :ok
+        end
+      end)
     end
 
     test "email" do
-      from_block = fn valid?, block ->
+      from_block = fn block ->
         block
         |> String.trim()
         |> String.split("\n")
-        |> Enum.map(&{&1, valid?})
       end
 
       valid_emails =
-        from_block.(true, ~S"""
+        from_block.(~S"""
         email@example.com
         firstname.lastname@example.com
         email@subdomain.example.com
@@ -181,7 +178,7 @@ defmodule Moonwalk.Schema.FormatValidationTest do
         """)
 
       invalid_emails =
-        from_block.(false, ~S"""
+        from_block.(~S"""
         plainaddress
         #@%^%#$@#$@#.com
         @example.com
@@ -201,14 +198,14 @@ defmodule Moonwalk.Schema.FormatValidationTest do
         this\ is"really"not\allowed@example.com
         """)
 
-      run_cases("email", valid_emails)
-      run_cases("email", invalid_emails)
+      run_cases("email", valid_emails, invalid_emails)
     end
 
     test "hostname" do
       run_cases(
         "hostname",
-        valids([
+        # valids
+        [
           "g.co",
           "google.com",
           "pref.stuff-info.com",
@@ -220,12 +217,9 @@ defmodule Moonwalk.Schema.FormatValidationTest do
           "stuff123.com",
           "stuff.42",
           "www.google.com"
-        ])
-      )
-
-      run_cases(
-        "hostname",
-        invalids([
+        ],
+        # invalids
+        [
           "-stuff.com",
           ".com",
           "pref.stuff-.com",
@@ -233,7 +227,25 @@ defmodule Moonwalk.Schema.FormatValidationTest do
           "stuff,com",
           "stuff.com/users",
           "sub.-stuff.com"
-        ])
+        ]
+      )
+    end
+
+    test "uri" do
+      run_cases(
+        "uri",
+        # valids
+        [
+          "http://example.com",
+          "https://example.com"
+        ],
+        # invalids
+        [
+          "//example.com",
+          "example.com",
+          "/some/path",
+          "/some/path?k=v&ks[]=vv"
+        ]
       )
     end
   end
