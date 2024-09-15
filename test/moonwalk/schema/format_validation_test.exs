@@ -244,7 +244,31 @@ defmodule Moonwalk.Schema.FormatValidationTest do
           "//example.com",
           "example.com",
           "/some/path",
-          "/some/path?k=v&ks[]=vv"
+          "/some/path?k=v&ks[]=vv",
+          "//",
+          "://",
+          ""
+        ]
+      )
+    end
+
+    test "uri-reference" do
+      run_cases(
+        "uri-reference",
+        # valids
+        [
+          "http://example.com",
+          "https://example.com",
+          "//example.com",
+          "/some/path",
+          "/some/path?k=v&ks[]=vv",
+          # this will be a path
+          "example.com"
+        ],
+        # invalids
+        [
+          "//",
+          ""
         ]
       )
     end

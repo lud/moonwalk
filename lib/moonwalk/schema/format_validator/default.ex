@@ -30,6 +30,9 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
 
   # TODO document uri will only check for scheme and host presence
 
+  # TODO document uri-reference is very permissive and will turn most strings
+  # into a single path
+
   @supports_duration mod_exists?(Duration)
   @supports_email mod_exists?(MailAddress.Parser)
 
@@ -40,7 +43,19 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
   @formats [
              optional_support("duration", @supports_duration),
              optional_support("email", @supports_email),
-             ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time", "email", "hostname", "uri"]
+             [
+               "ipv4",
+               "ipv6",
+               "unknown",
+               "regex",
+               "date",
+               "date-time",
+               "time",
+               "email",
+               "hostname",
+               "uri",
+               "uri-reference"
+             ]
            ]
            |> :lists.flatten()
 
@@ -118,6 +133,31 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
       %{scheme: nil} -> {:error, :no_uri_scheme}
       %{host: nil} -> {:error, :no_uri_host}
       uri -> {:ok, uri}
+    end
+  end
+
+  def validate_cast("uri-reference", data) do
+    case URI.parse(data) do
+      %{host: nil, path: path, fragment: frag, query: q} = uri
+      when is_binary(path)
+      when is_binary(frag)
+      when is_binary(q) ->
+        {:ok, uri}
+
+      %{host: "", path: path, fragment: frag, query: q} = uri
+      when is_binary(path)
+      when is_binary(frag)
+      when is_binary(q) ->
+        {:ok, uri}
+
+      %{host: nil} ->
+        {:error, :no_uri_host}
+
+      %{host: ""} ->
+        {:error, :no_uri_host}
+
+      uri ->
+        {:ok, uri}
     end
   end
 end
