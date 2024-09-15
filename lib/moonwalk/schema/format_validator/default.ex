@@ -15,8 +15,10 @@ defmodule Moonwalk.Schema.FormatValidator.Default.Optional do
   end
 end
 
-if Moonwalk.Schema.FormatValidator.Default.Optional.mod_exists?(AbnfParsec) do
-  defmodule Moonwalk.Schema.FormatValidator.Default.Optional.IRI do
+alias Moonwalk.Schema.FormatValidator.Default.Optional
+
+if Optional.mod_exists?(AbnfParsec) do
+  defmodule Optional.IRI do
     use AbnfParsec,
       abnf: """
       iri            = scheme ":" ihier-part [ "?" iquery ]
@@ -255,11 +257,11 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
   end
 
   def validate_cast("iri", data) do
-    Moonwalk.Schema.FormatValidator.Default.Optional.IRI.parse_iri(data)
+    Optional.IRI.parse_iri(data)
   end
 
   def validate_cast("iri-reference", data) do
-    Moonwalk.Schema.FormatValidator.Default.Optional.IRI.parse_iri_reference(data)
+    Optional.IRI.parse_iri_reference(data)
   end
 
   def validate_cast("uri", data) do
