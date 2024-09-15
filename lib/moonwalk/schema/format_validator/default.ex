@@ -1,25 +1,47 @@
-supports_duration? =
-  case Version.parse!(System.version()) do
-    %{major: major, minor: minor} when minor >= 17 or major > 1 -> true
-    _ -> false
+defmodule Moonwalk.Schema.FormatValidator.Default.Optional do
+  def optional_support(format, is?) when is_boolean(is?) do
+    if is? do
+      [format]
+    else
+      []
+    end
   end
 
+  def mod_exists?(module) do
+    case Code.ensure_loaded(module) do
+      {:module, ^module} -> true
+      {:error, _} -> false
+    end
+  end
+end
+
 defmodule Moonwalk.Schema.FormatValidator.Default do
+  import Moonwalk.Schema.FormatValidator.Default.Optional
   @behaviour Moonwalk.Schema.FormatValidator
 
-  # TODO document the fact that support for durations must be added by users to
-  # support durations in elixir < 1.17
+  @supports_duration mod_exists?(Duration)
+  @supports_email mod_exists?(MailAddress.Parser)
 
-  @formats ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time"]
+  # TODO document that missing implementations can be added by users.
+
+  # TODO document the fact that support for durations is since elixir 1.17.
+
+  # TODO document support for email using mail_address optional dependency and
+  # limited by that implementation.
+
+  # TODO document idn-email not supported, and email with limited support.
+
+  @formats [
+             optional_support("duration", @supports_duration),
+             optional_support("email", @supports_email),
+             ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time", "email"]
+           ]
+           |> :lists.flatten()
+
   @impl true
-  if supports_duration? do
-    def supported_formats do
-      ["duration" | @formats]
-    end
-  else
-    def supported_formats do
-      @formats
-    end
+
+  def supported_formats do
+    @formats
   end
 
   @impl true
@@ -65,5 +87,15 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
 
   def validate_cast("unknown", data) do
     {:ok, data}
+  end
+
+  if @supports_email do
+    def validate_cast("email", data) do
+      if MailAddress.Parser.valid?(data) do
+        {:ok, data}
+      else
+        {:error, :invalid_email}
+      end
+    end
   end
 end
