@@ -147,6 +147,14 @@ defmodule Moonwalk.Schema.FormatValidationTest do
       end)
     end
 
+    defp valids(list) do
+      Map.new(list, &{&1, true})
+    end
+
+    defp invalids(list) do
+      Map.new(list, &{&1, false})
+    end
+
     test "email" do
       from_block = fn valid?, block ->
         block
@@ -195,6 +203,38 @@ defmodule Moonwalk.Schema.FormatValidationTest do
 
       run_cases("email", valid_emails)
       run_cases("email", invalid_emails)
+    end
+
+    test "hostname" do
+      run_cases(
+        "hostname",
+        valids([
+          "g.co",
+          "google.com",
+          "pref.stuff-info.com",
+          "pref.stuff.com",
+          "stuff-info.com",
+          "stuff.com.au",
+          "stuff.x.x.co",
+          "stuff.x.x.c",
+          "stuff123.com",
+          "stuff.42",
+          "www.google.com"
+        ])
+      )
+
+      run_cases(
+        "hostname",
+        invalids([
+          "-stuff.com",
+          ".com",
+          "pref.stuff-.com",
+          "stuff-.com",
+          "stuff,com",
+          "stuff.com/users",
+          "sub.-stuff.com"
+        ])
+      )
     end
   end
 end

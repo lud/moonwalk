@@ -19,9 +19,6 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
   import Moonwalk.Schema.FormatValidator.Default.Optional
   @behaviour Moonwalk.Schema.FormatValidator
 
-  @supports_duration mod_exists?(Duration)
-  @supports_email mod_exists?(MailAddress.Parser)
-
   # TODO document that missing implementations can be added by users.
 
   # TODO document the fact that support for durations is since elixir 1.17.
@@ -31,10 +28,17 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
 
   # TODO document idn-email not supported, and email with limited support.
 
+  @supports_duration mod_exists?(Duration)
+  @supports_email mod_exists?(MailAddress.Parser)
+
+  # TODO document hostname accepts numerical TLDs and single letter TLDs
+
+  @re_hostname ~r/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/
+
   @formats [
              optional_support("duration", @supports_duration),
              optional_support("email", @supports_email),
-             ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time", "email"]
+             ["ipv4", "ipv6", "unknown", "regex", "date", "date-time", "time", "email", "hostname"]
            ]
            |> :lists.flatten()
 
@@ -96,6 +100,14 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
       else
         {:error, :invalid_email}
       end
+    end
+  end
+
+  def validate_cast("hostname", data) do
+    if Regex.match?(@re_hostname, data) do
+      {:ok, data}
+    else
+      {:error, :invalid_hostname}
     end
   end
 end
