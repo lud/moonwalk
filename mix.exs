@@ -43,6 +43,7 @@ defmodule Moonwalk.MixProject do
 
       # Formats
       {:mail_address, "~> 1.0", optional: true},
+      {:abnf_parsec, "~> 1.0", runtime: false, optional: true},
 
       # Test or Prod ?
       {:ex_ssl_options, "~> 0.1.0"},

@@ -1,4 +1,5 @@
 %{
+  "abnf_parsec": {:hex, :abnf_parsec, "1.2.1", "c7964f031ac01f61c20680056ca0295b3b34a200038294e8147718d9d468ee28", [:mix], [{:nimble_parsec, "~> 1.1", [hex: :nimble_parsec, repo: "hexpm", optional: false]}], "hexpm", "df71684ebb3160d8d6e3f880ad1b5261855de43cc25adcb4692240e082d4cff3"},
   "bunt": {:hex, :bunt, "1.0.0", "081c2c665f086849e6d57900292b3a161727ab40431219529f13c4ddcf3e7a44", [:mix], [], "hexpm", "dc5f86aa08a5f6fa6b8096f0735c4e76d54ae5c9fa2c143e5a1fc7c1cd9bb6b5"},
   "certifi": {:hex, :certifi, "2.13.0", "e52be248590050b2dd33b0bb274b56678f9068e67805dca8aa8b1ccdb016bbf6", [:rebar3], [], "hexpm", "8f3d9533a0f06070afdfd5d596b32e21c6580667a492891851b0e2737bc507a1"},
   "cli_mate": {:hex, :cli_mate, "0.4.1", "b497779601da49f87f01e0e676fa0056154227777f6a35796946ce35db833819", [:mix], [], "hexpm", "28377f7de6367ab9244760e530679c416e9dab65c0c2a64a403633fe158d8279"},

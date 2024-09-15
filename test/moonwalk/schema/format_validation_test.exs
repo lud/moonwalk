@@ -272,5 +272,33 @@ defmodule Moonwalk.Schema.FormatValidationTest do
         ]
       )
     end
+
+    test "iri" do
+      run_cases(
+        "iri",
+        # valids
+        [
+          "http://héhé.com"
+        ],
+        # invalids
+        [
+          "//",
+          ""
+        ]
+      )
+    end
+
+    test "iri-reference" do
+      run_cases(
+        "iri-reference",
+        # valids
+        [
+          "http://héhé.com",
+          "//héhé.com"
+        ],
+        # invalids
+        []
+      )
+    end
   end
 end

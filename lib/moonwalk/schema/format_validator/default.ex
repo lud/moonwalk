@@ -15,6 +15,129 @@ defmodule Moonwalk.Schema.FormatValidator.Default.Optional do
   end
 end
 
+if Moonwalk.Schema.FormatValidator.Default.Optional.mod_exists?(AbnfParsec) do
+  defmodule Moonwalk.Schema.FormatValidator.Default.Optional.IRI do
+    use AbnfParsec,
+      abnf: """
+      iri            = scheme ":" ihier-part [ "?" iquery ]
+      											[ "#" ifragment ]
+
+      ihier-part     = "//" iauthority ipath-abempty
+      							/ ipath-absolute
+      							/ ipath-rootless
+      							/ ipath-empty
+
+      iri-reference  = iri / irelative-ref
+
+      absolute-iri   = scheme ":" ihier-part [ "?" iquery ]
+
+      irelative-ref  = irelative-part [ "?" iquery ] [ "#" ifragment ]
+
+      irelative-part = "//" iauthority ipath-abempty
+      										/ ipath-absolute
+
+      							/ ipath-noscheme
+      							/ ipath-empty
+
+      iauthority     = [ iuserinfo "@" ] ihost [ ":" port ]
+      iuserinfo      = *( iunreserved / pct-encoded / sub-delims / ":" )
+      ihost          = IP-literal / IPv4address / ireg-name
+
+      ireg-name      = *( iunreserved / pct-encoded / sub-delims )
+
+      ipath          = ipath-abempty   ; begins with "/" or is empty
+      							/ ipath-absolute  ; begins with "/" but not "//"
+      							/ ipath-noscheme  ; begins with a non-colon segment
+      							/ ipath-rootless  ; begins with a segment
+      							/ ipath-empty     ; zero characters
+
+      ipath-abempty  = *( "/" isegment )
+      ipath-absolute = "/" [ isegment-nz *( "/" isegment ) ]
+      ipath-noscheme = isegment-nz-nc *( "/" isegment )
+      ipath-rootless = isegment-nz *( "/" isegment )
+      ipath-empty    = 0<ipchar>
+
+      isegment       = *ipchar
+      isegment-nz    = 1*ipchar
+      isegment-nz-nc = 1*( iunreserved / pct-encoded / sub-delims
+      										/ "@" )
+      							; non-zero-length segment without any colon ":"
+
+      ipchar         = iunreserved / pct-encoded / sub-delims / ":"
+      							/ "@"
+
+      iquery         = *( ipchar / iprivate / "/" / "?" )
+
+      ifragment      = *( ipchar / "/" / "?" )
+
+      iunreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
+
+      ucschar        = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
+      							/ %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
+      							/ %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
+      							/ %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
+      							/ %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
+      							/ %xD0000-DFFFD / %xE1000-EFFFD
+
+      iprivate       = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
+
+      scheme         = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+
+      port           = *DIGIT
+
+      IP-literal     = "[" ( IPv6address / IPvFuture  ) "]"
+
+      IPvFuture      = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+
+      IPv6address    =                            6( h16 ":" ) ls32
+                      /                       "::" 5( h16 ":" ) ls32
+                      / [               h16 ] "::" 4( h16 ":" ) ls32
+                      / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+                      / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+                      / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+                      / [ *4( h16 ":" ) h16 ] "::"              ls32
+                      / [ *5( h16 ":" ) h16 ] "::"              h16
+                      / [ *6( h16 ":" ) h16 ] "::"
+
+      h16            = 1*4HEXDIG
+      ls32           = ( h16 ":" h16 ) / IPv4address
+
+      IPv4address    = dec-octet "." dec-octet "." dec-octet "." dec-octet
+
+      dec-octet      = DIGIT                 ; 0-9
+                      / %x31-39 DIGIT         ; 10-99
+                      / "1" 2DIGIT            ; 100-199
+                      / "2" %x30-34 DIGIT     ; 200-249
+                      / "25" %x30-35          ; 250-255
+
+      pct-encoded    = "%" HEXDIG HEXDIG
+
+      unreserved     = ALPHA / DIGIT / "-" / "." / "_" / "~"
+      reserved       = gen-delims / sub-delims
+      gen-delims     = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+      sub-delims     = "!" / "$" / "&" / "'" / "(" / ")"
+                      / "*" / "+" / "," / ";" / "="
+      """,
+      unbox: [],
+      ignore: [],
+      parse: :iri
+
+    def parse_iri(data) do
+      case iri(data) do
+        ok when elem(ok, 0) == :ok -> {:ok, URI.parse(data)}
+        error when elem(error, 0) == :error -> {:error, :invalid_iri}
+      end
+    end
+
+    def parse_iri_reference(data) do
+      case iri_reference(data) do
+        ok when elem(ok, 0) == :ok -> {:ok, URI.parse(data)}
+        error when elem(error, 0) == :error -> {:error, :invalid_iri_reference}
+      end
+    end
+  end
+end
+
 defmodule Moonwalk.Schema.FormatValidator.Default do
   import Moonwalk.Schema.FormatValidator.Default.Optional
   @behaviour Moonwalk.Schema.FormatValidator
@@ -35,6 +158,7 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
 
   @supports_duration mod_exists?(Duration)
   @supports_email mod_exists?(MailAddress.Parser)
+  @supports_iri mod_exists?(AbnfParsec)
 
   # TODO document hostname accepts numerical TLDs and single letter TLDs
 
@@ -43,6 +167,8 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
   @formats [
              optional_support("duration", @supports_duration),
              optional_support("email", @supports_email),
+             optional_support("iri", @supports_iri),
+             optional_support("iri-reference", @supports_iri),
              [
                "ipv4",
                "ipv6",
@@ -126,6 +252,14 @@ defmodule Moonwalk.Schema.FormatValidator.Default do
     else
       {:error, :invalid_hostname}
     end
+  end
+
+  def validate_cast("iri", data) do
+    Moonwalk.Schema.FormatValidator.Default.Optional.IRI.parse_iri(data)
+  end
+
+  def validate_cast("iri-reference", data) do
+    Moonwalk.Schema.FormatValidator.Default.Optional.IRI.parse_iri_reference(data)
   end
 
   def validate_cast("uri", data) do
