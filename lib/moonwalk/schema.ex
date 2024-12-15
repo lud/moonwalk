@@ -11,7 +11,7 @@ defmodule Moonwalk.Schema do
   alias Moonwalk.Schema.Resolver
   alias Moonwalk.Schema.Validator
 
-  defstruct validators: %{}, root_key: nil
+  defstruct validators: %{}, root_key: nil, raw: nil
   @opaque t :: %__MODULE__{}
 
   @default_draft_default "https://json-schema.org/draft/2020-12/schema"
@@ -46,11 +46,11 @@ defmodule Moonwalk.Schema do
          bld = Builder.stage_build(bld, resolver.root),
          root_key = Key.of(resolver.root),
          {:ok, validators} <- Builder.build_all(bld) do
-      {:ok, %Schema{validators: validators, root_key: root_key}}
+      {:ok, %Schema{raw: raw_schema, validators: validators, root_key: root_key}}
     end
   end
 
   def build(valid?, _opts) when is_boolean(valid?) do
-    {:ok, %Schema{root_key: :root, validators: %{root: BooleanSchema.of(valid?)}}}
+    {:ok, %Schema{raw: valid?, root_key: :root, validators: %{root: BooleanSchema.of(valid?)}}}
   end
 end

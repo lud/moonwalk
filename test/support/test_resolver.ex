@@ -26,7 +26,7 @@ defmodule Moonwalk.Test.TestResolver do
 
     # Prevent concurrent cache checks and fetches of the same resource.
 
-    Mutex.under(@mutex, {:fetch, host}, fn ->
+    Mutex.with_lock(@mutex, {:fetch, host}, fn ->
       case File.read(path) do
         {:ok, json} -> Jason.decode(json)
         {:error, :enoent} -> fetch_and_write(url, path)
