@@ -5,108 +5,140 @@ defmodule Mix.Tasks.Gen.Test.Suite do
   require EEx
   use Mix.Task
 
-  @enabled_202012 [
-    {"additionalProperties.json", []},
-    {"allOf.json", []},
-    {"anchor.json", []},
-    {"anyOf.json", []},
-    {"boolean_schema.json", []},
-    {"const.json", []},
-    {"contains.json", []},
-    {"content.json", []},
-    {"default.json", []},
-    {"defs.json", []},
-    {"dependentRequired.json", []},
-    {"dependentSchemas.json", []},
-    {"dynamicRef.json", []},
-    {"enum.json", []},
-    {"exclusiveMaximum.json", []},
-    {"exclusiveMinimum.json", []},
-    {"format.json", []},
-    {"if-then-else.json", []},
-    {"infinite-loop-detection.json", []},
-    {"items.json", []},
-    {"maxContains.json", []},
-    {"maximum.json", []},
-    {"maxItems.json", []},
-    {"maxLength.json", []},
-    {"maxProperties.json", []},
-    {"minContains.json", []},
-    {"minimum.json", []},
-    {"minItems.json", []},
-    {"minLength.json", []},
-    {"minProperties.json", []},
-    {"multipleOf.json", []},
-    {"not.json", []},
-    {"oneOf.json", []},
-    {"pattern.json", []},
-    {"patternProperties.json", []},
-    {"prefixItems.json", []},
-    {"properties.json", []},
-    {"propertyNames.json", []},
-    {"ref.json", []},
-    {"refRemote.json", []},
-    {"required.json", []},
-    {"type.json", []},
-    {"unevaluatedItems.json", []},
-    {"unevaluatedProperties.json", []},
-    {"uniqueItems.json", []},
-    {"vocabulary.json", []},
+  @enabled_specific_202012 %{
+    "anchor.json" => [],
+    "content.json" => [],
+    "defs.json" => [],
+    "dependentRequired.json" => [],
+    "dependentSchemas.json" => [],
+    "dynamicRef.json" => [],
+    "maxContains.json" => [],
+    "minContains.json" => [],
+    "prefixItems.json" => [],
+    "unevaluatedItems.json" => [],
+    "unevaluatedProperties.json" => [],
+    "vocabulary.json" => [],
 
     # Optional
 
-    {"optional/anchor.json", []},
-    {"optional/id.json", []},
-    {"optional/no-schema.json", []},
-    {"optional/bignum.json", []},
-    {"optional/dependencies-compatibility.json", []},
-    {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
-    {"optional/ecmascript-regex.json", :unsupported},
-    {"optional/dynamicRef.json", []},
-    {"optional/refOfUnknownKeyword.json", []},
-
-    # TODO we should be able to do cross-schema once we implement all the specs.
-    {"optional/cross-draft.json", :unsupported},
-
-    # Language incompatibilities. Elixir vs Javascript mostly.
-    #
-    {"optional/non-bmp-regex.json", :unsupported},
-    {"optional/float-overflow.json", :unsupported},
-    {"optional/format/time.json", :unsupported},
+    "optional/anchor.json" => [],
+    "optional/no-schema.json" => [],
+    "optional/dependencies-compatibility.json" => [],
+    "optional/dynamicRef.json" => [],
+    "optional/refOfUnknownKeyword.json" => [],
 
     # Formats
-    {"optional/format-assertion.json", []},
-    {"optional/format/ipv6.json", schema_build_opts: [formats: true]},
-    {"optional/format/regex.json", schema_build_opts: [formats: true]},
-    {"optional/format/unknown.json", schema_build_opts: [formats: true]},
-    {"optional/format/date-time.json",
-     schema_build_opts: [formats: true],
-     ignore: [
-       "case-insensitive T and Z",
-       "a valid date-time with a leap second, UTC",
-       "a valid date-time with a leap second, with minus offset"
-     ]},
-    {"optional/format/date.json", schema_build_opts: [formats: true]},
 
-    # Not supported yet. TODO Maybe elixir 1.17 if the new Duration modules has
-    # a correct parser.
-    #
-    {"optional/format/duration.json", :unsupported},
+    "optional/format-assertion.json" => [],
+    "optional/format/duration.json" => [
+      schema_build_opts: [formats: true],
+      ignore: ["weeks cannot be combined with other units"]
+    ],
+    "optional/format/uuid.json" => :unsupported
+  }
 
-    # Needs custom implementations
-    #
-    {"optional/format/email.json", :unsupported},
-    {"optional/format/hostname.json", :unsupported},
-    {"optional/format/idn-email.json", :unsupported},
-    {"optional/format/idn-hostname.json", :unsupported},
-    {"optional/format/iri-reference.json", :unsupported},
-    {"optional/format/iri.json", :unsupported},
-    {"optional/format/json-pointer.json", :unsupported},
-    {"optional/format/relative-json-pointer.json", :unsupported},
-    {"optional/format/uri-reference.json", :unsupported},
-    {"optional/format/uri-template.json", :unsupported},
-    {"optional/format/uri.json", :unsupported},
-    {"optional/format/uuid.json", :unsupported},
+  @enabled_specific_7 %{
+    "additionalItems.json" => [],
+    "definitions.json" => [],
+    "dependencies.json" => [],
+    # Optional
+    "optional/content.json" => :unsupported
+  }
+
+  @enabled_common %{
+    "additionalProperties.json" => [],
+    "allOf.json" => [],
+    "anyOf.json" => [],
+    "boolean_schema.json" => [],
+    "const.json" => [],
+    "contains.json" => [],
+    "default.json" => [],
+    "enum.json" => [],
+    "exclusiveMaximum.json" => [],
+    "exclusiveMinimum.json" => [],
+    "format.json" => [],
+    "if-then-else.json" => [],
+    "infinite-loop-detection.json" => [],
+    "items.json" => [],
+    "maximum.json" => [],
+    "maxItems.json" => [],
+    "maxLength.json" => [],
+    "maxProperties.json" => [],
+    "minimum.json" => [],
+    "minItems.json" => [],
+    "minLength.json" => [],
+    "minProperties.json" => [],
+    "multipleOf.json" => [],
+    "not.json" => [],
+    "oneOf.json" => [],
+    "pattern.json" => [],
+    "patternProperties.json" => [],
+    "properties.json" => [],
+    "propertyNames.json" => [],
+    "ref.json" => [],
+    "refRemote.json" => [],
+    "required.json" => [],
+    "type.json" => [],
+    "uniqueItems.json" => [],
+
+    # Optional
+
+    "optional/bignum.json" => [],
+    "optional/ecmascript-regex.json" => :unsupported,
+    "optional/float-overflow.json" => :unsupported,
+    "optional/id.json" => [],
+    "optional/non-bmp-regex.json" => :unsupported,
+
+    # Formats
+
+    "optional/format/date.json" => [schema_build_opts: [formats: true]],
+    "optional/format/email.json" => :unsupported,
+    "optional/format/hostname.json" => :unsupported,
+    "optional/format/idn-email.json" => :unsupported,
+    "optional/format/idn-hostname.json" => :unsupported,
+    "optional/format/ipv4.json" => [schema_build_opts: [formats: true]],
+    "optional/format/ipv6.json" => [schema_build_opts: [formats: true]],
+    "optional/format/iri-reference.json" => :unsupported,
+    "optional/format/iri.json" => :unsupported,
+    "optional/format/json-pointer.json" => :unsupported,
+    "optional/format/regex.json" => [schema_build_opts: [formats: true]],
+    "optional/format/relative-json-pointer.json" => :unsupported,
+    "optional/format/unknown.json" => [schema_build_opts: [formats: true]],
+    "optional/format/uri-reference.json" => :unsupported,
+    "optional/format/uri-template.json" => :unsupported,
+    "optional/format/uri.json" => :unsupported,
+    "optional/format/time.json" => [
+      schema_build_opts: [formats: true],
+      ignore: [
+        # Elixir built-in calendar does not support leap seconds
+        "valid leap second, large positive time-offset",
+        "valid leap second, positive time-offset",
+        "valid leap second, zero time-offset",
+        "valid leap second, large negative time-offset",
+        "a valid time string with leap second, Zulu",
+        "valid leap second, negative time-offset",
+
+        # Elixir does not require a time offset to be set
+        "no time offset",
+        "no time offset with second fraction",
+
+        # Elixir supports more formats that RFC3339
+        "only RFC3339 not all of ISO 8601 are valid"
+      ]
+    ],
+    "optional/format/date-time.json" => [
+      schema_build_opts: [formats: true],
+      ignore: [
+        "case-insensitive T and Z",
+        "a valid date-time with a leap second, UTC",
+        "a valid date-time with a leap second, with minus offset"
+      ]
+    ],
+
+    # Architecture problems
+
+    # Uses schema 2019 in tests which we do not support
+    "optional/cross-draft.json" => :unsupported,
 
     # We need to make a change so each vocabulary module exports a strict list
     # of supported keywords, and the resolver schema scanner does not
@@ -118,103 +150,26 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     # schema and tag the "real" schemas we find, and then when a path points to
     # a definition with "$id" inside we check if the tag is present, or we
     # disregard that "$id".
-    {"optional/unknownKeyword.json", :unsupported}
-  ]
-
-  @enabled_7 [
-    {"additionalItems.json", []},
-    {"additionalProperties.json", []},
-    {"allOf.json", []},
-    {"anyOf.json", []},
-    {"boolean_schema.json", []},
-    {"const.json", []},
-    {"contains.json", []},
-    {"default.json", []},
-    {"definitions.json", []},
-    {"dependencies.json", []},
-    {"enum.json", []},
-    {"exclusiveMaximum.json", []},
-    {"exclusiveMinimum.json", []},
-    {"format.json", []},
-    {"if-then-else.json", []},
-    {"infinite-loop-detection.json", []},
-    {"items.json", []},
-    {"maxItems.json", []},
-    {"maxLength.json", []},
-    {"maxProperties.json", []},
-    {"maximum.json", []},
-    {"minItems.json", []},
-    {"minLength.json", []},
-    {"minProperties.json", []},
-    {"minimum.json", []},
-    {"multipleOf.json", []},
-    {"not.json", []},
-    {"oneOf.json", []},
-    {"pattern.json", []},
-    {"patternProperties.json", []},
-    {"properties.json", []},
-    {"propertyNames.json", []},
-    {"ref.json", []},
-    {"refRemote.json", []},
-    {"required.json", []},
-    {"type.json", []},
-    {"uniqueItems.json", []},
-
-    # Optional
-
-    {"optional/id.json", []},
-    {"optional/bignum.json", []},
-    {"optional/format/ipv4.json", schema_build_opts: [formats: true]},
-    {"optional/ecmascript-regex.json", :unsupported},
-    {"optional/content.json", :unsupported},
-
-    # Uses schema 2019 which we do not support
-    {"optional/cross-draft.json", :unsupported},
-
-    # Language incompatibilities. Elixir vs Javascript mostly.
-    #
-    {"optional/non-bmp-regex.json", :unsupported},
-    {"optional/float-overflow.json", :unsupported},
-    {"optional/format/time.json", :unsupported},
-
-    # Formats
-    {"optional/format/ipv6.json", schema_build_opts: [formats: true]},
-    {"optional/format/regex.json", schema_build_opts: [formats: true]},
-    {"optional/format/unknown.json", schema_build_opts: [formats: true]},
-    {"optional/format/date-time.json",
-     schema_build_opts: [formats: true],
-     ignore: [
-       "case-insensitive T and Z",
-       "a valid date-time with a leap second, UTC",
-       "a valid date-time with a leap second, with minus offset"
-     ]},
-    {"optional/format/date.json", schema_build_opts: [formats: true]},
-    {"optional/format/email.json", :unsupported},
-    {"optional/format/hostname.json", :unsupported},
-    {"optional/format/idn-email.json", :unsupported},
-    {"optional/format/idn-hostname.json", :unsupported},
-    {"optional/format/iri-reference.json", :unsupported},
-    {"optional/format/iri.json", :unsupported},
-    {"optional/format/json-pointer.json", :unsupported},
-    {"optional/format/relative-json-pointer.json", :unsupported},
-    {"optional/format/uri-reference.json", :unsupported},
-    {"optional/format/uri-template.json", :unsupported},
-    {"optional/format/uri.json", :unsupported},
-
-    # Needs custom implementations
-    {"optional/unknownKeyword.json", :unsupported},
-    {"additionalItems.json", []}
-  ]
-
-  @enabled %{
-    "draft2020-12" => @enabled_202012,
-    "draft7" => @enabled_7
+    "optional/unknownKeyword.json" => :unsupported
   }
 
-  # @enabled %{
-  #   "draft2020-12" => false,
-  #   "draft7" => [{"enum.json", []}]
-  # }
+  raise_same_key = fn k, v1, v2 ->
+    raise ArgumentError, """
+    duplicate definition for test #{inspect(k)}
+
+    COMMON
+    #{inspect(v1)}
+
+    SPECIFIC
+    #{inspect(v2)}
+
+    """
+  end
+
+  @enabled %{
+    "draft2020-12" => Map.merge(@enabled_common, @enabled_specific_202012, raise_same_key),
+    "draft7" => Map.merge(@enabled_common, @enabled_specific_7, raise_same_key)
+  }
 
   @command [
     module: __MODULE__,
@@ -248,8 +203,6 @@ defmodule Mix.Tasks.Gen.Test.Suite do
 
       <%= for tcase <- @test_cases do %>
         describe <%= inspect(tcase.description <> ":") %> do
-
-
 
           setup do
 
@@ -293,7 +246,7 @@ defmodule Mix.Tasks.Gen.Test.Suite do
     enabled =
       case Map.fetch(@enabled, suite) do
         {:ok, false} -> Map.new([])
-        {:ok, list} when is_list(list) -> Map.new(list)
+        {:ok, map} when is_map(map) -> map
         :error -> raise ArgumentError, "No suite configuration for #{inspect(suite)}"
       end
 

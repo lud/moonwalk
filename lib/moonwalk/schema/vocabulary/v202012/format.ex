@@ -2,15 +2,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
   alias Moonwalk.Schema.Validator
   use Moonwalk.Schema.Vocabulary, priority: 300
 
-  # TODO
-  # * provide an option :formats that accepts
-  #   - true: always validate formats
-  #   - false: do not validate formats
-  #   - :default : validate format if a dummy vocabulary for
-  #     https://json-schema.org/draft/2020-12/vocab/format-assertion is selected
-  #   - {true | false | :default, (format, data -> boolean)}
-  # * Define a vocabulary that does nothing, as we will implement everything in
-  #   this module, but we can check if the vocabulary is loaded
+  @default_validators Moonwalk.Schema.default_format_validator_modules()
 
   @impl true
   def init_validators(opts) do
@@ -32,27 +24,43 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
 
   @impl true
   def take_keyword({"format", format}, acc, ctx, _) do
-    validate_formats? =
-      case {acc.default_assert, ctx.opts[:formats]} do
-        {_, true} -> true
-        {_, false} -> false
-        {do?, nil} -> do?
-        {do?, :default} -> do?
+    validator_mods =
+      case ctx.opts[:formats] do
+        # opt in / out, use defaults mods
+        bool when is_boolean(bool) -> validation_modules_or_none(bool)
+        # no opt-in/out, use default for vocabulary "assert" opt
+        default when default in [nil, :default] -> validation_modules_or_none(acc.default_assert)
+        # modules provided, use that
+        list when is_list(list) -> list
       end
 
-    if validate_formats? do
-      {:ok, Map.put(acc, :format, format), ctx}
-    else
-      {:ok, acc, ctx}
+    case validator_mods do
+      :none -> {:ok, acc, ctx}
+      _ -> add_format(validator_mods, format, acc, ctx)
     end
   end
 
   ignore_any_keyword()
 
+  defp validation_modules_or_none(false) do
+    :none
+  end
+
+  defp validation_modules_or_none(true) do
+    @default_validators
+  end
+
+  defp add_format(validator_mods, format, acc, ctx) do
+    case Enum.find(validator_mods, :__no_mod__, fn mod -> format in mod.supported_formats() end) do
+      :__no_mod__ -> {:error, {:unsupported_format, format}}
+      module -> {:ok, Map.put(acc, :format, {module, format}), ctx}
+    end
+  end
+
   @impl true
   def finalize_validators(acc) do
     acc
-    |> Map.take([:format])
+    |> Map.delete(:default_assert)
     |> Map.to_list()
     |> case do
       [] -> :ignore
@@ -61,68 +69,35 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
   end
 
   @impl true
-  def validate(data, [format: format], vdr) do
-    if validate_format(format, data) do
-      {:ok, data, vdr}
-    else
-      {:error, Validator.with_error(vdr, :format, data, format: format)}
+  def validate(data, [format: {module, format}], vdr) when is_binary(data) do
+    # TODO option to return casted value + TODO add low module priority
+    case module.validate_cast(format, data) do
+      {:ok, _casted} ->
+        {:ok, data, vdr}
+
+      {:error, reason} ->
+        {:error, Validator.with_error(vdr, :format, data, format: format, reason: json_encodable_or_inspect(reason))}
+
+      other ->
+        raise "invalid return from #{module}.validate/2 called with format #{inspect(format)}, got: #{inspect(other)}"
     end
   end
 
-  defp validate_format(_, data) when not is_binary(data) do
-    true
+  def validate(data, [format: _], vdr) do
+    {:ok, data, vdr}
   end
 
-  defp validate_format("date-time", data) do
-    case DateTime.from_iso8601(data) do
-      {:ok, _, _} -> true
-      _ -> false
+  defp json_encodable_or_inspect(term) do
+    case Jason.encode(term) do
+      {:ok, _} -> term
+      {:error, _} -> inspect(term)
     end
-  end
-
-  defp validate_format("date", data) do
-    case Date.from_iso8601(data) do
-      {:ok, _} -> true
-      _ -> false
-    end
-  end
-
-  defp validate_format("time", data) do
-    case Time.from_iso8601(data) do
-      {:ok, _} -> true
-      _ -> false
-    end
-  end
-
-  defp validate_format("ipv4", data) do
-    case :inet.parse_strict_address(String.to_charlist(data)) do
-      {:ok, {_, _, _, _}} -> true
-      _ -> false
-    end
-  end
-
-  defp validate_format("ipv6", data) do
-    case :inet.parse_strict_address(String.to_charlist(data)) do
-      {:ok, {_, _, _, _, _, _, _, _}} -> not String.contains?(data, "%")
-      _ -> false
-    end
-  end
-
-  defp validate_format("regex", data) do
-    case Regex.compile(data) do
-      {:ok, _} -> true
-      {:error, _} -> false
-    end
-  end
-
-  defp validate_format("unknown", _data) do
-    true
   end
 
   # ---------------------------------------------------------------------------
 
   @impl true
-  def format_error(:format, %{format: format}, _data) do
-    "value does not respect the '#{format}' format"
+  def format_error(:format, %{format: format, reason: reason}, _data) do
+    "value does not respect the '#{format}' format (#{inspect(reason)})"
   end
 end

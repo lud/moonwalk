@@ -41,6 +41,11 @@ defmodule Moonwalk.MixProject do
        app: false},
       {:decimal, "~> 2.1"},
 
+      # Formats
+      {:mail_address, "~> 1.0", optional: true},
+      {:abnf_parsec, "~> 1.0", optional: true},
+      {:ecto, "> 0.0.0", optional: true},
+
       # Test or Prod ?
       {:ex_ssl_options, "~> 0.1.0"},
 

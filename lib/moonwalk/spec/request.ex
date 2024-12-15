@@ -33,6 +33,7 @@ defmodule Moonwalk.Spec.Request do
   end
 
   defp normalize({:content_type, content_type}, raw) do
+    # TODO use camel case everywhere
     Map.put(raw, "contentType", content_type)
   end
 end

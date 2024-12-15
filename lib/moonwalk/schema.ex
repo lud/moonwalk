@@ -16,16 +16,20 @@ defmodule Moonwalk.Schema do
 
   @default_draft_default "https://json-schema.org/draft/2020-12/schema"
 
-  def validate(data, schema) do
-    case validation_entrypoint(data, schema) do
+  def default_format_validator_modules do
+    [Moonwalk.Schema.FormatValidator.Default]
+  end
+
+  def validate(%__MODULE__{} = schema, data) do
+    case validation_entrypoint(schema, data) do
       {:ok, casted_data, _} -> {:ok, casted_data}
-      {:error, %Validator{} = _validator} = err -> err
+      {:error, %Validator{errors: errors}} -> {:error, {:schema_validation, errors}}
     end
   end
 
   @doc false
   # entrypoint for tests when we want to return the validator struct
-  def validation_entrypoint(data, schema) do
+  def validation_entrypoint(schema, data) do
     %__MODULE__{validators: validators, root_key: root_key} = schema
     root_schema_validators = Map.fetch!(validators, root_key)
     Validator.validate(data, root_schema_validators, Validator.new(schema))

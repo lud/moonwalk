@@ -73,7 +73,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
 
   def run_test(json_schema, schema, data, expected_valid) do
     {valid?, %Validator{} = validator} =
-      case Moonwalk.Schema.validation_entrypoint(data, schema) do
+      case Moonwalk.Schema.validation_entrypoint(schema, data) do
         {:ok, casted, vdr} ->
           # This may fail if we have casting during the validation.
           assert data == casted
@@ -126,7 +126,6 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
     end)
 
     assert {:ok, _} = Jason.encode(formatted)
-    # IO.puts(Jason.encode!(formatted, pretty: true))
   end
 
   def build_schema(json_schema, build_opts) do

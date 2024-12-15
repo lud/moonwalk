@@ -56,6 +56,8 @@ defmodule Moonwalk.Schema.Builder do
 
   def build_all(bld) do
     build_all(bld, %{})
+  catch
+    {:build_error, reason} -> {:error, reason}
   end
 
   defp build_all(bld, all_validators) do
@@ -215,11 +217,12 @@ defmodule Moonwalk.Schema.Builder do
     {:ok, %Moonwalk.Schema.Subschema{validators: schema_validators}, bld}
   end
 
-  defp mod_and_init_opts(module_or_tuple) do
-    case module_or_tuple do
-      {module, opts} -> {module, opts}
-      module -> {module, []}
-    end
+  defp mod_and_init_opts({module, opts}) when is_atom(module) and is_list(opts) do
+    {module, opts}
+  end
+
+  defp mod_and_init_opts(module) when is_atom(module) do
+    {module, []}
   end
 
   defp build_mod_validators(raw_pairs, module, init_opts, bld, raw_schema) when is_map(raw_schema) do
@@ -231,6 +234,7 @@ defmodule Moonwalk.Schema.Builder do
         case module.take_keyword(pair, mod_acc, bld, raw_schema) do
           {:ok, mod_acc, bld} -> {leftovers, mod_acc, bld}
           :ignore -> {[pair | leftovers], mod_acc, bld}
+          {:error, reason} -> throw({:build_error, reason})
         end
       end)
 
