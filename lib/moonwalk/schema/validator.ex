@@ -1,4 +1,4 @@
-defmodule Moonwalk.Schema.Validator.Error do
+defmodule JSV.Validator.Error do
   @enforce_keys [:kind, :data, :args, :formatter, :path]
   defstruct @enforce_keys
 
@@ -23,12 +23,12 @@ defmodule Moonwalk.Schema.Validator.Error do
   end
 end
 
-defmodule Moonwalk.Schema.Validator do
-  alias Moonwalk.Schema
-  alias Moonwalk.Schema.BooleanSchema
-  alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema.Subschema
-  alias Moonwalk.Schema.Validator.Error
+defmodule JSV.Validator do
+  alias JSV
+  alias JSV.BooleanSchema
+  alias JSV.Key
+  alias JSV.Subschema
+  alias JSV.Validator.Error
 
   # TODO remove `%__MODULE__{}=`
 
@@ -37,7 +37,7 @@ defmodule Moonwalk.Schema.Validator do
 
   @opaque t :: %__MODULE__{}
 
-  def new(%Schema{} = schema) do
+  def new(%JSV.Root{} = schema) do
     %{validators: validators, root_key: root_key} = schema
 
     %__MODULE__{path: [], validators: validators, root_key: root_key, scope: [root_key], errors: [], evaluated: [%{}]}
@@ -276,7 +276,7 @@ defmodule Moonwalk.Schema.Validator do
 
   defmacro with_error(vdr, kind, data, args) do
     quote bind_quoted: binding() do
-      Moonwalk.Schema.Validator.__with_error__(__MODULE__, vdr, kind, data, args)
+      JSV.Validator.__with_error__(__MODULE__, vdr, kind, data, args)
     end
   end
 

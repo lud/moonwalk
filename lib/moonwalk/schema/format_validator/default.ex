@@ -1,4 +1,4 @@
-defmodule Moonwalk.Schema.FormatValidator.Default.Optional do
+defmodule JSV.FormatValidator.Default.Optional do
   def optional_support(format, supported?) when is_boolean(supported?) do
     if supported? do
       List.wrap(format)
@@ -15,11 +15,11 @@ defmodule Moonwalk.Schema.FormatValidator.Default.Optional do
   end
 end
 
-defmodule Moonwalk.Schema.FormatValidator.Default do
-  import Moonwalk.Schema.FormatValidator.Default.Optional, only: [mod_exists?: 1, optional_support: 2]
-  alias Moonwalk.Schema.FormatValidator.Default.Optional
+defmodule JSV.FormatValidator.Default do
+  import JSV.FormatValidator.Default.Optional, only: [mod_exists?: 1, optional_support: 2]
+  alias JSV.FormatValidator.Default.Optional
 
-  @behaviour Moonwalk.Schema.FormatValidator
+  @behaviour JSV.FormatValidator
 
   # TODO document that missing implementations can be added by users.
 

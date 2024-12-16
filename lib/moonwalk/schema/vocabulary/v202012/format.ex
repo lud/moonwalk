@@ -1,8 +1,8 @@
-defmodule Moonwalk.Schema.Vocabulary.V202012.Format do
-  alias Moonwalk.Schema.Validator
-  use Moonwalk.Schema.Vocabulary, priority: 300
+defmodule JSV.Vocabulary.V202012.Format do
+  alias JSV.Validator
+  use JSV.Vocabulary, priority: 300
 
-  @default_validators Moonwalk.Schema.default_format_validator_modules()
+  @default_validators JSV.default_format_validator_modules()
 
   @impl true
   def init_validators(opts) do

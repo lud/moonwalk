@@ -1,7 +1,7 @@
-require Moonwalk.Schema.FormatValidator.Default.Optional
+require JSV.FormatValidator.Default.Optional
 
-if Moonwalk.Schema.FormatValidator.Default.Optional.mod_exists?(AbnfParsec) do
-  defmodule Moonwalk.Schema.FormatValidator.Default.Optional.URITemplate do
+if JSV.FormatValidator.Default.Optional.mod_exists?(AbnfParsec) do
+  defmodule JSV.FormatValidator.Default.Optional.URITemplate do
     @external_resource "priv/uri-template.abnf"
 
     use AbnfParsec,
@@ -17,7 +17,7 @@ if Moonwalk.Schema.FormatValidator.Default.Optional.mod_exists?(AbnfParsec) do
     end
   end
 else
-  defmodule Moonwalk.Schema.FormatValidator.Default.Optional.URI do
+  defmodule JSV.FormatValidator.Default.Optional.URI do
     def parse_uri(data) do
       case URI.parse(data) do
         %{scheme: nil} -> {:error, :no_uri_scheme}

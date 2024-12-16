@@ -1,6 +1,6 @@
-defmodule Moonwalk.Schema.Ref do
+defmodule JSV.Ref do
   alias __MODULE__
-  alias Moonwalk.Schema.RNS
+  alias JSV.RNS
   defstruct ns: nil, kind: nil, fragment: nil, arg: nil, dynamic?: false
 
   def parse(url, current_ns) do

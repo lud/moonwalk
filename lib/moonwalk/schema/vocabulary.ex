@@ -1,7 +1,7 @@
-defmodule Moonwalk.Schema.Vocabulary do
+defmodule JSV.Vocabulary do
   alias Moonwalk.Helpers
-  alias Moonwalk.Schema.Builder
-  alias Moonwalk.Schema.Validator
+  alias JSV.Builder
+  alias JSV.Validator
 
   @type validators :: term
   @type pair :: {binary, term}
@@ -56,7 +56,7 @@ defmodule Moonwalk.Schema.Vocabulary do
     quote do
       import unquote(__MODULE__)
       @behaviour unquote(__MODULE__)
-      require Moonwalk.Schema.Validator
+      require JSV.Validator
       unquote(priority_callback)
     end
   end

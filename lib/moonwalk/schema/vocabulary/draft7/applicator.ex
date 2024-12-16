@@ -1,9 +1,9 @@
-defmodule Moonwalk.Schema.Vocabulary.Draft7.Applicator do
+defmodule JSV.Vocabulary.Draft7.Applicator do
   alias Moonwalk.Helpers
-  alias Moonwalk.Schema.Builder
-  alias Moonwalk.Schema.Validator
-  alias Moonwalk.Schema.Vocabulary.V202012.Applicator, as: Fallback
-  use Moonwalk.Schema.Vocabulary, priority: 200
+  alias JSV.Builder
+  alias JSV.Validator
+  alias JSV.Vocabulary.V202012.Applicator, as: Fallback
+  use JSV.Vocabulary, priority: 200
 
   @impl true
   defdelegate init_validators(opts), to: Fallback

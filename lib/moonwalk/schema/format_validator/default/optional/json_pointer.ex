@@ -1,7 +1,7 @@
-require Moonwalk.Schema.FormatValidator.Default.Optional
+require JSV.FormatValidator.Default.Optional
 
-if Moonwalk.Schema.FormatValidator.Default.Optional.mod_exists?(AbnfParsec) do
-  defmodule Moonwalk.Schema.FormatValidator.Default.Optional.JSONPointer do
+if JSV.FormatValidator.Default.Optional.mod_exists?(AbnfParsec) do
+  defmodule JSV.FormatValidator.Default.Optional.JSONPointer do
     @external_resource "priv/json-pointer.abnf"
 
     use AbnfParsec,

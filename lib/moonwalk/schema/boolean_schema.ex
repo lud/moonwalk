@@ -1,4 +1,4 @@
-defmodule Moonwalk.Schema.BooleanSchema do
+defmodule JSV.BooleanSchema do
   defstruct [:valid?]
 
   def of(true) do

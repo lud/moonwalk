@@ -1,4 +1,4 @@
-defmodule Moonwalk.Schema.FormatValidator.Default.Optional.UUID do
+defmodule JSV.FormatValidator.Default.Optional.UUID do
   defguard is_hex(n) when n in ?0..?9 or n in ?a..?f or n in ?A..?F
 
   def parse_uuid(

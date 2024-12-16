@@ -1,9 +1,9 @@
-defmodule Moonwalk.Schema.FormatValidationTest do
-  alias Moonwalk.Schema
+defmodule JSV.FormatValidationTest do
+  alias JSV
   use ExUnit.Case, async: true
 
   defp build_schema(json_schema, opts \\ []) do
-    Moonwalk.Schema.build(json_schema, [resolver: Moonwalk.Test.TestResolver] ++ opts)
+    JSV.build(json_schema, [resolver: Moonwalk.Test.TestResolver] ++ opts)
   end
 
   defp raw_for(format) do
@@ -35,14 +35,14 @@ defmodule Moonwalk.Schema.FormatValidationTest do
 
     test "default to no validation", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema)
-      assert {:ok, @bad_ipv4} = Schema.validate(schema, @bad_ipv4)
+      assert {:ok, @bad_ipv4} = JSV.validate(schema, @bad_ipv4)
     end
 
     test "validation can be enabled in build", ctx do
       # Note that passing `true` is the same as passing a list with a single
       # item, the default formats module
       assert {:ok, schema} = build_schema(ctx.json_schema, formats: true)
-      assert {:error, {:schema_validation, [_]}} = Schema.validate(schema, @bad_ipv4)
+      assert {:error, {:schema_validation, [_]}} = JSV.validate(schema, @bad_ipv4)
     end
   end
 
@@ -60,18 +60,18 @@ defmodule Moonwalk.Schema.FormatValidationTest do
 
     test "default to no validation", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema)
-      assert {:error, {:schema_validation, [_]}} = Schema.validate(schema, @bad_ipv4)
+      assert {:error, {:schema_validation, [_]}} = JSV.validate(schema, @bad_ipv4)
     end
 
     test "validation can be enabled in build", ctx do
       assert {:ok, schema} = build_schema(ctx.json_schema, formats: false)
-      assert {:ok, @bad_ipv4} = Schema.validate(schema, @bad_ipv4)
+      assert {:ok, @bad_ipv4} = JSV.validate(schema, @bad_ipv4)
     end
   end
 
   describe "custom formats module" do
     defmodule CustomFormat do
-      @behaviour Moonwalk.Schema.FormatValidator
+      @behaviour JSV.FormatValidator
 
       @impl true
       def supported_formats do
@@ -98,7 +98,7 @@ defmodule Moonwalk.Schema.FormatValidationTest do
 
       # We can validate the supported formats
       assert {:ok, schema} = build_schema(raw_for("beam-language"), formats: formats)
-      assert {:ok, "LFE"} = Schema.validate(schema, "LFE")
+      assert {:ok, "LFE"} = JSV.validate(schema, "LFE")
 
       # but it does not support ipv4 format
       assert {:error, {:unsupported_format, "ipv4"}} = build_schema(raw_for("ipv4"), formats: formats)
@@ -106,19 +106,19 @@ defmodule Moonwalk.Schema.FormatValidationTest do
 
     test "adding a custom module over default one" do
       # Now if we ADD the module to the default we can support both formats
-      formats = [CustomFormat | Moonwalk.Schema.default_format_validator_modules()]
+      formats = [CustomFormat | JSV.default_format_validator_modules()]
 
       # We can validate the supported formats
       assert {:ok, schema} = build_schema(raw_for("beam-language"), formats: formats)
-      assert {:ok, "LFE"} = Schema.validate(schema, "LFE")
+      assert {:ok, "LFE"} = JSV.validate(schema, "LFE")
 
       # and it does support ipv4 format
       assert {:ok, schema} = build_schema(raw_for("ipv4"), formats: formats)
-      assert {:ok, "127.0.0.1"} = Schema.validate(schema, "127.0.0.1")
+      assert {:ok, "127.0.0.1"} = JSV.validate(schema, "127.0.0.1")
 
       # and we were able to override default implementations
       assert {:ok, schema} = build_schema(raw_for("date"), formats: formats)
-      assert {:ok, "a long time ago"} = Schema.validate(schema, "a long time ago")
+      assert {:ok, "a long time ago"} = JSV.validate(schema, "a long time ago")
     end
   end
 
@@ -129,7 +129,7 @@ defmodule Moonwalk.Schema.FormatValidationTest do
       schema = format_schema(format)
 
       Enum.each(valids, fn value ->
-        case Schema.validate(schema, value) do
+        case JSV.validate(schema, value) do
           {:ok, ^value} ->
             :ok
 
@@ -141,7 +141,7 @@ defmodule Moonwalk.Schema.FormatValidationTest do
       end)
 
       Enum.each(invalids, fn value ->
-        case Schema.validate(schema, value) do
+        case JSV.validate(schema, value) do
           {:ok, ^value} ->
             flunk("""
             Expected value #{inspect(value)} to not be valid against format #{inspect(format)}.

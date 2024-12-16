@@ -76,6 +76,7 @@ defmodule Moonwalk.MixProject do
     [
       mount: [
         {Moonwalk, "lib/moonwalk"},
+        {JSV, "lib/jsv"},
         {Moonwalk.Test, "test/support"}
       ]
     ]

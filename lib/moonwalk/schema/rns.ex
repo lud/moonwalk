@@ -1,4 +1,4 @@
-defmodule Moonwalk.Schema.RNS do
+defmodule JSV.RNS do
   # A "namespace" for a schema ID or reference
   # Universal Resource Reference. That is
   # basically a URI but with a hack to support URNs (urn:isbn:1234 is

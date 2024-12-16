@@ -1,6 +1,6 @@
-defmodule Moonwalk.Schema.Vocabulary.Draft7.Validation do
-  alias Moonwalk.Schema.Vocabulary.V202012.Validation, as: Fallback
-  use Moonwalk.Schema.Vocabulary, priority: 300
+defmodule JSV.Vocabulary.Draft7.Validation do
+  alias JSV.Vocabulary.V202012.Validation, as: Fallback
+  use JSV.Vocabulary, priority: 300
 
   @impl true
   defdelegate init_validators(opts), to: Fallback

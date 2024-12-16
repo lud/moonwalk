@@ -1,5 +1,5 @@
-defmodule Moonwalk.Schema.Vocabulary.V202012.MetaData do
-  use Moonwalk.Schema.Vocabulary, priority: 300
+defmodule JSV.Vocabulary.V202012.MetaData do
+  use JSV.Vocabulary, priority: 300
 
   @impl true
   def init_validators(_) do

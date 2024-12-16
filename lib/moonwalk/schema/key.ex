@@ -1,5 +1,5 @@
-defmodule Moonwalk.Schema.Key do
-  alias Moonwalk.Schema.Ref
+defmodule JSV.Key do
+  alias JSV.Ref
 
   def of(binary) when is_binary(binary) do
     binary

@@ -1,9 +1,9 @@
-defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
+defmodule JSV.Vocabulary.V202012.Applicator do
   alias Moonwalk.Helpers
-  alias Moonwalk.Schema.Builder
-  alias Moonwalk.Schema.Validator
-  alias Moonwalk.Schema.Vocabulary.V202012.Validation
-  use Moonwalk.Schema.Vocabulary, priority: 200
+  alias JSV.Builder
+  alias JSV.Validator
+  alias JSV.Vocabulary.V202012.Validation
+  use JSV.Vocabulary, priority: 200
 
   @impl true
   def init_validators(_) do
@@ -478,7 +478,7 @@ defmodule Moonwalk.Schema.Vocabulary.V202012.Applicator do
   end
 
   defp validation_enabled?(bld) do
-    Builder.vocabulary_enabled?(bld, Moonwalk.Schema.Vocabulary.V202012.Validation)
+    Builder.vocabulary_enabled?(bld, JSV.Vocabulary.V202012.Validation)
   end
 
   # ---------------------------------------------------------------------------

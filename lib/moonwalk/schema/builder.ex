@@ -1,10 +1,10 @@
-defmodule Moonwalk.Schema.Builder do
-  alias Moonwalk.Schema.BooleanSchema
-  alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema.Ref
-  alias Moonwalk.Schema.Resolver
-  alias Moonwalk.Schema.Resolver.Resolved
-  alias Moonwalk.Schema.RNS
+defmodule JSV.Builder do
+  alias JSV.BooleanSchema
+  alias JSV.Key
+  alias JSV.Ref
+  alias JSV.Resolver
+  alias JSV.Resolver.Resolved
+  alias JSV.RNS
 
   @derive {Inspect, except: []}
   defstruct [:resolver, staged: [], vocabularies: nil, ns: nil, parent_ns: nil, opts: []]
@@ -214,7 +214,7 @@ defmodule Moonwalk.Schema.Builder do
     # Reverse the list to keep the priority order from bld.vocabularies
     schema_validators = :lists.reverse(schema_validators)
 
-    {:ok, %Moonwalk.Schema.Subschema{validators: schema_validators}, bld}
+    {:ok, %JSV.Subschema{validators: schema_validators}, bld}
   end
 
   defp mod_and_init_opts({module, opts}) when is_atom(module) and is_list(opts) do

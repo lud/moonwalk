@@ -1,6 +1,6 @@
-defmodule Moonwalk.Schema.Vocabulary.Draft7.MetaData do
-  alias Moonwalk.Schema.Vocabulary.V202012.MetaData, as: Fallback
-  use Moonwalk.Schema.Vocabulary, priority: 300
+defmodule JSV.Vocabulary.Draft7.MetaData do
+  alias JSV.Vocabulary.V202012.MetaData, as: Fallback
+  use JSV.Vocabulary, priority: 300
 
   @impl true
   defdelegate init_validators(opts), to: Fallback

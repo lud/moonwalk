@@ -1,39 +1,19 @@
-defmodule Moonwalk.Schema.Subschema do
+defmodule JSV.Subschema do
   @moduledoc false
   defstruct [:validators]
 end
 
-defmodule Moonwalk.Schema do
+defmodule JSV.Root do
   alias __MODULE__
-  alias Moonwalk.Schema.BooleanSchema
-  alias Moonwalk.Schema.Builder
-  alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema.Resolver
-  alias Moonwalk.Schema.Validator
+  alias JSV.BooleanSchema
+  alias JSV.Builder
+  alias JSV.Key
+  alias JSV.Resolver
 
   defstruct validators: %{}, root_key: nil, raw: nil
   @opaque t :: %__MODULE__{}
 
   @default_draft_default "https://json-schema.org/draft/2020-12/schema"
-
-  def default_format_validator_modules do
-    [Moonwalk.Schema.FormatValidator.Default]
-  end
-
-  def validate(%__MODULE__{} = schema, data) do
-    case validation_entrypoint(schema, data) do
-      {:ok, casted_data, _} -> {:ok, casted_data}
-      {:error, %Validator{errors: errors}} -> {:error, {:schema_validation, errors}}
-    end
-  end
-
-  @doc false
-  # entrypoint for tests when we want to return the validator struct
-  def validation_entrypoint(schema, data) do
-    %__MODULE__{validators: validators, root_key: root_key} = schema
-    root_schema_validators = Map.fetch!(validators, root_key)
-    Validator.validate(data, root_schema_validators, Validator.new(schema))
-  end
 
   def build(raw_schema, opts) when is_map(raw_schema) do
     {resolver_impl, opts} = Keyword.pop!(opts, :resolver)
@@ -46,16 +26,17 @@ defmodule Moonwalk.Schema do
          bld = Builder.stage_build(bld, resolver.root),
          root_key = Key.of(resolver.root),
          {:ok, validators} <- Builder.build_all(bld) do
-      {:ok, %Schema{raw: raw_schema, validators: validators, root_key: root_key}}
+      {:ok, %Root{raw: raw_schema, validators: validators, root_key: root_key}}
     end
   end
 
   def build(valid?, _opts) when is_boolean(valid?) do
-    {:ok, %Schema{raw: valid?, root_key: :root, validators: %{root: BooleanSchema.of(valid?)}}}
+    {:ok, %Root{raw: valid?, root_key: :root, validators: %{root: BooleanSchema.of(valid?)}}}
   end
 end
 
+# TODO
 IO.warn("""
-todo rename Schema to Root so we can provide a helper Schema struct for
-autocompletion. When given to a builder we just remove everything that is `nil`.
+Allow all keys to be atoms. Special keys like :all_properties should become
+:properties@jsv
 """)

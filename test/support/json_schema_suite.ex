@@ -1,5 +1,5 @@
 defmodule Moonwalk.Test.JsonSchemaSuite do
-  alias Moonwalk.Schema.Validator
+  alias JSV.Validator
   use ExUnit.CaseTemplate
   @root_suites_dir Path.join([File.cwd!(), "deps", "json_schema_test_suite", "tests"])
   require Logger
@@ -73,7 +73,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
 
   def run_test(json_schema, schema, data, expected_valid) do
     {valid?, %Validator{} = validator} =
-      case Moonwalk.Schema.validation_entrypoint(schema, data) do
+      case JSV.validation_entrypoint(schema, data) do
         {:ok, casted, vdr} ->
           # This may fail if we have casting during the validation.
           assert data == casted
@@ -129,7 +129,7 @@ defmodule Moonwalk.Test.JsonSchemaSuite do
   end
 
   def build_schema(json_schema, build_opts) do
-    case Moonwalk.Schema.build(json_schema, [resolver: Moonwalk.Test.TestResolver] ++ build_opts) do
+    case JSV.build(json_schema, [resolver: Moonwalk.Test.TestResolver] ++ build_opts) do
       {:ok, schema} -> schema
       {:error, reason} -> flunk(denorm_failure(json_schema, reason, []))
     end

@@ -1,9 +1,9 @@
-defmodule Moonwalk.Schema.Resolver do
+defmodule JSV.Resolver do
   alias Moonwalk.Helpers
-  alias Moonwalk.Schema.Key
-  alias Moonwalk.Schema.Ref
-  alias Moonwalk.Schema.RNS
-  alias Moonwalk.Schema.Vocabulary
+  alias JSV.Key
+  alias JSV.Ref
+  alias JSV.RNS
+  alias JSV.Vocabulary
 
   defmodule Resolved do
     # TODO drop parent_ns once we do not support draft-7

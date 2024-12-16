@@ -1,5 +1,5 @@
-defmodule Moonwalk.Schema.RNSTest do
-  alias Moonwalk.Schema.RNS
+defmodule JSV.RNSTest do
+  alias JSV.RNS
   use ExUnit.Case, async: true
 
   describe "derive from fully qualified" do

@@ -1,6 +1,6 @@
-defmodule Moonwalk.Schema.Vocabulary.V202012.Unevaluated do
-  alias Moonwalk.Schema.Validator
-  use Moonwalk.Schema.Vocabulary, priority: 900
+defmodule JSV.Vocabulary.V202012.Unevaluated do
+  alias JSV.Validator
+  use JSV.Vocabulary, priority: 900
 
   @impl true
   def init_validators(_) do
