@@ -1,5 +1,5 @@
 defmodule JSV.Vocabulary.V202012.Validation do
-  alias Moonwalk.Helpers
+  alias JSV.Helpers
   alias JSV.Validator
   use JSV.Vocabulary, priority: 300
 

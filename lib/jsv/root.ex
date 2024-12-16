@@ -1,8 +1,3 @@
-defmodule JSV.Subschema do
-  @moduledoc false
-  defstruct [:validators]
-end
-
 defmodule JSV.Root do
   alias __MODULE__
   alias JSV.BooleanSchema

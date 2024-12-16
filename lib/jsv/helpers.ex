@@ -1,4 +1,4 @@
-defmodule Moonwalk.Helpers do
+defmodule JSV.Helpers do
   @type result :: {:ok, term} | {:error, term}
   @type result(t) :: {:ok, t} | {:error, term}
   import Kernel, except: [trunc: 1]

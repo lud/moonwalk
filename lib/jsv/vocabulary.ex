@@ -1,5 +1,5 @@
 defmodule JSV.Vocabulary do
-  alias Moonwalk.Helpers
+  alias JSV.Helpers
   alias JSV.Builder
   alias JSV.Validator
 

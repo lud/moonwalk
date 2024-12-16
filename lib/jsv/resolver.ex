@@ -1,5 +1,5 @@
 defmodule JSV.Resolver do
-  alias Moonwalk.Helpers
+  alias JSV.Helpers
   alias JSV.Key
   alias JSV.Ref
   alias JSV.RNS
