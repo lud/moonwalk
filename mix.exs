@@ -30,15 +30,18 @@ defmodule Moonwalk.MixProject do
     ["lib", "test/support"]
   end
 
+  defp json_schema_test_suite do
+    {:json_schema_test_suite,
+     git: "https://github.com/json-schema-org/JSON-Schema-Test-Suite.git",
+     ref: "82a077498cc761d69e8530c721702be980926c89",
+     only: [:test],
+     compile: false,
+     app: false}
+  end
+
   defp deps do
     [
       {:jason, "~> 1.4"},
-      {:json_schema_test_suite,
-       git: "https://github.com/json-schema-org/JSON-Schema-Test-Suite.git",
-       ref: "9fc880bfb6d8ccd093bc82431f17d13681ffae8e",
-       only: [:test],
-       compile: false,
-       app: false},
       {:decimal, "~> 2.1"},
 
       # Formats
@@ -56,7 +59,8 @@ defmodule Moonwalk.MixProject do
 
       # Test
       {:excoveralls, "~> 0.18.0", only: :test},
-      {:mutex, "~> 3.0", only: :test}
+      {:mutex, "~> 3.0", only: :test},
+      json_schema_test_suite()
     ]
   end
 

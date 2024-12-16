@@ -34,7 +34,8 @@ defmodule Mix.Tasks.Gen.Test.Suite do
       schema_build_opts: [formats: true],
       ignore: ["weeks cannot be combined with other units"]
     ],
-    "optional/format/uuid.json" => :unsupported
+    "optional/format/uuid.json" => :unsupported,
+    "optional/format/ecmascript-regex.json" => :unsupported
   }
 
   @enabled_specific_7 %{

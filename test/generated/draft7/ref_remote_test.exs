@@ -40,7 +40,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
       json_schema =
         Jason.decode!(~S"""
         {
-          "$ref": "http://localhost:1234/subSchemas.json#/definitions/integer"
+          "$ref": "http://localhost:1234/draft7/subSchemas.json#/definitions/integer"
         }
         """)
 
@@ -66,7 +66,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
       json_schema =
         Jason.decode!(~S"""
         {
-          "$ref": "http://localhost:1234/subSchemas.json#/definitions/refToInteger"
+          "$ref": "http://localhost:1234/draft7/subSchemas.json#/definitions/refToInteger"
         }
         """)
 
@@ -214,7 +214,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
           "type": "object",
           "properties": {
             "name": {
-              "$ref": "name.json#/definitions/orNull"
+              "$ref": "draft7/name.json#/definitions/orNull"
             }
           }
         }
@@ -251,7 +251,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
           "$id": "http://localhost:1234/schema-remote-ref-ref-defs1.json",
           "allOf": [
             {
-              "$ref": "ref-and-definitions.json"
+              "$ref": "draft7/ref-and-definitions.json"
             }
           ]
         }
@@ -279,7 +279,7 @@ defmodule Elixir.Moonwalk.Generated.Draft7.RefRemoteTest do
       json_schema =
         Jason.decode!(~S"""
         {
-          "$ref": "http://localhost:1234/locationIndependentIdentifierPre2019.json#/definitions/refToInteger"
+          "$ref": "http://localhost:1234/draft7/locationIndependentIdentifier.json#/definitions/refToInteger"
         }
         """)
 

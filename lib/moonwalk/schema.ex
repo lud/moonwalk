@@ -54,3 +54,8 @@ defmodule Moonwalk.Schema do
     {:ok, %Schema{raw: valid?, root_key: :root, validators: %{root: BooleanSchema.of(valid?)}}}
   end
 end
+
+IO.warn("""
+todo rename Schema to Root so we can provide a helper Schema struct for
+autocompletion. When given to a builder we just remove everything that is `nil`.
+""")
