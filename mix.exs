@@ -4,80 +4,25 @@ defmodule Moonwalk.MixProject do
   def project do
     [
       app: :moonwalk,
-      description: "A tool to define API specifications adhering to the Moonwalk specification.",
-      version: "0.0.1",
-      elixir: "~> 1.15",
-      elixirc_paths: elixirc_paths(Mix.env()),
+      version: "0.1.0",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      test_coverage: [tool: ExCoveralls],
-      package: package(),
-      modkit: modkit()
+      deps: deps()
     ]
   end
 
+  # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :public_key, :crypto]
+      extra_applications: [:logger]
     ]
   end
 
-  defp elixirc_paths(:prod) do
-    ["lib"]
-  end
-
-  defp elixirc_paths(_) do
-    ["lib", "test/support"]
-  end
-
-  defp json_schema_test_suite do
-    {:json_schema_test_suite,
-     git: "https://github.com/json-schema-org/JSON-Schema-Test-Suite.git",
-     ref: "82a077498cc761d69e8530c721702be980926c89",
-     only: [:test],
-     compile: false,
-     app: false}
-  end
-
+  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jason, "~> 1.4"},
-      {:decimal, "~> 2.1"},
-
-      # Formats
-      {:mail_address, "~> 1.0", optional: true},
-      {:abnf_parsec, "~> 1.0", optional: true},
-      {:ecto, "> 0.0.0", optional: true},
-
-      # Test or Prod ?
-      {:ex_ssl_options, "~> 0.1.0"},
-
-      # Dev
-      {:credo, "~> 1.7", only: [:dev, :test]},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:modkit, "~> 0.6", only: [:dev, :test], runtime: false},
-
-      # Test
-      {:excoveralls, "~> 0.18.0", only: :test},
-      {:mutex, "~> 3.0", only: :test},
-      json_schema_test_suite()
-    ]
-  end
-
-  defp package do
-    [licenses: ["MIT"], links: %{"Github" => "https://github.com/lud/moonwalk"}]
-  end
-
-  def cli do
-    [preferred_envs: ["coveralls.html": :test, "gen.test.suite": :test]]
-  end
-
-  defp modkit do
-    [
-      mount: [
-        {Moonwalk, "lib/moonwalk"},
-        {Moonwalk.Test, "test/support"}
-      ]
+      # {:dep_from_hexpm, "~> 0.3.0"},
+      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
 end
