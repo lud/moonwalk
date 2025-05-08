@@ -5,6 +5,8 @@ defmodule Moonwalk.Spec.RequestBody do
   @enforce_keys [:content]
   defstruct required: false, content: nil, description: nil
 
+  def build(spec, opts \\ [])
+
   def build(spec, opts) do
     {:ok, build!(spec, opts)}
   end
@@ -27,10 +29,10 @@ defmodule Moonwalk.Spec.RequestBody do
 
   def build!(spec, opts) when is_list(spec) do
     spec
-    |> make(:request_body)
+    |> make(__MODULE__)
     |> take_required(:content, &cast_content(&1, opts))
     |> take_default(:required, false)
-    |> into(__MODULE__)
+    |> into()
   end
 
   defp cast_content(content, opts) when is_map(content) when is_list(content) do

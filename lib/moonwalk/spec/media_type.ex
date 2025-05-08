@@ -15,10 +15,10 @@ defmodule Moonwalk.Spec.MediaType do
       end
 
     spec
-    |> make(:operation)
+    |> make(__MODULE__)
     |> take_required(:schema, &build_schema(&1, opts))
     |> take_default(:examples, default_examples)
-    |> into(__MODULE__)
+    |> into()
   end
 
   defp build_schema(true, _opts) do

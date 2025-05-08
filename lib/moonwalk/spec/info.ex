@@ -1,8 +1,8 @@
-defmodule Moonwalk.Spec.OpenAPI do
+defmodule Moonwalk.Spec.Info do
   import Moonwalk.Spec
 
-  @enforce_keys [:openapi, :info]
-  defstruct [:openapi, :info, :servers, :paths, :components, :security]
+  @enforce_keys [:title, :version]
+  defstruct [:title, :summary, :description, :version]
 
   def build!(spec) do
     spec

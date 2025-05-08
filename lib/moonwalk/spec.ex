@@ -1,17 +1,22 @@
 defmodule Moonwalk.Spec do
   @undef :__undefined__
-  def make(opts, kind) do
-    {kind, opts, %{}}
+  def make(opts, target) do
+    {target, opts, %{}}
   end
 
   def nocast(value) do
     {:ok, value}
   end
 
-  defp with_cast(kind, input, output, key, value, caster) do
+  defp with_cast(target, input, output, key, value, caster) do
     case cast(value, caster) do
-      {:ok, cast_value} -> {kind, input, Map.put(output, key, cast_value)}
-      {:error, errmsg} when is_binary(errmsg) -> raise ArgumentError, message: errmsg
+      {:ok, cast_value} ->
+        {target, input, Map.put(output, key, cast_value)}
+
+      {:error, errmsg} when is_binary(errmsg) ->
+        raise ArgumentError,
+          message:
+            "could not cast key #{inspect(key)} when building #{inspect(target)}, got: #{errmsg}"
     end
   end
 
@@ -44,26 +49,30 @@ defmodule Moonwalk.Spec do
     end
   end
 
-  def take_required({kind, input, output}, key, cast \\ &nocast/1) do
+  def take_required({target, input, output}, key, cast \\ &nocast/1) do
     case pop(input, key) do
-      {:ok, value, input} -> with_cast(kind, input, output, key, value, cast)
+      {:ok, value, input} ->
+        with_cast(target, input, output, key, value, cast)
+
+      :error ->
+        raise ArgumentError, "key #{inspect(key)} is required when building #{inspect(target)}"
     end
   end
 
-  def take_default({kind, input, output}, key, default, cast \\ &nocast/1) do
+  def take_default({target, input, output}, key, default, cast \\ &nocast/1) do
     case pop(input, key) do
-      {:ok, value, input} -> with_cast(kind, input, output, key, value, cast)
-      :error -> {kind, input, Map.put(output, key, default)}
+      {:ok, value, input} -> with_cast(target, input, output, key, value, cast)
+      :error -> {target, input, Map.put(output, key, default)}
     end
   end
 
-  def update({kind, input, output}, key, update) when is_function(update, 1) do
+  def update({target, input, output}, key, update) when is_function(update, 1) do
     {_, output} = Access.get_and_update(output, key, fn v -> {v, update.(v)} end)
 
-    {kind, input, output}
+    {target, input, output}
   end
 
-  def into({_, _, output}, module) when is_atom(module) do
-    struct!(module, output)
+  def into({target, _, output}) do
+    struct!(target, output)
   end
 end
