@@ -33,6 +33,7 @@ defmodule Moonwalk.MixProject do
   defp deps do
     [
       {:jsv, "~> 0.7"},
+      {:phoenix, ">= 1.7.0"},
       # {:jsv, path: "../jsv"},
 
       # Dev
@@ -43,7 +44,7 @@ defmodule Moonwalk.MixProject do
       {:ex_check, "~> 0.16.0", only: [:dev, :test], runtime: false},
 
       # Test
-      {:phoenix, "~> 1.8.0-rc", only: [:dev, :test]},
+      # {:phoenix, "~> 1.8.0-rc", only: [:dev, :test]},
       {:bandit, "~> 1.0", only: [:dev, :test]}
     ]
   end
