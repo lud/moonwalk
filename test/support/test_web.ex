@@ -1,13 +1,12 @@
 defmodule Moonwalk.TestWeb do
   def controller do
     quote do
+      use Moonwalk.Controller
+      import Plug.Conn
+
       use Phoenix.Controller,
         formats: [:html, :json],
         layouts: []
-
-      # plug :put_view, [json: {PhxAppWeb.LayoutView, :guest}]
-
-      import Plug.Conn
 
       unquote(verified_routes())
     end

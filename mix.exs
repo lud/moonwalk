@@ -14,8 +14,13 @@ defmodule Moonwalk.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
+  defp elixirc_paths(:test) do
+    ["lib", "test/support"]
+  end
+
+  defp elixirc_paths(_) do
+    ["lib"]
+  end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
@@ -28,6 +33,7 @@ defmodule Moonwalk.MixProject do
   defp deps do
     [
       {:jsv, "~> 0.7"},
+      # {:jsv, path: "../jsv"},
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

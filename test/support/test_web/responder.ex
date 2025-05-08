@@ -6,9 +6,16 @@ defmodule Moonwalk.TestWeb.Responder do
   end
 
   def reply(conn, params) do
-    fun = conn.private.responder_fun
-    conn = Plug.Conn.put_private(conn, :responder_called, true)
+    case conn.private do
+      %{responder_fun: fun} ->
+        conn = Plug.Conn.put_private(conn, :responder_called, true)
 
-    fun.(conn, params)
+        fun.(conn, params)
+
+      _ ->
+        ExUnit.Assertions.flunk("""
+        Responder was not set
+        """)
+    end
   end
 end

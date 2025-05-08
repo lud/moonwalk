@@ -6,7 +6,11 @@ defmodule Moonwalk.TestWeb.Router do
   end
 
   scope "/body", Moonwalk.TestWeb do
-    post "/post/inline", BodyController, :with_inline_schema
+    post "/inline-single", BodyController, :inline_single
+    post "/module-single", BodyController, :module_single
+    post "/form", BodyController, :handle_form
+    post "/undefined-operation", BodyController, :undefined_operation
+    post "/ignored-action", BodyController, :ignored_action
   end
 
   match :*, "/*path", Moonwalk.TestWeb.Router.Catchall, :not_found
