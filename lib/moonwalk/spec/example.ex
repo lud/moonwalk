@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.Example do
   JSV.defschema(%{
     title: "Example",
     type: :object,
-    description:
-      "Groups an example value with metadata.",
+    description: "Groups an example value with metadata.",
     properties: %{
       summary: %{type: :string, description: "A short description for the example."},
       description: %{type: :string, description: "A long description for the example."},

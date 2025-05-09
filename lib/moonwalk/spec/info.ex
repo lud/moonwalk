@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.Info do
   JSV.defschema(%{
     title: "Info",
     type: :object,
-    description:
-      "Metadata about the API.",
+    description: "Metadata about the API.",
     properties: %{
       title: %{type: :string, description: "The title of the API. Required."},
       summary: %{type: :string, description: "A short summary of the API's purpose."},

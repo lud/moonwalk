@@ -5,6 +5,7 @@ defmodule Moonwalk.Spec.MediaType do
   JSV.defschema(%{
     title: "MediaType",
     type: :object,
+    description: "Provides schema and examples for a media type.",
     properties: %{
       schema: Moonwalk.Spec.SchemaWrapper,
       example: %{description: "Example"},

@@ -7,8 +7,7 @@ defmodule Moonwalk.Spec.Responses do
     JSV.Schema.normalize(%{
       title: "Responses",
       type: :object,
-      description:
-        "Container for expected responses of an operation.",
+      description: "Container for expected responses of an operation.",
       properties: %{
         default: %{
           oneOf: [Moonwalk.Spec.Response, Moonwalk.Spec.Reference],

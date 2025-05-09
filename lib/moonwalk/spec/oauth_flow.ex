@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.OAuthFlow do
   JSV.defschema(%{
     title: "OAuthFlow",
     type: :object,
-    description:
-      "Configuration details for a supported OAuth Flow.",
+    description: "Configuration details for a supported OAuth Flow.",
     properties: %{
       authorizationUrl: %{
         type: :string,

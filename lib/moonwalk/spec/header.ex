@@ -6,17 +6,21 @@ defmodule Moonwalk.Spec.Header do
   JSV.defschema(%{
     title: "Header",
     type: :object,
-    description:
-      "Describes a single header.",
+    description: "Describes a single header.",
     properties: %{
       description: %{type: :string, description: "A brief description of the header."},
       required: %{type: :boolean, description: "Determines whether this header is mandatory."},
       deprecated: %{type: :boolean, description: "Specifies that the header is deprecated."},
-      style: %{
-        type: :string,
-        description:
-          "Describes how the header value will be serialized. Default and only legal value is 'simple'."
-      },
+      style:
+        JSV.Schema.string_to_atom_enum(
+          %{
+            description:
+              "Describes how the header value will be serialized. Default and only legal value is 'simple'."
+          },
+          [
+            :simple
+          ]
+        ),
       explode: %{
         type: :boolean,
         description: "When true, array or object values generate a comma-separated list."

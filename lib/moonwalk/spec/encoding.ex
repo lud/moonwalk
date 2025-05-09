@@ -5,6 +5,7 @@ defmodule Moonwalk.Spec.Encoding do
   JSV.defschema(%{
     title: "Encoding",
     type: :object,
+    description: "A single encoding definition applied to a single schema property.",
     properties: %{
       contentType: %{type: :string, description: "Content type"},
       headers: %{

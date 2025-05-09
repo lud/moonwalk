@@ -5,6 +5,7 @@ defmodule Moonwalk.Spec.Link do
   JSV.defschema(%{
     title: "Link",
     type: :object,
+    description: "Represents a possible design-time link for a response.",
     properties: %{
       operationRef: %{type: :string, description: "Operation reference"},
       operationId: %{type: :string, description: "Operation ID"},

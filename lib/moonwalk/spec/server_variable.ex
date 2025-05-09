@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.ServerVariable do
   JSV.defschema(%{
     title: "ServerVariable",
     type: :object,
-    description:
-      "Object representing a server variable for server URL template substitution.",
+    description: "Object representing a server variable for server URL template substitution.",
     properties: %{
       enum: %{
         type: :array,

@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.XML do
   JSV.defschema(%{
     title: "XML",
     type: :object,
-    description:
-      "Metadata for fine-tuned XML model definitions.",
+    description: "Metadata for fine-tuned XML model definitions.",
     properties: %{
       name: %{
         type: :string,

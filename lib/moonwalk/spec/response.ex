@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.Response do
   JSV.defschema(%{
     title: "Response",
     type: :object,
-    description:
-      "Describes a single response from an API operation.",
+    description: "Describes a single response from an API operation.",
     properties: %{
       description: %{type: :string, description: "A description of the response. Required."},
       headers: %{

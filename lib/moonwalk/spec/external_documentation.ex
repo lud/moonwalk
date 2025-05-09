@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.ExternalDocumentation do
   JSV.defschema(%{
     title: "ExternalDocumentation",
     type: :object,
-    description:
-      "Allows referencing an external resource for extended documentation.",
+    description: "Allows referencing an external resource for extended documentation.",
     properties: %{
       description: %{type: :string, description: "A description of the target documentation."},
       url: %{type: :string, description: "A URI for the target documentation. Required."}

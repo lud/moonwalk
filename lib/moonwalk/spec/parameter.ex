@@ -6,24 +6,56 @@ defmodule Moonwalk.Spec.Parameter do
   JSV.defschema(%{
     title: "Parameter",
     type: :object,
-    description:
-      "Describes a single operation parameter.",
+    description: "Describes a single operation parameter.",
     properties: %{
       name: %{
         type: :string,
         description: "The name of the parameter. Required."
       },
-      in: %{
-        type: :string,
-        description: "The location of the parameter. Required."
-      },
+      in:
+        JSV.Schema.string_to_atom_enum(
+          %{
+            description:
+              "The location of the parameter. Allowed values: query, header, path, cookie. Required."
+          },
+          [
+            :query,
+            :header,
+            :path,
+            :cookie
+          ]
+        ),
       description: %{type: :string, description: "A brief description of the parameter."},
       required: %{type: :boolean, description: "Determines whether this parameter is mandatory."},
       deprecated: %{type: :boolean, description: "Specifies that the parameter is deprecated."},
-      allowEmptyValue: %{type: :boolean, description: "Sets the ability to pass empty-valued parameters."},
-      style: %{type: :string, description: "Describes how the parameter value will be serialized."},
-      explode: %{type: :boolean, description: "When true, array or object values generate separate parameters."},
-      allowReserved: %{type: :boolean, description: "Allows reserved characters in parameter values."},
+      allowEmptyValue: %{
+        type: :boolean,
+        description: "Sets the ability to pass empty-valued parameters."
+      },
+      style:
+        JSV.Schema.string_to_atom_enum(
+          %{
+            description:
+              "Describes how the parameter value will be serialized. See OpenAPI spec for allowed values."
+          },
+          [
+            :matrix,
+            :label,
+            :form,
+            :simple,
+            :spaceDelimited,
+            :pipeDelimited,
+            :deepObject
+          ]
+        ),
+      explode: %{
+        type: :boolean,
+        description: "When true, array or object values generate separate parameters."
+      },
+      allowReserved: %{
+        type: :boolean,
+        description: "Allows reserved characters in parameter values."
+      },
       schema: %{oneOf: [Moonwalk.Spec.SchemaWrapper, Moonwalk.Spec.Reference]},
       example: %{description: "An example of the parameter's potential value."},
       examples: %{

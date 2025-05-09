@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.PathItem do
   JSV.defschema(%{
     title: "PathItem",
     type: :object,
-    description:
-      "Describes operations available on a single path.",
+    description: "Describes operations available on a single path.",
     properties: %{
       "$ref": %{
         type: :string,

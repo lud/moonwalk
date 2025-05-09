@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.Server do
   JSV.defschema(%{
     title: "Server",
     type: :object,
-    description:
-      "An object representing a server.",
+    description: "An object representing a server.",
     properties: %{
       url: %{
         type: :string,

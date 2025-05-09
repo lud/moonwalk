@@ -6,8 +6,7 @@ defmodule Moonwalk.Spec.Contact do
   JSV.defschema(%{
     title: "Contact",
     type: :object,
-    description:
-      "Contact information for the exposed API.",
+    description: "Contact information for the exposed API.",
     properties: %{
       name: %{
         type: :string,

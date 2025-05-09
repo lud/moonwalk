@@ -7,8 +7,7 @@ defmodule Moonwalk.Spec.Operation do
   JSV.defschema(%{
     title: "Operation",
     type: :object,
-    description:
-      "Describes a single API operation on a path.",
+    description: "Describes a single API operation on a path.",
     properties: %{
       tags: %{
         type: :array,
