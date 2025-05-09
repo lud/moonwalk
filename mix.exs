@@ -33,8 +33,8 @@ defmodule Moonwalk.MixProject do
   defp deps do
     [
       {:jsv, "~> 0.7"},
-      {:phoenix, ">= 1.7.0"},
       # {:jsv, path: "../jsv"},
+      {:phoenix, ">= 1.7.0"},
 
       # Dev
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
