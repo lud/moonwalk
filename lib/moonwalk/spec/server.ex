@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Server do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Server",
     type: :object,
     properties: %{

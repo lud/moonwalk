@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Reference do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Reference",
     type: :object,
     properties: %{

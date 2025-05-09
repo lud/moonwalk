@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Tag do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Tag",
     type: :object,
     properties: %{

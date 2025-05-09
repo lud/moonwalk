@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.ExternalDocumentation do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "ExternalDocumentation",
     type: :object,
     properties: %{

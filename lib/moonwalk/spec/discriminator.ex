@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Discriminator do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Discriminator",
     type: :object,
     properties: %{

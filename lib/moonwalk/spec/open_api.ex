@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.OpenAPI do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "OpenAPI",
     type: :object,
     properties: %{

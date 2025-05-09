@@ -1,9 +1,9 @@
 defmodule Moonwalk.Spec.RequestBody do
   alias Moonwalk.Spec.MediaType
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "RequestBody",
     type: :object,
     properties: %{
@@ -18,21 +18,23 @@ defmodule Moonwalk.Spec.RequestBody do
     required: [:content]
   })
 
-  def build(spec, opts \\ [])
+  def from_controller(spec, opts \\ [])
 
-  def build(spec, opts) do
-    {:ok, build!(spec, opts)}
+  def from_controller(spec, opts) do
+    {:ok, from_controller!(spec, opts)}
   end
 
-  def build!(schema, opts) when is_map(schema) or is_atom(schema) when is_boolean(schema) do
-    build!({schema, []}, opts)
+  def from_controller!(schema, opts)
+      when is_map(schema) or is_atom(schema)
+      when is_boolean(schema) do
+    from_controller!({schema, []}, opts)
   end
 
-  def build!({schema, spec}, opts) when is_list(opts) do
+  def from_controller!({schema, spec}, opts) when is_list(opts) do
     case Keyword.fetch(opts, :content) do
       :error ->
         spec = Keyword.put(spec, :content, %{"application/json" => %{schema: schema}})
-        build!(spec, opts)
+        from_controller!(spec, opts)
 
       _ ->
         raise ArgumentError,
@@ -40,7 +42,7 @@ defmodule Moonwalk.Spec.RequestBody do
     end
   end
 
-  def build!(spec, opts) when is_list(spec) do
+  def from_controller!(spec, opts) when is_list(spec) do
     spec
     |> make(__MODULE__)
     |> take_required(:content, &cast_content(&1, opts))
@@ -63,7 +65,7 @@ defmodule Moonwalk.Spec.RequestBody do
         {mime_type, media_spec}, acc ->
           case Plug.Conn.Utils.media_type(mime_type) do
             {:ok, _, _, _} ->
-              media = MediaType.build!(media_spec, opts)
+              media = MediaType.from_controller!(media_spec, opts)
               Map.put(acc, mime_type, media)
 
             :error ->

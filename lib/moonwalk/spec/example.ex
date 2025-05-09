@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Example do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Example",
     type: :object,
     properties: %{

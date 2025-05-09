@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Parameter do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Parameter",
     type: :object,
     properties: %{
@@ -15,7 +15,7 @@ defmodule Moonwalk.Spec.Parameter do
       style: %{type: :string, description: "Style"},
       explode: %{type: :boolean, description: "Explode"},
       allowReserved: %{type: :boolean, description: "Allow reserved"},
-      schema: Moonwalk.Spec.Schema,
+      schema: Moonwalk.Spec.SchemaWrapper,
       example: %{description: "Example"},
       examples: %{
         type: :object,

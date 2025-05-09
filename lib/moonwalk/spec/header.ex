@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Header do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Header",
     type: :object,
     properties: %{
@@ -11,7 +11,7 @@ defmodule Moonwalk.Spec.Header do
       deprecated: %{type: :boolean, description: "Deprecated"},
       style: %{type: :string, description: "Style"},
       explode: %{type: :boolean, description: "Explode"},
-      schema: %{oneOf: [Moonwalk.Spec.Schema, Moonwalk.Spec.Reference]},
+      schema: %{oneOf: [Moonwalk.Spec.SchemaWrapper, Moonwalk.Spec.Reference]},
       example: %{description: "Example"},
       examples: %{
         type: :object,

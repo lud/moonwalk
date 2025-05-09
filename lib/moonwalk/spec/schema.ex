@@ -1,7 +1,9 @@
 defmodule Moonwalk.Spec.SchemaWrapper do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
   # Accepts anything to support module names as schemas.
-  def schema,do: (%{    title: "SchemaWrapper", })
+  def schema do
+    JSV.Schema.normalize(%{title: "SchemaWrapper"})
+  end
 end

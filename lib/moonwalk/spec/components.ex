@@ -1,14 +1,14 @@
 defmodule Moonwalk.Spec.Components do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Components",
     type: :object,
     properties: %{
       schemas: %{
         type: :object,
-        additionalProperties: Moonwalk.Spec.Schema,
+        additionalProperties: Moonwalk.Spec.SchemaWrapper,
         description: "Schemas"
       },
       responses: %{

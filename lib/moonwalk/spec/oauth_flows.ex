@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.OAuthFlows do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "OAuthFlows",
     type: :object,
     properties: %{

@@ -40,7 +40,7 @@ defmodule Moonwalk.Controller do
     spec = ensure_operation_id(spec, action, __CALLER__)
 
     quote bind_quoted: binding() do
-      operation = Moonwalk.Spec.Operation.build!(spec, [])
+      operation = Moonwalk.Spec.Operation.from_controller!(spec, []) |> dbg()
       @moonwalk_actions {action, operation}
     end
   end
@@ -110,7 +110,7 @@ defmodule Moonwalk.Controller do
         true
       end
 
-      case operation.request_body do
+      case operation.requestBody do
         nil ->
           def __moonwalk__(unquote(action), :validate_body?, _method) do
             false

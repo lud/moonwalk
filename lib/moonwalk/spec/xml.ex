@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.XML do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "XML",
     type: :object,
     properties: %{

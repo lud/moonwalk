@@ -1,9 +1,8 @@
 defmodule Moonwalk.Spec.SecurityScheme do
-  import JSV
+  require JSV
   use Moonwalk.Spec
-  alias JSV.Schema
 
-  defschema(%{
+  JSV.defschema(%{
     title: "SecurityScheme",
     type: :object,
     properties: %{

@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Encoding do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Encoding",
     type: :object,
     properties: %{

@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Info do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Info",
     type: :object,
     properties: %{

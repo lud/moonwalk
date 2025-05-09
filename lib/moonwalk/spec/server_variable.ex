@@ -1,9 +1,8 @@
 defmodule Moonwalk.Spec.ServerVariable do
-  import JSV
+  require JSV
   use Moonwalk.Spec
-  alias JSV.Schema
 
-  defschema(%{
+  JSV.defschema(%{
     title: "ServerVariable",
     type: :object,
     properties: %{

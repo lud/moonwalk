@@ -32,8 +32,8 @@ defmodule Moonwalk.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:jsv, "~> 0.7"},
-      # {:jsv, path: "../jsv"},
+      # {:jsv, "~> 0.7"},
+      {:jsv, path: "../jsv"},
       {:phoenix, ">= 1.7.0"},
 
       # Dev

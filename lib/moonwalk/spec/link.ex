@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Link do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Link",
     type: :object,
     properties: %{

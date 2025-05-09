@@ -1,8 +1,8 @@
 defmodule Moonwalk.Spec.Response do
-  import JSV
+  require JSV
   use Moonwalk.Spec
 
-  defschema(%{
+  JSV.defschema(%{
     title: "Response",
     type: :object,
     properties: %{
