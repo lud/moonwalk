@@ -3,30 +3,51 @@ defmodule Moonwalk.Spec.Operation do
   require JSV
   use Moonwalk.Spec
 
+  # Describes a single API operation on a path.
   JSV.defschema(%{
     title: "Operation",
     type: :object,
+    description:
+      "Describes a single API operation on a path.",
     properties: %{
-      tags: %{type: :array, items: %{type: :string}, description: "Tags"},
-      summary: %{type: :string, description: "Summary"},
-      description: %{type: :string, description: "Description"},
+      tags: %{
+        type: :array,
+        items: %{type: :string},
+        description: "A list of tags for API documentation control."
+      },
+      summary: %{type: :string, description: "A short summary of what the operation does."},
+      description: %{
+        type: :string,
+        description: "A verbose explanation of the operation behavior."
+      },
       externalDocs: Moonwalk.Spec.ExternalDocumentation,
-      operationId: %{type: :string, description: "Operation ID"},
+      operationId: %{
+        type: :string,
+        description: "A unique string used to identify the operation."
+      },
       parameters: %{
         type: :array,
         items: %{oneOf: [Moonwalk.Spec.Parameter, Moonwalk.Spec.Reference]},
-        description: "Parameters"
+        description: "A list of parameters applicable for this operation."
       },
       requestBody: %{oneOf: [Moonwalk.Spec.RequestBody, Moonwalk.Spec.Reference]},
       responses: Moonwalk.Spec.Responses,
       callbacks: %{
         type: :object,
         additionalProperties: %{oneOf: [Moonwalk.Spec.Callback, Moonwalk.Spec.Reference]},
-        description: "Callbacks"
+        description: "A map of possible out-of-band callbacks related to the parent operation."
       },
-      deprecated: %{type: :boolean, description: "Deprecated"},
-      security: %{type: :array, items: Moonwalk.Spec.SecurityRequirement, description: "Security"},
-      servers: %{type: :array, items: Moonwalk.Spec.Server, description: "Servers"}
+      deprecated: %{type: :boolean, description: "Declares this operation to be deprecated."},
+      security: %{
+        type: :array,
+        items: Moonwalk.Spec.SecurityRequirement,
+        description: "A list of security mechanisms that can be used for this operation."
+      },
+      servers: %{
+        type: :array,
+        items: Moonwalk.Spec.Server,
+        description: "Alternative servers array for this operation."
+      }
     },
     required: [:responses]
   })

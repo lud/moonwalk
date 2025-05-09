@@ -3,17 +3,22 @@ defmodule Moonwalk.Spec.RequestBody do
   require JSV
   use Moonwalk.Spec
 
+  # Describes a single request body.
   JSV.defschema(%{
     title: "RequestBody",
     type: :object,
+    description: "Describes a single request body.",
     properties: %{
-      description: %{type: :string, description: "Description"},
+      description: %{type: :string, description: "A brief description of the request body."},
       content: %{
         type: :object,
         additionalProperties: Moonwalk.Spec.MediaType,
-        description: "Content"
+        description: "A map containing the content of the request body by media type. Required."
       },
-      required: %{type: :boolean, description: "Required"}
+      required: %{
+        type: :boolean,
+        description: "Determines if the request body is required in the request."
+      }
     },
     required: [:content]
   })

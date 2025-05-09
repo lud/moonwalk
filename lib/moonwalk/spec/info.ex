@@ -2,17 +2,20 @@ defmodule Moonwalk.Spec.Info do
   require JSV
   use Moonwalk.Spec
 
+  # Provides metadata about the API, such as title, version, and contact information.
   JSV.defschema(%{
     title: "Info",
     type: :object,
+    description:
+      "Metadata about the API.",
     properties: %{
-      title: %{type: :string, description: "API title"},
-      summary: %{type: :string, description: "API summary"},
-      description: %{type: :string, description: "API description"},
-      termsOfService: %{type: :string, description: "Terms of service URL"},
+      title: %{type: :string, description: "The title of the API. Required."},
+      summary: %{type: :string, description: "A short summary of the API's purpose."},
+      description: %{type: :string, description: "A detailed description of the API."},
+      termsOfService: %{type: :string, description: "A URI for the Terms of Service for the API."},
       contact: Moonwalk.Spec.Contact,
       license: Moonwalk.Spec.License,
-      version: %{type: :string, description: "API version"}
+      version: %{type: :string, description: "The version of the OpenAPI document. Required."}
     },
     required: [:title, :version]
   })
