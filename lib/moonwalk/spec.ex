@@ -169,7 +169,7 @@ defmodule Moonwalk.Spec do
 
       %{^namespace => %{^title => other}} ->
         raise ArgumentError, """
-        cannot reference different schema into #{inspect(ref)}
+        cannot reference two different schemas into #{inspect(ref)}
 
         NEW SCHEMA
         #{inspect(schema, pretty: true)}
