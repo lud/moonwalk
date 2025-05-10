@@ -51,9 +51,9 @@ defmodule Moonwalk.Spec.Operation do
     required: [:responses]
   })
 
-  def from_controller!(spec, opts \\ []) do
-    {global_tags, opts} = Keyword.pop(opts, :tags, [])
+  IO.warn("TODO responses should always have at least one item")
 
+  def from_controller!(spec) do
     spec
     |> make(__MODULE__)
     |> rename_input(:operation_id, :operationId)
@@ -66,9 +66,8 @@ defmodule Moonwalk.Spec.Operation do
     |> take_default(
       :requestBody,
       nil,
-      {&RequestBody.from_controller(&1, opts), "invalid request body"}
+      {&RequestBody.from_controller/1, "invalid request body"}
     )
-    |> update(:tags, &(global_tags ++ &1))
     |> into()
   end
 end

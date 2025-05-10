@@ -40,7 +40,7 @@ defmodule Moonwalk.Controller do
     spec = ensure_operation_id(spec, action, __CALLER__)
 
     quote bind_quoted: binding() do
-      operation = Moonwalk.Spec.Operation.from_controller!(spec, []) |> dbg()
+      operation = Moonwalk.Spec.Operation.from_controller!(spec)
       @moonwalk_actions {action, operation}
     end
   end
@@ -110,31 +110,54 @@ defmodule Moonwalk.Controller do
         true
       end
 
+      operation
+      |> Moonwalk.Controller.build_schema_clauses()
+      |> Enum.each(fn {kind, arg_ast, body_ast} ->
+        def __moonwalk__(unquote(action), unquote(kind), unquote(arg_ast)) do
+          unquote(body_ast)
+        end
+      end)
+    end
+  end
+
+  @doc false
+  def build_schema_clauses(%Operation{} = operation) do
+    clauses =
       case operation.requestBody do
         nil ->
-          def __moonwalk__(unquote(action), :validate_body?, _method) do
-            false
-          end
+          [{:validate_body?, Macro.var(:_method, nil), false}]
 
-        %RequestBody{content: map} when is_map(map) ->
-          def __moonwalk__(unquote(action), :validate_body?, _method) do
-            true
-          end
+        %RequestBody{content: content} when is_map(content) ->
+          check_clause =
+            {:validate_body?, Macro.var(:_method, nil), true}
 
-          map
-          |> Moonwalk.Controller.media_type_clauses()
-          |> Enum.each(fn
-            {match_ast, media_spec} ->
-              def __moonwalk__(unquote(action), :request_body_schema, unquote(match_ast)) do
-                {:ok, unquote(Macro.escape(media_spec.schema))}
-              end
-          end)
+          schema_clauses =
+            content
+            |> media_type_clauses()
+            |> Enum.map(fn {matcher, schema} ->
+              validation_root =
+                schema
+                |> Moonwalk.Spec.expand_components("schemas")
+                |> build_schema()
+                |> Macro.escape()
 
-          def __moonwalk__(unquote(action), :request_body_schema, _) do
-            :error
-          end
+              {:request_body_schema, matcher,
+               quote do
+                 {:ok, unquote(validation_root)}
+               end}
+            end)
+
+          other_content_type_schema =
+            {:request_body_schema, Macro.var(:_, nil), :error}
+
+          [check_clause | schema_clauses ++ [other_content_type_schema]]
       end
-    end
+
+    clauses
+  end
+
+  defp build_schema(schema) do
+    JSV.build!(schema)
   end
 
   @doc false
@@ -147,7 +170,7 @@ defmodule Moonwalk.Controller do
     |> sort_media_type_clauses()
     |> Enum.map(fn {{primary, secondary}, media_spec} ->
       match_ast = Moonwalk.Controller.schema_signature({primary, secondary})
-      {match_ast, media_spec}
+      {match_ast, media_spec.schema}
     end)
   end
 

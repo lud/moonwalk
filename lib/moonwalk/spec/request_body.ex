@@ -23,23 +23,21 @@ defmodule Moonwalk.Spec.RequestBody do
     required: [:content]
   })
 
-  def from_controller(spec, opts \\ [])
-
-  def from_controller(spec, opts) do
-    {:ok, from_controller!(spec, opts)}
+  def from_controller(spec) do
+    {:ok, from_controller!(spec)}
   end
 
-  def from_controller!(schema, opts)
+  def from_controller!(schema)
       when is_map(schema) or is_atom(schema)
       when is_boolean(schema) do
-    from_controller!({schema, []}, opts)
+    from_controller!({schema, []})
   end
 
-  def from_controller!({schema, spec}, opts) when is_list(opts) do
-    case Keyword.fetch(opts, :content) do
+  def from_controller!({schema, spec}) do
+    case Keyword.fetch(spec, :content) do
       :error ->
         spec = Keyword.put(spec, :content, %{"application/json" => %{schema: schema}})
-        from_controller!(spec, opts)
+        from_controller!(spec)
 
       _ ->
         raise ArgumentError,
@@ -47,15 +45,15 @@ defmodule Moonwalk.Spec.RequestBody do
     end
   end
 
-  def from_controller!(spec, opts) when is_list(spec) do
+  def from_controller!(spec) when is_list(spec) do
     spec
     |> make(__MODULE__)
-    |> take_required(:content, &cast_content(&1, opts))
+    |> take_required(:content, &cast_content/1)
     |> take_default(:required, false)
     |> into()
   end
 
-  defp cast_content(content, opts) when is_map(content) when is_list(content) do
+  defp cast_content(content) when is_map(content) when is_list(content) do
     map =
       content
       |> Enum.to_list()
@@ -70,7 +68,7 @@ defmodule Moonwalk.Spec.RequestBody do
         {mime_type, media_spec}, acc ->
           case Plug.Conn.Utils.media_type(mime_type) do
             {:ok, _, _, _} ->
-              media = MediaType.from_controller!(media_spec, opts)
+              media = MediaType.from_controller!(media_spec)
               Map.put(acc, mime_type, media)
 
             :error ->

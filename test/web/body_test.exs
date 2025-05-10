@@ -68,7 +68,7 @@ defmodule Moonwalk.Web.BodyTest do
     test "module schema invalid body", %{conn: conn} do
       conn = post(conn, ~p"/body/module-single", @invalid_payload)
 
-      assert %{"error" => %{"detail" => %{"valid" => false}}} = json_response(conn, 422)
+      assert %{"error" => %{"detail" => %{"valid" => false}}} = json_response(conn, 422) |> dbg()
     end
   end
 

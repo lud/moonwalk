@@ -17,17 +17,17 @@ defmodule Moonwalk.ControllerTest do
         summary: "some summary"
       ]
 
-      op = Operation.from_controller!(spec, tags: [:global_a, :global_b])
+      op = Operation.from_controller!(spec)
 
       assert %Operation{
                description: "some description",
                summary: "some summary",
                operationId: :some_operation,
-               tags: [:global_a, :global_b, :a, :b],
+               tags: [:a, :b],
                requestBody: %RequestBody{
                  content: %{
                    "application/json" => %MediaType{
-                     schema: %JSV.Root{}
+                     schema: %{type: :string}
                    }
                  }
                }
