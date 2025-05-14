@@ -4,15 +4,6 @@ defmodule Moonwalk.Controller do
 
   defmacro __using__(opts) do
     quote bind_quoted: binding() do
-      opts =
-        Keyword.put_new_lazy(opts, :pretty_errors, fn ->
-          if function_exported?(Mix, :env, 0) do
-            Mix.env() != :prod
-          else
-            false
-          end
-        end)
-
       @moonwalk_opts opts
 
       @doc false
@@ -40,7 +31,7 @@ defmodule Moonwalk.Controller do
     spec = ensure_operation_id(spec, action, __CALLER__)
 
     quote bind_quoted: binding() do
-      operation = Moonwalk.Spec.Operation.build!(spec, [])
+      operation = Moonwalk.Spec.Operation.from_controller!(spec)
       @moonwalk_actions {action, operation}
     end
   end
@@ -78,8 +69,8 @@ defmodule Moonwalk.Controller do
     clauses =
       Enum.map(moonwalk_actions, fn {action, operation} ->
         case operation do
-          false -> Moonwalk.Controller.ignore_action(action)
-          %Operation{} -> Moonwalk.Controller.define_operation(action, operation)
+          false -> Moonwalk.Controller._ignore_action(action)
+          %Operation{} -> Moonwalk.Controller._define_operation(action, operation)
         end
       end)
 
@@ -94,88 +85,134 @@ defmodule Moonwalk.Controller do
   end
 
   @doc false
-  def ignore_action(action) do
+  def _ignore_action(action) do
     quote do
-      def __moonwalk__(unquote(action), :handle_action?, _method) do
-        false
+      def __moonwalk__(unquote(action), _kind, _method) do
+        :ignore
       end
     end
   end
 
-  def define_operation(action, operation) when is_atom(action) do
+  def _define_operation(action, operation) when is_atom(action) do
     operation = Macro.escape(operation)
 
     quote bind_quoted: binding() do
-      def __moonwalk__(unquote(action), :handle_action?, _method) do
-        true
+      info = Moonwalk.Controller._define_operation_info(operation)
+      validations = Moonwalk.Controller._define_validations(operation)
+
+      def __moonwalk__(unquote(action), :validations, _method) do
+        {:ok, unquote(Macro.escape(validations))}
       end
 
-      case operation.request_body do
+      def __moonwalk__(unquote(action), :info, _method) do
+        {:ok, unquote(Macro.escape(info))}
+      end
+    end
+  end
+
+  @doc false
+  def _define_operation_info(%Operation{} = operation) do
+    Map.take(operation, [:operation_id])
+  end
+
+  @doc false
+  def _define_validations(%Operation{} = operation) do
+    parameters_validations =
+      operation.parameters
+      |> Enum.map(fn {key, parameter} ->
+        bin_name = Atom.to_string(key)
+
+        validation_root =
+          case parameter.schema do
+            true -> :no_validation
+            schema -> build_schema(schema)
+          end
+
+        required? = parameter.required
+
+        %{
+          bin_key: bin_name,
+          key: key,
+          required: required?,
+          schema: validation_root,
+          in: parameter.in
+        }
+      end)
+      |> Enum.group_by(& &1.in)
+      |> Enum.into(%{path: [], query: []})
+      |> then(fn by_location -> [parameters: by_location] end)
+
+    [parameters: parameters_validations]
+
+    body_validations =
+      case operation.requestBody do
         nil ->
-          def __moonwalk__(unquote(action), :validate_body?, _method) do
-            false
-          end
+          []
 
-        %RequestBody{content: map} when is_map(map) ->
-          def __moonwalk__(unquote(action), :validate_body?, _method) do
-            true
-          end
+        %RequestBody{content: content} when is_map(content) ->
+          schema_clauses =
+            content
+            |> media_type_clauses()
+            |> Enum.map(fn {matcher, media_spec} ->
+              validation_root = build_expand_schema(media_spec.schema)
 
-          map
-          |> Moonwalk.Controller.media_type_clauses()
-          |> Enum.each(fn
-            {match_ast, media_spec} ->
-              def __moonwalk__(unquote(action), :request_body_schema, unquote(match_ast)) do
-                {:ok, unquote(Macro.escape(media_spec.schema))}
-              end
-          end)
+              {matcher, validation_root}
+            end)
 
-          def __moonwalk__(unquote(action), :request_body_schema, _) do
-            :error
-          end
+          [body: schema_clauses]
       end
+
+    parameters_validations ++ body_validations
+  end
+
+  defp build_expand_schema(schema) do
+    case schema do
+      true ->
+        :no_validation
+
+      _ ->
+        schema
+        |> Moonwalk.Spec.expand_components("schemas")
+        |> build_schema()
     end
   end
 
   @doc false
   def media_type_clauses(content_map) do
     content_map
-    |> Enum.map(fn {mime_type, media_spec} ->
-      {:ok, primary, secondary, _} = Plug.Conn.Utils.media_type(mime_type)
+    |> Enum.map(fn {media_type, media_spec} ->
+      {primary, secondary} = cast_media_type(media_type)
       {{primary, secondary}, media_spec}
     end)
     |> sort_media_type_clauses()
-    |> Enum.map(fn {{primary, secondary}, media_spec} ->
-      match_ast = Moonwalk.Controller.schema_signature({primary, secondary})
-      {match_ast, media_spec}
-    end)
+  end
+
+  defp cast_media_type(media_type) when is_binary(media_type) do
+    case Plug.Conn.Utils.media_type(media_type) do
+      :error -> {media_type, ""}
+      {:ok, primary, secondary, _} -> {primary, secondary}
+    end
   end
 
   defp sort_media_type_clauses(list) do
     Enum.sort_by(list, fn {{primary, secondary}, _} ->
-      sort_primary = (primary == "*" && 1) || 0
-      sort_secondary = (secondary == "*" && 1) || 0
-      {sort_primary, sort_secondary, {primary, secondary}}
+      {media_priority(primary), media_priority(secondary), primary, secondary}
     end)
   end
 
-  @doc false
-  def schema_signature({primary, secondary}) do
-    case {primary, secondary} do
-      {"*", _} ->
-        quote do
-          _
-        end
+  defp media_priority("*") do
+    2
+  end
 
-      {_, "*"} ->
-        quote do
-          {unquote(primary), _}
-        end
+  defp media_priority("") do
+    1
+  end
 
-      _ ->
-        quote do
-          {unquote(primary), unquote(secondary)}
-        end
-    end
+  defp media_priority(m) when is_binary(m) do
+    0
+  end
+
+  defp build_schema(schema) do
+    JSV.build!(schema)
   end
 end

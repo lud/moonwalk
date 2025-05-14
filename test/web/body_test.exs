@@ -11,8 +11,14 @@ defmodule Moonwalk.Web.BodyTest do
     "sunlight" => "SOME INVALID SUNLIGHT"
   }
 
-  describe "POST /body/inline-single" do
-    test "inline schema valid body", %{conn: conn} do
+  @invalid_sub %{
+    "name" => "Bird of Paradise",
+    "sunlight" => "bright_indirect",
+    "soil" => %{"acid" => true, "density" => "NOT A NUMBER"}
+  }
+
+  describe "inline schema" do
+    test "valid body", %{conn: conn} do
       conn =
         post_reply(conn, ~p"/body/inline-single", @valid_payload, fn conn, _params ->
           json(conn, %{data: "alright!"})
@@ -21,10 +27,18 @@ defmodule Moonwalk.Web.BodyTest do
       assert %{"data" => "alright!"} = json_response(conn, 200)
     end
 
-    test "inline schema invalid body", %{conn: conn} do
+    test "invalid body", %{conn: conn} do
       conn = post(conn, ~p"/body/inline-single", @invalid_payload)
 
-      assert %{"error" => %{"detail" => %{"valid" => false}}} = json_response(conn, 422)
+      assert %{
+               "error" => %{
+                 "body" => %{
+                   "details" => _,
+                   "valid" => false
+                 },
+                 "message" => "Unprocessable Entity"
+               }
+             } = json_response(conn, 422)
     end
 
     @tag req_accept: "text/html"
@@ -38,19 +52,20 @@ defmodule Moonwalk.Web.BodyTest do
     @tag req_content_type: "application/x-www-form-urlencoded", req_accept: "text/html"
     test "invalid content type returns 415 Unsupported Media Type", %{conn: conn} do
       conn = post(conn, ~p"/body/inline-single", URI.encode_query(a: 1, b: 2))
-      assert "Unsupported Media Type" = response(conn, 415)
+      assert "<h1>Unsupported Media Type</h1>" <> _ = response(conn, 415)
     end
 
     @tag req_content_type: "application/x-www-form-urlencoded"
     test "invalid content type returns 415 Unsupported Media Type in JSON format", %{conn: conn} do
       conn = post(conn, ~p"/body/inline-single", URI.encode_query(a: 1, b: 2))
+
       assert %{"error" => %{"message" => "Unsupported Media Type"}} = json_response(conn, 415)
     end
   end
 
-  describe "POST /body/module-single" do
+  describe "module-based schema" do
     # Same test as before but the schema is given as a module
-    test "module schema valid body", %{conn: conn} do
+    test "valid body", %{conn: conn} do
       conn =
         post_reply(conn, ~p"/body/module-single", @valid_payload, fn conn, _params ->
           # the controller using a defschema module, so we should have a struct here
@@ -65,16 +80,71 @@ defmodule Moonwalk.Web.BodyTest do
       assert %{"data" => "alright!"} = json_response(conn, 200)
     end
 
-    test "module schema invalid body", %{conn: conn} do
+    test "invalid body", %{conn: conn} do
       conn = post(conn, ~p"/body/module-single", @invalid_payload)
 
-      assert %{"error" => %{"detail" => %{"valid" => false}}} = json_response(conn, 422)
+      assert %{
+               "error" => %{
+                 "body" => %{
+                   "details" => _,
+                   "valid" => false
+                 },
+                 "message" => "Unprocessable Entity"
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "invalid body in sub schema", %{conn: conn} do
+      conn = post(conn, ~p"/body/module-single", @invalid_sub)
+
+      # schema locations should be in #/components/schemas/...
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Entity",
+                 "body" => %{
+                   "details" => [
+                     %{
+                       "valid" => false,
+                       "errors" => [
+                         %{
+                           "kind" => "properties",
+                           "message" => "property 'soil' did not conform to the property schema"
+                         }
+                       ],
+                       "schemaLocation" =>
+                         "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema"
+                     },
+                     %{
+                       "valid" => false,
+                       "errors" => [
+                         %{
+                           "kind" => "properties",
+                           "message" =>
+                             "property 'density' did not conform to the property schema"
+                         }
+                       ],
+                       "schemaLocation" =>
+                         "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema"
+                     },
+                     %{
+                       "valid" => false,
+                       "errors" => [
+                         %{"kind" => "type", "message" => "value is not of type number"}
+                       ],
+                       "schemaLocation" =>
+                         "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema/properties/density"
+                     }
+                   ],
+                   "valid" => false
+                 }
+               }
+             } = json_response(conn, 422)
     end
   end
 
-  describe "POST /body/form" do
+  describe "form data" do
     @describetag req_content_type: "application/x-www-form-urlencoded", req_accept: "text/html"
-    test "form submission valid body", %{conn: conn} do
+    test "valid body", %{conn: conn} do
       form_data = URI.encode_query(@valid_payload)
 
       conn =
@@ -85,7 +155,7 @@ defmodule Moonwalk.Web.BodyTest do
       assert "okay!" = response(conn, 200)
     end
 
-    test "form submission invalid body", %{conn: conn} do
+    test "invalid body", %{conn: conn} do
       conn = post(conn, ~p"/body/form", @invalid_payload)
 
       assert errmsg = response(conn, 422)
@@ -93,7 +163,7 @@ defmodule Moonwalk.Web.BodyTest do
     end
   end
 
-  describe "POST /body/undefined-operation" do
+  describe "undefined operation" do
     # When an operation is not defined but the plug is called, it will log a
     # warning.
     test "nothing is validated and nothing is logged", %{conn: conn} do
@@ -114,7 +184,7 @@ defmodule Moonwalk.Web.BodyTest do
     end
   end
 
-  describe "POST /body/ignored-action" do
+  describe "ignored action" do
     test "no logs are output if an action has an explicit false operation", %{conn: conn} do
       log =
         ExUnit.CaptureLog.capture_log(fn ->
@@ -130,5 +200,9 @@ defmodule Moonwalk.Web.BodyTest do
 
       refute log =~ "BodyController"
     end
+  end
+
+  describe "wildcard content types" do
+    IO.warn("test that */* is has less priority than application json")
   end
 end

@@ -66,4 +66,11 @@ defmodule Moonwalk.ConnCase do
     |> Phoenix.ConnTest.post(path, payload)
     |> check_responder()
   end
+
+  def get_reply(conn, path, query_params \\ [], fun) when is_function(fun, 2) do
+    conn
+    |> with_response(fun)
+    |> Phoenix.ConnTest.get(path, query_params)
+    |> check_responder()
+  end
 end

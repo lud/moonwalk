@@ -13,6 +13,19 @@ defmodule Moonwalk.TestWeb.Router do
     post "/ignored-action", BodyController, :ignored_action
   end
 
+  # "s" for scope without param
+  scope "/params", Moonwalk.TestWeb do
+    get "/t/:theme", ParamController, :single_path_param
+    get "/t/:theme/c/:color", ParamController, :two_path_params
+  end
+
+  # "sp" for scope with param
+  scope "/params/s/:shape", Moonwalk.TestWeb do
+    get "/", ParamController, :scope_only
+    get "/t/:theme", ParamController, :scope_and_single
+    get "/t/:theme/c/:color", ParamController, :scope_and_two_path_params
+  end
+
   match :*, "/*path", Moonwalk.TestWeb.Router.Catchall, :not_found
 end
 

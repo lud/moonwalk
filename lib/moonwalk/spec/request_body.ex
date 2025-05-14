@@ -1,25 +1,43 @@
 defmodule Moonwalk.Spec.RequestBody do
   alias Moonwalk.Spec.MediaType
-  import Moonwalk.Spec
+  require JSV
+  use Moonwalk.Spec
 
-  @enforce_keys [:content]
-  defstruct required: false, content: nil, description: nil
+  # Describes a single request body.
+  JSV.defschema(%{
+    title: "RequestBody",
+    type: :object,
+    description: "Describes a single request body.",
+    properties: %{
+      description: %{type: :string, description: "A brief description of the request body."},
+      content: %{
+        type: :object,
+        additionalProperties: Moonwalk.Spec.MediaType,
+        description: "A map containing the content of the request body by media type. Required."
+      },
+      required: %{
+        type: :boolean,
+        description: "Determines if the request body is required in the request."
+      }
+    },
+    required: [:content]
+  })
 
-  def build(spec, opts \\ [])
-
-  def build(spec, opts) do
-    {:ok, build!(spec, opts)}
+  def from_controller(spec) do
+    {:ok, from_controller!(spec)}
   end
 
-  def build!(schema, opts) when is_map(schema) or is_atom(schema) when is_boolean(schema) do
-    build!({schema, []}, opts)
+  def from_controller!(schema)
+      when is_map(schema) or is_atom(schema)
+      when is_boolean(schema) do
+    from_controller!({schema, []})
   end
 
-  def build!({schema, spec}, opts) when is_list(opts) do
-    case Keyword.fetch(opts, :content) do
+  def from_controller!({schema, spec}) do
+    case Keyword.fetch(spec, :content) do
       :error ->
         spec = Keyword.put(spec, :content, %{"application/json" => %{schema: schema}})
-        build!(spec, opts)
+        from_controller!(spec)
 
       _ ->
         raise ArgumentError,
@@ -27,15 +45,15 @@ defmodule Moonwalk.Spec.RequestBody do
     end
   end
 
-  def build!(spec, opts) when is_list(spec) do
+  def from_controller!(spec) when is_list(spec) do
     spec
     |> make(__MODULE__)
-    |> take_required(:content, &cast_content(&1, opts))
+    |> take_required(:content, &cast_content/1)
     |> take_default(:required, false)
     |> into()
   end
 
-  defp cast_content(content, opts) when is_map(content) when is_list(content) do
+  defp cast_content(content) when is_map(content) when is_list(content) do
     map =
       content
       |> Enum.to_list()
@@ -50,7 +68,7 @@ defmodule Moonwalk.Spec.RequestBody do
         {mime_type, media_spec}, acc ->
           case Plug.Conn.Utils.media_type(mime_type) do
             {:ok, _, _, _} ->
-              media = MediaType.build!(media_spec, opts)
+              media = MediaType.from_controller!(media_spec)
               Map.put(acc, mime_type, media)
 
             :error ->

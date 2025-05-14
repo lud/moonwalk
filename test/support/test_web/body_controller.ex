@@ -7,6 +7,7 @@ defmodule Moonwalk.TestWeb.BodyController do
 
   @plant_schema %{
     type: :object,
+    title: "InlinePlantSchema",
     properties: %{
       name: Schema.non_empty_string(),
       sunlight:
@@ -23,13 +24,25 @@ defmodule Moonwalk.TestWeb.BodyController do
     Responder.reply(conn, params)
   end
 
+  defmodule SoilSchema do
+    require(JSV).defschema(%{
+      type: :object,
+      properties: %{
+        acid: Schema.boolean(),
+        density: Schema.number()
+      },
+      required: [:acid, :density]
+    })
+  end
+
   defmodule PlantSchema do
     require(JSV).defschema(%{
       type: :object,
       properties: %{
         name: Schema.non_empty_string(),
         sunlight:
-          Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness])
+          Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness]),
+        soil: SoilSchema
       },
       required: [:name, :sunlight]
     })

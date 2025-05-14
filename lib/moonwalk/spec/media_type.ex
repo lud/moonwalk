@@ -1,13 +1,28 @@
 defmodule Moonwalk.Spec.MediaType do
-  import Moonwalk.Spec
+  require JSV
+  use Moonwalk.Spec
 
-  @enforce_keys [:schema]
-  defstruct schema: nil, examples: []
+  JSV.defschema(%{
+    title: "MediaType",
+    type: :object,
+    description: "Provides schema and examples for a media type.",
+    properties: %{
+      schema: Moonwalk.Spec.SchemaWrapper,
+      examples: %{
+        type: :object,
+        additionalProperties: %{oneOf: [Moonwalk.Spec.Example, Moonwalk.Spec.Reference]},
+        description: "Examples"
+      }
+      # encoding: %{
+      #   type: :object,
+      #   additionalProperties: Moonwalk.Spec.Encoding,
+      #   description: "Encoding"
+      # }
+    },
+    required: []
+  })
 
-  @always_schema JSV.build!(true)
-  @never_schema JSV.build!(false)
-
-  def build!(spec, opts) do
+  def from_controller!(spec) do
     default_examples =
       case Access.fetch(spec, :example) do
         {:ok, example} -> [example]
@@ -16,20 +31,8 @@ defmodule Moonwalk.Spec.MediaType do
 
     spec
     |> make(__MODULE__)
-    |> take_required(:schema, &build_schema(&1, opts))
+    |> take_required(:schema)
     |> take_default(:examples, default_examples)
     |> into()
-  end
-
-  defp build_schema(true, _opts) do
-    {:ok, @always_schema}
-  end
-
-  defp build_schema(false, _opts) do
-    {:ok, @never_schema}
-  end
-
-  defp build_schema(schema, _opts) do
-    JSV.build(schema)
   end
 end
