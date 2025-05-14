@@ -47,6 +47,9 @@ defmodule Moonwalk.Web.ParamTest do
       conn = get(conn, ~p"/params/t/UNKNOWN_THEME")
 
       assert """
+             <!doctype html>
+             <title>Unprocessable Entity</title>
+
              <h1>Unprocessable Entity</h1>
 
              <p>Invalid parameter <code>theme</code> in <code>path</code>:</p>

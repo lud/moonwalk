@@ -6,7 +6,8 @@ defmodule Moonwalk.Controller do
     quote bind_quoted: binding() do
       @moonwalk_opts opts
 
-      defp __moonwalk__(:opts) do
+      @doc false
+      def __moonwalk__(:opts) do
         @moonwalk_opts
       end
 

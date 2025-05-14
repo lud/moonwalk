@@ -53,7 +53,9 @@ defmodule Moonwalk.Web.BodyTest do
     @tag req_content_type: "application/x-www-form-urlencoded", req_accept: "text/html"
     test "invalid content type returns 415 Unsupported Media Type", %{conn: conn} do
       conn = post(conn, ~p"/body/inline-single", URI.encode_query(a: 1, b: 2))
-      assert "<h1>Unsupported Media Type</h1>" <> _ = response(conn, 415)
+
+      assert "<!doctype html>\n<title>Unsupported Media Type</title>\n\n<h1>Unsupported Media Type</h1>" <>
+               _ = response(conn, 415)
     end
 
     @tag req_content_type: "application/x-www-form-urlencoded"

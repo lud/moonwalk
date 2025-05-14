@@ -1,7 +1,6 @@
 defmodule Moonwalk.Plug.ValidateRequest do
   alias Moonwalk.Spec.Operation
   alias Plug.Conn
-  alias Plug.Conn.Status
   require Logger
 
   @behaviour Plug
@@ -13,14 +12,6 @@ defmodule Moonwalk.Plug.ValidateRequest do
     def message(%{validation_error: verr}) do
       """
       invalid body
-
-      #{Exception.message(verr)}
-      """
-    end
-
-    def to_html(%{validation_error: verr}) do
-      """
-      <p>Body payload is not valid:</p>
 
       #{Exception.message(verr)}
       """
@@ -38,16 +29,6 @@ defmodule Moonwalk.Plug.ValidateRequest do
       #{Exception.message(verr)}
       """
     end
-
-    def to_html(%{in: loc, name: name, validation_error: verr}) do
-      """
-      <p>Invalid parameter <code>#{name}</code> in <code>#{loc}</code>:</p>
-
-      <pre>
-      #{Exception.message(verr)}
-      <pre>
-      """
-    end
   end
 
   defmodule UnsupportedMediaTypeError do
@@ -57,41 +38,53 @@ defmodule Moonwalk.Plug.ValidateRequest do
     def message(%{media_type: media_type}) do
       "cannot validate media type #{media_type}"
     end
-
-    def to_html(%{media_type: media_type}) do
-      "<p>Validation for body of type <code>#{media_type}</code> is not supported.</p>"
-    end
   end
 
   def init(opts) do
     # We call mix from there because it will be compiled according to the user
     # enviroment (:plug_init_mode config value), and not always in :prod
     # environment as dependencies are compiled.
-    opts
-    |> Keyword.put_new_lazy(:pretty_errors, fn ->
-      if function_exported?(Mix, :env, 0) do
-        Mix.env() != :prod
-      else
-        false
+    opts =
+      Keyword.put_new_lazy(opts, :pretty_errors, fn ->
+        if function_exported?(Mix, :env, 0) do
+          Mix.env() != :prod
+        else
+          false
+        end
+      end)
+
+    # opts, with the :pretty_errors opt, is duplicated into the handler
+    {handler, opts_no_handler} = Keyword.pop(opts, :error_handler, Moonwalk.ErrorHandler)
+
+    error_handler =
+      case handler do
+        mod when is_atom(mod) -> {handler, opts_no_handler}
+        {mod, arg} when is_atom(mod) -> {mod, arg}
       end
-    end)
-    |> Keyword.update(:error_formatter, {Moonwalk.ErrorFormatter, opts}, fn
-      module when is_atom(module) -> {module, opts}
-      {module, custom_opts} when is_atom(module) -> {module, custom_opts}
-    end)
+
+    [error_handler: error_handler]
   end
 
-  def call(conn, _) do
+  def call(conn, opts) do
     with {:ok, controller, action} <- fetch_phoenix(conn),
          {:ok, validations} <- fetch_validations(conn, controller, action),
          {:ok, private} <- run_validations(conn, validations) do
       Conn.put_private(conn, :moonwalk, private)
     else
-      {:error, errors} when is_list(errors) -> halt_with(conn, :unprocessable_entity, errors)
-      {:error, %InvalidBodyError{} = e} -> halt_with(conn, :unprocessable_entity, [e])
-      {:error, %UnsupportedMediaTypeError{} = e} -> halt_with(conn, :unsupported_media_type, [e])
-      {:skip, :no_phoenix} -> conn
-      {:skip, :unhandled_action} -> conn
+      {:error, errors} when is_list(errors) ->
+        handle_errors(conn, :unprocessable_entity, errors, opts)
+
+      {:error, %InvalidBodyError{} = e} ->
+        handle_errors(conn, :unprocessable_entity, [e], opts)
+
+      {:error, %UnsupportedMediaTypeError{} = e} ->
+        handle_errors(conn, :unsupported_media_type, [e], opts)
+
+      {:skip, :no_phoenix} ->
+        conn
+
+      {:skip, :unhandled_action} ->
+        conn
     end
   end
 
@@ -253,131 +246,24 @@ defmodule Moonwalk.Plug.ValidateRequest do
     JSV.validate(value, schema, cast: true, cast_formats: true)
   end
 
-  defp halt_with(conn, status, errors) do
+  defp handle_errors(conn, status, errors, opts) do
+    {handler_mod, handler_arg} = Keyword.fetch!(opts, :error_handler)
+    handler_mod.handle_errors(conn, status, errors, handler_arg)
+  end
+
+  # helper for
+  @doc """
+  Helper for error handlers.
+
+  The conn given to this function must have been through the
+  #{inspect(__MODULE__)} plug with an error result.
+  """
+  def fetch_operation!(conn) do
     {:ok, controller, action} = fetch_phoenix(conn)
 
-    operation =
-      case hook(controller, action, :operation, conn.method) do
-        {:ok, %Operation{} = operation} -> operation
-        :__undef__ -> %{}
-      end
-
-    format =
-      case fetch_accept(conn) do
-        {"application", "json"} -> {:json, json_opts(conn)}
-        _ -> :html
-      end
-
-    formatted_errors = format_errors(format, errors, status, operation)
-
-    conn
-    |> Conn.put_resp_content_type(resp_content_type(format))
-    |> Conn.send_resp(status, formatted_errors)
-    |> Conn.halt()
-  end
-
-  defp fetch_accept(conn) do
-    %{req_headers: req_headers} = conn
-
-    with {"accept", content_type} <- List.keyfind(req_headers, "accept", 0, :error),
-         {:ok, primary, secondary, _params} <- Conn.Utils.content_type(content_type) do
-      {primary, secondary}
-    else
-      :error -> :error
-    end
-  end
-
-  defp resp_content_type(format) do
-    case format do
-      {:json, _} -> "application/json"
-      :html -> "text/html"
-    end
-  end
-
-  defp json_opts(conn) do
-    pretty? =
-      with %{private: %{phoenix_controller: controller}} <- conn,
-           true <- function_exported?(controller, :__moonwalk__, 1),
-           {:ok, v} when is_boolean(v) <-
-             Keyword.fetch(hook(controller, :opts), :pretty_errors) do
-        v
-      else
-        _ -> false
-      end
-
-    [pretty: pretty?]
-  end
-
-  defp format_errors({:json, opts}, errors, status, operation) do
-    groups = render_errors(:json, errors, operation)
-
-    json_encode(
-      %{error: Map.put(groups, :message, status_to_message(status))},
-      opts
-    )
-  end
-
-  defp format_errors(:html, errors, status, operation) do
-    groups = render_errors(:html, errors, operation)
-
-    """
-    <h1>#{status_to_message(status)}</h1>
-
-    #{groups}
-    """
-  end
-
-  defp status_to_message(status) do
-    status
-    |> Status.code()
-    |> Status.reason_phrase()
-  end
-
-  defp render_errors(:json, errors, operation) do
-    accin = %{operation_id: operation.operationId}
-
-    errors
-    |> Enum.map(fn
-      %InvalidParameterError{in: loc, name: name, validation_error: verr} ->
-        {error_group_path([loc_to_group(loc), name]), JSV.normalize_error(verr)}
-
-      %InvalidBodyError{validation_error: verr} ->
-        {error_group_path([:body]), JSV.normalize_error(verr)}
-
-      %UnsupportedMediaTypeError{media_type: media_type} ->
-        {error_group_path([:media_type]), media_type}
-    end)
-    |> Enum.reduce(accin, fn {path, err}, acc -> put_in(acc, path, err) end)
-  end
-
-  IO.warn(
-    "create an error handler module that must return a response given the accept content type"
-  )
-
-  defp render_errors(:html, errors, _operation) do
-    errors
-    |> Enum.sort_by(fn
-      %InvalidParameterError{in: loc, name: name} -> {0, loc, name}
-      _ -> {1, nil, nil}
-    end)
-    |> Enum.map_intersperse(?\n, fn %mod{} = e -> mod.to_html(e) end)
-  end
-
-  defp loc_to_group(loc) do
-    case loc do
-      :path -> :path_parameters
-      :query -> :query_parameters
-    end
-  end
-
-  defp error_group_path(path_items) do
-    Enum.map(path_items, &Access.key(&1, %{}))
-  end
-
-  defp json_encode(payload, opts) do
-    case opts[:pretty] do
-      true -> JSV.Codec.format!(payload)
-      _ -> JSV.Codec.encode!(payload)
+    case hook(controller, action, :operation, conn.method) do
+      {:ok, %Operation{} = operation} -> operation
+      _ -> raise ArgumentError, "could not fetch operation from Plug.Conn struct"
     end
   end
 
@@ -391,7 +277,7 @@ defmodule Moonwalk.Plug.ValidateRequest do
     _result = controller.__moonwalk__(action, kind, arg)
   end
 
-  defp hook(controller, kind) do
-    _result = controller.__moonwalk__(kind)
-  end
+  # defp hook(controller, kind) do
+  #   _result = controller.__moonwalk__(kind)
+  # end
 end
