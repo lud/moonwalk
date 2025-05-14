@@ -62,13 +62,15 @@ defmodule Moonwalk.ErrorHandler do
 
   defp format_errors(:html, errors, status, operation) do
     groups = render_errors(:html, errors, operation)
+    code = Conn.Status.code(status)
     message = status_to_message(status)
 
     """
     <!doctype html>
+    <style>#{css()}</style>
     <title>#{message}</title>
 
-    <h1>#{message}</h1>
+    <h1><small>HTTP ERROR #{code}</small>#{message}</h1>
 
     #{groups}
     """
@@ -126,23 +128,36 @@ defmodule Moonwalk.ErrorHandler do
 
   def err_to_html(%InvalidBodyError{validation_error: verr}) do
     """
-    <p>Body payload is not valid:</p>
+    <section>
+    <p>Body payload is not valid.</p>
 
-    #{Exception.message(verr)}
+    <pre>#{String.trim_trailing(Exception.message(verr))}</pre>
+    </section>
     """
   end
 
   def err_to_html(%InvalidParameterError{in: loc, name: name, validation_error: verr}) do
     """
-    <p>Invalid parameter <code>#{name}</code> in <code>#{loc}</code>:</p>
+    <section>
+    <p>Invalid parameter <code>#{name}</code> in <code>#{loc}</code>.</p>
 
-    <pre>
-    #{Exception.message(verr)}
-    <pre>
+    <pre>#{String.trim_trailing(Exception.message(verr))}</pre>
+    </section>
     """
   end
 
   def err_to_html(%UnsupportedMediaTypeError{media_type: media_type}) do
-    "<p>Validation for body of type <code>#{media_type}</code> is not supported.</p>"
+    """
+    <section>
+    <p>Validation for body of type <code>#{media_type}</code> is not supported.</p>
+    </section>
+    """
+  end
+
+  @css_file :code.priv_dir(:moonwalk) |> Path.join("assets/error.min.css")
+  @external_resource @css_file
+  @css File.read!(@css_file)
+  defp css do
+    @css
   end
 end

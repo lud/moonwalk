@@ -26,5 +26,8 @@ docs:
 changelog:
   git cliff -o CHANGELOG.md
 
+css-min:
+  npx css-minify -f priv/assets/error.css -o priv/assets
+
 check: deps _mix_format _mix_check docs _git_status
 

@@ -14,12 +14,12 @@ defmodule Moonwalk.MixProject do
     ]
   end
 
-  defp elixirc_paths(:test) do
-    ["lib", "test/support"]
+  defp elixirc_paths(:prod) do
+    ["lib"]
   end
 
   defp elixirc_paths(_) do
-    ["lib"]
+    ["lib", "test/support"]
   end
 
   # Run "mix help compile.app" to learn about applications.
@@ -52,7 +52,8 @@ defmodule Moonwalk.MixProject do
   def cli do
     [
       preferred_envs: [
-        dialyzer: :test
+        dialyzer: :test,
+        "mnwk.phx.test": :test
       ]
     ]
   end
