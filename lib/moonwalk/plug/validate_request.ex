@@ -1,4 +1,5 @@
 defmodule Moonwalk.Plug.ValidateRequest do
+  alias Moonwalk.Spec.Operation
   alias Plug.Conn
   alias Plug.Conn.Status
   require Logger
@@ -83,7 +84,7 @@ defmodule Moonwalk.Plug.ValidateRequest do
   def call(conn, _) do
     with {:ok, controller, action} <- fetch_phoenix(conn),
          {:ok, validations} <- fetch_validations(conn, controller, action),
-         {:ok, private} <- run_validations(conn, validations, controller, action) do
+         {:ok, private} <- run_validations(conn, validations) do
       Conn.put_private(conn, :moonwalk, private)
     else
       {:error, errors} when is_list(errors) -> halt_with(conn, :unprocessable_entity, errors)
@@ -119,23 +120,23 @@ defmodule Moonwalk.Plug.ValidateRequest do
     end
   end
 
-  defp run_validations(conn, validations, controller, action) do
+  defp run_validations(conn, validations) do
     Enum.reduce_while(validations, {:ok, _privates = %{}}, fn validation, {:ok, private} ->
       # we are not collecting all errors but rather stop on the first error. If
       # parameters are wrong, as they handle path parameters we act as if the
       # route is wrong, and do not want to validate the body.
-      case validate(conn, validation, controller, action) do
+      case validate(conn, validation) do
         {:ok, new_private} -> {:cont, {:ok, Map.merge(private, new_private)}}
         {:error, reason} -> {:halt, {:error, reason}}
       end
     end)
   end
 
-  defp validate(conn, {:parameters, by_location}, _, _) do
+  defp validate(conn, {:parameters, by_location}) do
     validate_parameters(conn, by_location)
   end
 
-  defp validate(conn, {:body, media_matchers}, _, _) do
+  defp validate(conn, {:body, media_matchers}) do
     validate_body(conn, media_matchers)
   end
 
@@ -253,15 +254,25 @@ defmodule Moonwalk.Plug.ValidateRequest do
   end
 
   defp halt_with(conn, status, errors) do
+    {:ok, controller, action} = fetch_phoenix(conn)
+
+    operation =
+      case hook(controller, action, :operation, conn.method) do
+        {:ok, %Operation{} = operation} -> operation
+        :__undef__ -> %{}
+      end
+
     format =
       case fetch_accept(conn) do
         {"application", "json"} -> {:json, json_opts(conn)}
         _ -> :html
       end
 
+    formatted_errors = format_errors(format, errors, status, operation)
+
     conn
     |> Conn.put_resp_content_type(resp_content_type(format))
-    |> Conn.send_resp(status, format_errors(status, errors, format))
+    |> Conn.send_resp(status, formatted_errors)
     |> Conn.halt()
   end
 
@@ -297,8 +308,8 @@ defmodule Moonwalk.Plug.ValidateRequest do
     [pretty: pretty?]
   end
 
-  defp format_errors(status, errors, {:json, opts}) do
-    groups = render_errors(errors, :json)
+  defp format_errors({:json, opts}, errors, status, operation) do
+    groups = render_errors(:json, errors, operation)
 
     json_encode(
       %{error: Map.put(groups, :message, status_to_message(status))},
@@ -306,8 +317,8 @@ defmodule Moonwalk.Plug.ValidateRequest do
     )
   end
 
-  defp format_errors(status, errors, :html) do
-    groups = render_errors(errors, :html)
+  defp format_errors(:html, errors, status, operation) do
+    groups = render_errors(:html, errors, operation)
 
     """
     <h1>#{status_to_message(status)}</h1>
@@ -322,8 +333,8 @@ defmodule Moonwalk.Plug.ValidateRequest do
     |> Status.reason_phrase()
   end
 
-  defp render_errors(errors, :json) do
-    info = %{}
+  defp render_errors(:json, errors, operation) do
+    accin = %{operation_id: operation.operationId}
 
     errors
     |> Enum.map(fn
@@ -336,14 +347,14 @@ defmodule Moonwalk.Plug.ValidateRequest do
       %UnsupportedMediaTypeError{media_type: media_type} ->
         {error_group_path([:media_type]), media_type}
     end)
-    |> Enum.reduce(info, fn {path, err}, acc -> put_in(acc, path, err) end)
+    |> Enum.reduce(accin, fn {path, err}, acc -> put_in(acc, path, err) end)
   end
 
   IO.warn(
     "create an error handler module that must return a response given the accept content type"
   )
 
-  defp render_errors(errors, :html) do
+  defp render_errors(:html, errors, _operation) do
     errors
     |> Enum.sort_by(fn
       %InvalidParameterError{in: loc, name: name} -> {0, loc, name}

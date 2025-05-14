@@ -49,6 +49,7 @@ defmodule Moonwalk.TestWeb.BodyController do
   end
 
   operation :module_single,
+    operation_id: :custom_operation_id_module_single,
     request_body: PlantSchema
 
   def module_single(conn, params) do

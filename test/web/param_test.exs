@@ -29,6 +29,7 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
+                 "operation_id" => "param_single_path_param",
                  "message" => "Unprocessable Entity",
                  "path_parameters" => %{
                    "theme" => %{

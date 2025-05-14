@@ -6,8 +6,7 @@ defmodule Moonwalk.Controller do
     quote bind_quoted: binding() do
       @moonwalk_opts opts
 
-      @doc false
-      def __moonwalk__(:opts) do
+      defp __moonwalk__(:opts) do
         @moonwalk_opts
       end
 
@@ -93,26 +92,22 @@ defmodule Moonwalk.Controller do
     end
   end
 
+  @doc false
   def _define_operation(action, operation) when is_atom(action) do
     operation = Macro.escape(operation)
 
     quote bind_quoted: binding() do
-      info = Moonwalk.Controller._define_operation_info(operation)
       validations = Moonwalk.Controller._define_validations(operation)
 
+      @doc false
       def __moonwalk__(unquote(action), :validations, _method) do
         {:ok, unquote(Macro.escape(validations))}
       end
 
-      def __moonwalk__(unquote(action), :info, _method) do
-        {:ok, unquote(Macro.escape(info))}
+      def __moonwalk__(unquote(action), :operation, _method) do
+        {:ok, unquote(Macro.escape(operation))}
       end
     end
-  end
-
-  @doc false
-  def _define_operation_info(%Operation{} = operation) do
-    Map.take(operation, [:operation_id])
   end
 
   @doc false
@@ -177,8 +172,7 @@ defmodule Moonwalk.Controller do
     end
   end
 
-  @doc false
-  def media_type_clauses(content_map) do
+  defp media_type_clauses(content_map) do
     content_map
     |> Enum.map(fn {media_type, media_spec} ->
       {primary, secondary} = cast_media_type(media_type)

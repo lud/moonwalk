@@ -32,6 +32,7 @@ defmodule Moonwalk.Web.BodyTest do
 
       assert %{
                "error" => %{
+                 "operation_id" => "body_inline_single",
                  "body" => %{
                    "details" => _,
                    "valid" => false
@@ -85,6 +86,7 @@ defmodule Moonwalk.Web.BodyTest do
 
       assert %{
                "error" => %{
+                 "operation_id" => "custom_operation_id_module_single",
                  "body" => %{
                    "details" => _,
                    "valid" => false
@@ -100,6 +102,7 @@ defmodule Moonwalk.Web.BodyTest do
       # schema locations should be in #/components/schemas/...
       assert %{
                "error" => %{
+                 "operation_id" => "custom_operation_id_module_single",
                  "message" => "Unprocessable Entity",
                  "body" => %{
                    "details" => [
