@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Mnwk.Phx.Test do
+  use Mix.Task
   @requirements ["app.config"]
   def run(_) do
     Application.put_env(:phoenix, :serve_endpoints, true, persistent: true)

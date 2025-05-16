@@ -17,4 +17,33 @@ defmodule Moonwalk.TestWeb.ParamController do
   def single_path_param(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :two_path_params,
+    parameters: [
+      theme: [in: :path, schema: @theme],
+      color: [in: :path, schema: @color]
+    ]
+
+  def two_path_params(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  operation :scope_only,
+    parameters: [
+      shape: [in: :path, schema: @shape]
+    ]
+
+  def scope_only(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  operation :scope_and_single,
+    parameters: [
+      shape: [in: :path, schema: @shape],
+      theme: [in: :path, schema: @theme]
+    ]
+
+  def scope_and_single(conn, params) do
+    Responder.reply(conn, params)
+  end
 end
