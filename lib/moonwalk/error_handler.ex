@@ -1,8 +1,9 @@
 defmodule Moonwalk.ErrorHandler do
-  alias Plug.Conn
   alias Moonwalk.Plug.ValidateRequest.InvalidBodyError
   alias Moonwalk.Plug.ValidateRequest.InvalidParameterError
+  alias Moonwalk.Plug.ValidateRequest.MissingParameterError
   alias Moonwalk.Plug.ValidateRequest.UnsupportedMediaTypeError
+  alias Plug.Conn
 
   @moduledoc false
 
@@ -51,17 +52,39 @@ defmodule Moonwalk.ErrorHandler do
     end
   end
 
-  defp format_errors({:json, opts}, errors, status, operation) do
-    groups = render_errors(:json, errors, operation)
+  defp format_errors(
+         {:json, opts},
+         [%UnsupportedMediaTypeError{media_type: media_type}],
+         status,
+         operation
+       ) do
+    payload = %{
+      error: %{
+        message: status_to_message(status),
+        operation_id: operation.operationId,
+        media_type: media_type
+      }
+    }
 
-    json_encode(
-      %{error: Map.put(groups, :message, status_to_message(status))},
-      opts
-    )
+    json_encode(payload, opts)
   end
 
-  defp format_errors(:html, errors, status, operation) do
-    groups = render_errors(:html, errors, operation)
+  defp format_errors({:json, opts}, errors, status, operation) do
+    errors_list = render_errors(:json, errors)
+
+    payload = %{
+      error: %{
+        message: status_to_message(status),
+        operation_id: operation.operationId,
+        errors: errors_list
+      }
+    }
+
+    json_encode(payload, opts)
+  end
+
+  defp format_errors(:html, errors, status, _operation) do
+    groups = render_errors(:html, errors)
     code = Conn.Status.code(status)
     message = status_to_message(status)
 
@@ -82,48 +105,63 @@ defmodule Moonwalk.ErrorHandler do
     |> Conn.Status.reason_phrase()
   end
 
-  defp render_errors(:json, errors, operation) do
-    accin = %{operation_id: operation.operationId}
-
+  defp render_errors(:json, errors) do
     errors
-    |> Enum.map(fn
-      %InvalidParameterError{in: loc, name: name, validation_error: verr} ->
-        {error_group_path([loc_to_group(loc), name]), JSV.normalize_error(verr)}
-
-      %InvalidBodyError{validation_error: verr} ->
-        {error_group_path([:body]), JSV.normalize_error(verr)}
-
-      %UnsupportedMediaTypeError{media_type: media_type} ->
-        {error_group_path([:media_type]), media_type}
-    end)
-    |> Enum.reduce(accin, fn {path, err}, acc -> put_in(acc, path, err) end)
+    |> sort_errors()
+    |> Enum.map(&err_to_json/1)
   end
 
-  defp render_errors(:html, errors, _operation) do
+  defp render_errors(:html, errors) do
     errors
-    |> Enum.sort_by(fn
-      %InvalidParameterError{in: loc, name: name} -> {0, loc, name}
-      _ -> {1, nil, nil}
-    end)
+    |> sort_errors()
     |> Enum.map_intersperse(?\n, &err_to_html/1)
   end
 
-  defp loc_to_group(loc) do
-    case loc do
-      :path -> :path_parameters
-      :query -> :query_parameters
-    end
+  defp sort_errors(errors) do
+    Enum.sort_by(errors, fn
+      %MissingParameterError{in: loc, name: name} -> {0, loc, name}
+      %InvalidParameterError{in: loc, name: name} -> {1, loc, name}
+      _ -> {255, nil, nil}
+    end)
   end
 
-  defp error_group_path(path_items) do
-    Enum.map(path_items, &Access.key(&1, %{}))
+  defp err_to_json(%InvalidParameterError{in: loc, name: name, validation_error: verr}) do
+    %{
+      "kind" => "invalid_parameter",
+      "parameter" => name,
+      "in" => loc,
+      "validation_error" => JSV.normalize_error(verr),
+      # we do not want the JSV error in the message here, but we want it on the
+      # exception message if it is risen.
+      "message" => "invalid parameter #{name} in #{loc}"
+    }
   end
 
-  defp json_encode(payload, opts) do
-    case opts[:pretty] do
-      true -> JSV.Codec.format!(payload)
-      _ -> JSV.Codec.encode!(payload)
-    end
+  defp err_to_json(%MissingParameterError{in: loc, name: name} = e) do
+    %{
+      "kind" => "missing_parameter",
+      "parameter" => name,
+      "in" => loc,
+      "message" => Exception.message(e)
+    }
+  end
+
+  defp err_to_json(%InvalidBodyError{validation_error: verr}) do
+    %{
+      "kind" => "invalid_body",
+      "in" => "body",
+      "validation_error" => JSV.normalize_error(verr),
+      "message" => "invalid body"
+    }
+  end
+
+  defp err_to_json(%UnsupportedMediaTypeError{media_type: media_type}) do
+    %{
+      "kind" => "unsupported_media_type",
+      "in" => "body",
+      "media type" => media_type,
+      "message" => "unsupported media type"
+    }
   end
 
   def err_to_html(%InvalidBodyError{validation_error: verr}) do
@@ -152,6 +190,13 @@ defmodule Moonwalk.ErrorHandler do
     <p>Validation for body of type <code>#{media_type}</code> is not supported.</p>
     </section>
     """
+  end
+
+  defp json_encode(payload, opts) do
+    case opts[:pretty] do
+      true -> JSV.Codec.format!(payload)
+      _ -> JSV.Codec.encode!(payload)
+    end
   end
 
   @css_file :code.priv_dir(:moonwalk) |> Path.join("assets/error.min.css")

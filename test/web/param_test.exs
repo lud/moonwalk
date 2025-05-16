@@ -18,10 +18,10 @@ defmodule Moonwalk.Web.ParamTest do
       conn =
         get_reply(conn, ~p"/params/t/dark", fn conn, _params ->
           assert %{theme: :dark} = conn.private.moonwalk.path_params
-          json(conn, %{data: "shadows!"})
+          json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "shadows!"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = json_response(conn, 200)
     end
 
     test "invalid param", %{conn: conn} do
@@ -29,14 +29,34 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_single_path_param",
                  "message" => "Unprocessable Entity",
-                 "path_parameters" => %{
-                   "theme" => %{
-                     "details" => [_],
-                     "valid" => false
+                 "operation_id" => "param_single_path_param",
+                 "errors" => [
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter theme in path",
+                     "parameter" => "theme",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"dark\" or \"light\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    }
-                 }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -60,18 +80,58 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_two_path_params",
                  "message" => "Unprocessable Entity",
-                 "path_parameters" => %{
-                   "theme" => %{
-                     "details" => [_],
-                     "valid" => false
+                 "operation_id" => "param_two_path_params",
+                 "errors" => [
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter color in path",
+                     "parameter" => "color",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"red\" or \"blue\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    },
-                   "color" => %{
-                     "details" => [_],
-                     "valid" => false
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter theme in path",
+                     "parameter" => "theme",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"dark\" or \"light\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    }
-                 }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -81,14 +141,34 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_two_path_params",
                  "message" => "Unprocessable Entity",
-                 "path_parameters" => %{
-                   "color" => %{
-                     "details" => [_],
-                     "valid" => false
+                 "operation_id" => "param_two_path_params",
+                 "errors" => [
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter color in path",
+                     "parameter" => "color",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"red\" or \"blue\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    }
-                 }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -97,10 +177,10 @@ defmodule Moonwalk.Web.ParamTest do
       conn =
         get_reply(conn, ~p"/params/t/dark/c/red", fn conn, _params ->
           assert %{theme: :dark, color: :red} = conn.private.moonwalk.path_params
-          json(conn, %{data: "dark red theme applied"})
+          json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "dark red theme applied"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = json_response(conn, 200)
     end
   end
 
@@ -110,14 +190,34 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_scope_and_single",
                  "message" => "Unprocessable Entity",
-                 "path_parameters" => %{
-                   "theme" => %{
-                     "details" => [_],
-                     "valid" => false
+                 "operation_id" => "param_scope_and_single",
+                 "errors" => [
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter theme in path",
+                     "parameter" => "theme",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"dark\" or \"light\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    }
-                 }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -127,14 +227,34 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_scope_and_single",
                  "message" => "Unprocessable Entity",
-                 "path_parameters" => %{
-                   "shape" => %{
-                     "details" => [_],
-                     "valid" => false
+                 "operation_id" => "param_scope_and_single",
+                 "errors" => [
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter shape in path",
+                     "parameter" => "shape",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"square\" or \"circle\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    }
-                 }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -144,18 +264,58 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_scope_and_single",
                  "message" => "Unprocessable Entity",
-                 "path_parameters" => %{
-                   "shape" => %{
-                     "details" => [_],
-                     "valid" => false
+                 "operation_id" => "param_scope_and_single",
+                 "errors" => [
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter shape in path",
+                     "parameter" => "shape",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"square\" or \"circle\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    },
-                   "theme" => %{
-                     "details" => [_],
-                     "valid" => false
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter theme in path",
+                     "parameter" => "theme",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"dark\" or \"light\""
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
                    }
-                 }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -164,10 +324,233 @@ defmodule Moonwalk.Web.ParamTest do
       conn =
         get_reply(conn, ~p"/params/s/square/t/light", fn conn, _params ->
           assert %{shape: :square, theme: :light} = conn.private.moonwalk.path_params
-          json(conn, %{data: "square with light theme"})
+          json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "square with light theme"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = json_response(conn, 200)
+    end
+  end
+
+  # Query params on this route accept integers in 0..100
+  describe "query params" do
+    test "valid query params with integers", %{conn: conn} do
+      conn =
+        get_reply(conn, ~p"/params/s/square/t/light/c/red?shape=10&theme=20&color=30", fn conn,
+                                                                                          params ->
+          # standard phoenix behaviour should not be changed, the path params have priority
+          assert %{"shape" => "square", "theme" => "light", "color" => "red"} == params
+          assert %{"shape" => "10", "theme" => "20", "color" => "30"} == conn.query_params
+
+          # moonwalk data is properly cast
+          assert %{shape: :square, theme: :light, color: :red} ==
+                   conn.private.moonwalk.path_params
+
+          assert %{shape: 10, theme: 20, color: 30} == conn.private.moonwalk.query_params
+
+          json(conn, %{data: "okay"})
+        end)
+
+      assert %{"data" => "okay"} = json_response(conn, 200)
+    end
+
+    test "invalid query params with too large integers", %{conn: conn} do
+      # Ensures that our schemas for the query params are not overriden by the
+      # schemas of the path params
+
+      conn = get(conn, ~p"/params/s/square/t/light/c/red?shape=1010&theme=1020&color=1030")
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Entity",
+                 "operation_id" => "param_scope_and_two_path_params",
+                 "errors" => [
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter color in query",
+                     "parameter" => "color",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "maximum",
+                               "message" => "value 1030 is higher than maximum 100"
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   },
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter shape in query",
+                     "parameter" => "shape",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "maximum",
+                               "message" => "value 1010 is higher than maximum 100"
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   },
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter theme in query",
+                     "parameter" => "theme",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "maximum",
+                               "message" => "value 1020 is higher than maximum 100"
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "invalid query params with same values as path", %{conn: conn} do
+      # Ensures that our schemas for the query params are not overriden by the
+      # schemas of the path params
+
+      conn = get(conn, ~p"/params/s/square/t/light/c/red?shape=square&theme=light&color=red")
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Entity",
+                 "operation_id" => "param_scope_and_two_path_params",
+                 "errors" => [
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter color in query",
+                     "parameter" => "color",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{"kind" => "type", "message" => "value is not of type integer"}
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   },
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter shape in query",
+                     "parameter" => "shape",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{"kind" => "type", "message" => "value is not of type integer"}
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   },
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter theme in query",
+                     "parameter" => "theme",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{"kind" => "type", "message" => "value is not of type integer"}
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "required query param is missing", %{conn: conn} do
+      # The shape query param is required
+      conn = get(conn, ~p"/params/s/square/t/light/c/red?theme=20&color=30")
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Entity",
+                 "operation_id" => "param_scope_and_two_path_params",
+                 "errors" => [
+                   %{
+                     "in" => "query",
+                     "kind" => "missing_parameter",
+                     "message" => "missing parameter shape in query",
+                     "parameter" => "shape"
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "optional query params can be omitted", %{conn: conn} do
+      # The shape query param is required, but other ones are not so we do not
+      # give them.
+
+      conn =
+        get_reply(conn, ~p"/params/s/square/t/light/c/red?shape=10", fn conn, params ->
+          # standard phoenix behaviour should not be changed, the path params have priority
+          assert %{"shape" => "square", "theme" => "light", "color" => "red"} == params
+          assert %{"shape" => "10"} == conn.query_params
+
+          # moonwalk data is properly cast
+          assert %{shape: 10} == conn.private.moonwalk.query_params
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = json_response(conn, 200)
     end
   end
 end
