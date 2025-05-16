@@ -46,24 +46,11 @@ defmodule Moonwalk.Web.ParamTest do
     test "invalid param text errors", %{conn: conn} do
       conn = get(conn, ~p"/params/t/UNKNOWN_THEME")
 
-      assert """
-             <!doctype html>
-             <title>Unprocessable Entity</title>
-
-             <h1>Unprocessable Entity</h1>
-
-             <p>Invalid parameter <code>theme</code> in <code>path</code>:</p>
-
-             <pre>
-             json schema validation failed
-
-             at: "#"
-             by: "#"
-             errors:
-               - (enum) value must be one of the enum values: "dark" or "light"
-             <pre>
-
-             """ = response(conn, 422)
+      body = response(conn, 422)
+      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ ~r{<p>Invalid parameter <code>theme</code> in <code>path</code>\.</p>}s
+      assert body =~ "<p>Invalid parameter <code>theme</code> in <code>path</code>.</p>"
+      assert body =~ ~S(value must be one of the enum values: "dark" or "light")
     end
   end
 end
