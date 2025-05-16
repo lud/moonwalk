@@ -111,6 +111,10 @@ defmodule Moonwalk.Spec do
 
   Booleans are returned as-is.
   """
+  def expand_components(boolean, _namespace) when is_boolean(boolean) do
+    boolean
+  end
+
   def expand_components(schema, namespace) when is_binary(namespace) do
     {new_schema, components} = expand_components(schema, %{namespace => %{}}, namespace)
     Map.put(new_schema, "components", components)

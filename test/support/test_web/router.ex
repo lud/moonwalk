@@ -11,6 +11,7 @@ defmodule Moonwalk.TestWeb.Router do
     post "/form", BodyController, :handle_form
     post "/undefined-operation", BodyController, :undefined_operation
     post "/ignored-action", BodyController, :ignored_action
+    post "/wildcard", BodyController, :wildcard_media_type
   end
 
   # "s" for scope without param

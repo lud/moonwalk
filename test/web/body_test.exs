@@ -207,6 +207,44 @@ defmodule Moonwalk.Web.BodyTest do
   end
 
   describe "wildcard content types" do
-    IO.warn("test that */* is has less priority than application json")
+    @tag req_content_type: "some-unknown-content-type"
+    test "wildcard take any content type", %{conn: conn} do
+      # schema with wildcard content type is just `false`
+      conn = post(conn, ~p"/body/wildcard", "some payload")
+
+      assert %{
+               "error" => %{
+                 "body" => %{
+                   "details" => [
+                     %{
+                       "errors" => [
+                         %{
+                           "kind" => "boolean_schema",
+                           "message" => "value was rejected from boolean schema: false"
+                         }
+                       ],
+                       "evaluationPath" => "#",
+                       "instanceLocation" => "#",
+                       "schemaLocation" => "#",
+                       "valid" => false
+                     }
+                   ],
+                   "valid" => false
+                 },
+                 "message" => "Unprocessable Entity",
+                 "operation_id" => "body_wildcard_media_type"
+               }
+             } = json_response(conn, 422)
+    end
+
+    test "wildcard does not take priority over more specific content types", %{conn: conn} do
+      # the route exposes the regular PlantSchema for application/json
+      conn =
+        post_reply(conn, ~p"/body/wildcard", @valid_payload, fn conn, _params ->
+          json(conn, %{data: "still here"})
+        end)
+
+      assert %{"data" => "still here"} = json_response(conn, 200)
+    end
   end
 end

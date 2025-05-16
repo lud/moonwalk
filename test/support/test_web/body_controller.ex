@@ -72,4 +72,16 @@ defmodule Moonwalk.TestWeb.BodyController do
   def ignored_action(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :wildcard_media_type,
+    request_body: [
+      content: %{
+        "*/*" => %{schema: false},
+        "application/json" => %{schema: PlantSchema}
+      }
+    ]
+
+  def wildcard_media_type(conn, params) do
+    Responder.reply(conn, params)
+  end
 end
