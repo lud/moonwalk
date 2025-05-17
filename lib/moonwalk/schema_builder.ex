@@ -18,8 +18,8 @@ defmodule Moonwalk.SchemaBuilder do
       end
 
     case schema_chain do
-      {:cast_parameter, pre_schema, schema} ->
-        {:cast_parameter, JSV.build!(pre_schema), JSV.build!(schema)}
+      {:cast_parameter, caster, schema} ->
+        {:cast_parameter, caster, JSV.build!(schema)}
 
       schema ->
         JSV.build!(schema)
@@ -46,7 +46,7 @@ defmodule Moonwalk.SchemaBuilder do
   defp enforce_string_casting(schema) do
     case {uses_cast?(schema), get_type(schema)} do
       {true, _} -> schema
-      {false, "integer"} -> {:cast_parameter, JSV.Schema.string_to_integer(), schema}
+      {false, "integer"} -> {:cast_parameter, &JSV.Cast.string_to_integer/1, schema}
     end
   end
 

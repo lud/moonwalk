@@ -258,8 +258,8 @@ defmodule Moonwalk.Plug.ValidateRequest do
     {:ok, value}
   end
 
-  defp validate_with_schema(value, {:cast_parameter, pre_schema, schema}) do
-    case JSV.validate(value, pre_schema, cast: true, cast_formats: false) do
+  defp validate_with_schema(value, {:cast_parameter, caster, schema}) do
+    case caster.(value) do
       {:ok, precast_value} ->
         validate_with_schema(precast_value, schema)
 
