@@ -1,5 +1,8 @@
 defmodule Mix.Tasks.Mnwk.Phx.Test do
+  use Mix.Task
   @requirements ["app.config"]
+
+  @impl true
   def run(_) do
     Application.put_env(:phoenix, :serve_endpoints, true, persistent: true)
     {:ok, _} = Application.ensure_all_started(:moonwalk)

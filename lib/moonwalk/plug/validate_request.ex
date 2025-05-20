@@ -40,6 +40,15 @@ defmodule Moonwalk.Plug.ValidateRequest do
     end
   end
 
+  defmodule MissingParameterError do
+    @enforce_keys [:name, :in]
+    defexception name: nil, in: nil
+
+    def message(%{in: loc, name: name}) do
+      "missing parameter #{name} in #{loc}"
+    end
+  end
+
   def init(opts) do
     # We call mix from there because it will be compiled according to the user
     # enviroment (:plug_init_mode config value), and not always in :prod
@@ -134,13 +143,13 @@ defmodule Moonwalk.Plug.ValidateRequest do
   end
 
   defp validate_parameters(conn, by_location) do
-    %{path_params: raw_path_params, query_params: _raw_query_params} = conn
-    %{path: path_specs, query: _} = by_location
+    %{path_params: raw_path_params, query_params: raw_query_params} = conn
+    %{path: path_specs, query: query_specs} = by_location
 
     # parameters in path
 
     {cast_path_params, path_errors} = validate_parameters_group(path_specs, raw_path_params)
-    {cast_query_params, query_errors} = {%{}, []}
+    {cast_query_params, query_errors} = validate_parameters_group(query_specs, raw_query_params)
 
     case {path_errors, query_errors} do
       {[], []} ->
@@ -159,7 +168,7 @@ defmodule Moonwalk.Plug.ValidateRequest do
   end
 
   defp validate_parameter(parameter, raw_params, acc, errors) do
-    %{bin_key: bin_key, key: key, required: _required?, schema: schema} = parameter
+    %{bin_key: bin_key, key: key, required: required?, schema: schema} = parameter
 
     case Map.fetch(raw_params, bin_key) do
       {:ok, value} ->
@@ -178,6 +187,13 @@ defmodule Moonwalk.Plug.ValidateRequest do
 
             {acc, [err | errors]}
         end
+
+      :error when required? ->
+        err = %MissingParameterError{in: parameter.in, name: bin_key}
+        {acc, [err | errors]}
+
+      :error ->
+        {acc, errors}
     end
   end
 
@@ -242,8 +258,44 @@ defmodule Moonwalk.Plug.ValidateRequest do
     {:ok, value}
   end
 
+  defp validate_with_schema(value, {:precast, caster, schema}) do
+    case precast_parameter(value, caster) do
+      {:ok, precast_value} ->
+        validate_with_schema(precast_value, schema)
+
+      {:error, _} ->
+        # On error we still call the real schema. For instance if "hello" is
+        # given for the integer type, we will have a correct type error (though
+        # the value will be quoted if shown in the error message)
+        validate_with_schema(value, schema)
+    end
+  end
+
   defp validate_with_schema(value, schema) do
     JSV.validate(value, schema, cast: true, cast_formats: true)
+  end
+
+  defp precast_parameter(value, fun) when is_function(fun, 1) do
+    fun.(value)
+  end
+
+  defp precast_parameter(values, {:list, fun}) when is_list(values) and is_function(fun, 1) do
+    precast_list(values, fun, [])
+  end
+
+  defp precast_parameter(_values, {:list, fun}) when is_function(fun, 1) do
+    {:error, :non_array_parameter}
+  end
+
+  defp precast_list([h | t], fun, acc) do
+    case fun.(h) do
+      {:ok, v} -> precast_list(t, fun, [v | acc])
+      {:error, _} = err -> err
+    end
+  end
+
+  defp precast_list([], _, acc) do
+    {:ok, :lists.reverse(acc)}
   end
 
   defp handle_errors(conn, status, errors, opts) do
@@ -251,7 +303,6 @@ defmodule Moonwalk.Plug.ValidateRequest do
     handler_mod.handle_errors(conn, status, errors, handler_arg)
   end
 
-  # helper for
   @doc """
   Helper for error handlers.
 

@@ -21,10 +21,10 @@ defmodule Moonwalk.Web.BodyTest do
     test "valid body", %{conn: conn} do
       conn =
         post_reply(conn, ~p"/body/inline-single", @valid_payload, fn conn, _params ->
-          json(conn, %{data: "alright!"})
+          json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "alright!"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = json_response(conn, 200)
     end
 
     test "invalid body", %{conn: conn} do
@@ -32,12 +32,47 @@ defmodule Moonwalk.Web.BodyTest do
 
       assert %{
                "error" => %{
+                 "message" => "Unprocessable Entity",
                  "operation_id" => "body_inline_single",
-                 "body" => %{
-                   "details" => _,
-                   "valid" => false
-                 },
-                 "message" => "Unprocessable Entity"
+                 "errors" => [
+                   %{
+                     "in" => "body",
+                     "kind" => "invalid_body",
+                     "message" => "invalid body",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "properties",
+                               "message" =>
+                                 "property 'sunlight' did not conform to the property schema"
+                             }
+                           ],
+                           "evaluationPath" => "#/$ref",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#/components/schemas/InlinePlantSchema",
+                           "valid" => false
+                         },
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"full_sun\", \"partial_sun\", \"bright_indirect\" or \"darnkness\""
+                             }
+                           ],
+                           "evaluationPath" => "#/$ref/properties/sunlight",
+                           "instanceLocation" => "#/sunlight",
+                           "schemaLocation" =>
+                             "#/components/schemas/InlinePlantSchema/properties/sunlight",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -61,7 +96,13 @@ defmodule Moonwalk.Web.BodyTest do
     test "invalid content type returns 415 Unsupported Media Type in JSON format", %{conn: conn} do
       conn = post(conn, ~p"/body/inline-single", URI.encode_query(a: 1, b: 2))
 
-      assert %{"error" => %{"message" => "Unsupported Media Type"}} = json_response(conn, 415)
+      assert %{
+               "error" => %{
+                 "message" => "Unsupported Media Type",
+                 "media_type" => "application/x-www-form-urlencoded"
+               }
+             } =
+               json_response(conn, 415)
     end
   end
 
@@ -76,10 +117,10 @@ defmodule Moonwalk.Web.BodyTest do
                    sunlight: :bright_indirect
                  } = conn.private.moonwalk.body_params
 
-          json(conn, %{data: "alright!"})
+          json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "alright!"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = json_response(conn, 200)
     end
 
     test "invalid body", %{conn: conn} do
@@ -87,12 +128,48 @@ defmodule Moonwalk.Web.BodyTest do
 
       assert %{
                "error" => %{
+                 "message" => "Unprocessable Entity",
                  "operation_id" => "custom_operation_id_module_single",
-                 "body" => %{
-                   "details" => _,
-                   "valid" => false
-                 },
-                 "message" => "Unprocessable Entity"
+                 "errors" => [
+                   %{
+                     "in" => "body",
+                     "kind" => "invalid_body",
+                     "message" => "invalid body",
+                     "validation_error" => %{
+                       "details" => [
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "properties",
+                               "message" =>
+                                 "property 'sunlight' did not conform to the property schema"
+                             }
+                           ],
+                           "evaluationPath" => "#/$ref",
+                           "instanceLocation" => "#",
+                           "schemaLocation" =>
+                             "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema",
+                           "valid" => false
+                         },
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "enum",
+                               "message" =>
+                                 "value must be one of the enum values: \"full_sun\", \"partial_sun\", \"bright_indirect\" or \"darnkness\""
+                             }
+                           ],
+                           "evaluationPath" => "#/$ref/properties/sunlight",
+                           "instanceLocation" => "#/sunlight",
+                           "schemaLocation" =>
+                             "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema/properties/sunlight",
+                           "valid" => false
+                         }
+                       ],
+                       "valid" => false
+                     }
+                   }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -103,44 +180,58 @@ defmodule Moonwalk.Web.BodyTest do
       # schema locations should be in #/components/schemas/...
       assert %{
                "error" => %{
-                 "operation_id" => "custom_operation_id_module_single",
                  "message" => "Unprocessable Entity",
-                 "body" => %{
-                   "details" => [
-                     %{
-                       "valid" => false,
-                       "errors" => [
+                 "operation_id" => "custom_operation_id_module_single",
+                 "errors" => [
+                   %{
+                     "in" => "body",
+                     "kind" => "invalid_body",
+                     "message" => "invalid body",
+                     "validation_error" => %{
+                       "details" => [
                          %{
-                           "kind" => "properties",
-                           "message" => "property 'soil' did not conform to the property schema"
+                           "errors" => [
+                             %{
+                               "kind" => "properties",
+                               "message" =>
+                                 "property 'soil' did not conform to the property schema"
+                             }
+                           ],
+                           "evaluationPath" => "#/$ref",
+                           "instanceLocation" => "#",
+                           "schemaLocation" =>
+                             "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema",
+                           "valid" => false
+                         },
+                         %{
+                           "errors" => [
+                             %{
+                               "kind" => "properties",
+                               "message" =>
+                                 "property 'density' did not conform to the property schema"
+                             }
+                           ],
+                           "evaluationPath" => "#/$ref/properties/soil/$ref",
+                           "instanceLocation" => "#/soil",
+                           "schemaLocation" =>
+                             "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema",
+                           "valid" => false
+                         },
+                         %{
+                           "errors" => [
+                             %{"kind" => "type", "message" => "value is not of type number"}
+                           ],
+                           "evaluationPath" => "#/$ref/properties/soil/$ref/properties/density",
+                           "instanceLocation" => "#/soil/density",
+                           "schemaLocation" =>
+                             "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema/properties/density",
+                           "valid" => false
                          }
                        ],
-                       "schemaLocation" =>
-                         "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema"
-                     },
-                     %{
-                       "valid" => false,
-                       "errors" => [
-                         %{
-                           "kind" => "properties",
-                           "message" =>
-                             "property 'density' did not conform to the property schema"
-                         }
-                       ],
-                       "schemaLocation" =>
-                         "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema"
-                     },
-                     %{
-                       "valid" => false,
-                       "errors" => [
-                         %{"kind" => "type", "message" => "value is not of type number"}
-                       ],
-                       "schemaLocation" =>
-                         "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema/properties/density"
+                       "valid" => false
                      }
-                   ],
-                   "valid" => false
-                 }
+                   }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -153,10 +244,10 @@ defmodule Moonwalk.Web.BodyTest do
 
       conn =
         post_reply(conn, ~p"/body/form", form_data, fn conn, _params ->
-          text(conn, "okay!")
+          text(conn, "ok")
         end)
 
-      assert "okay!" = response(conn, 200)
+      assert "ok" = response(conn, 200)
     end
 
     test "invalid body", %{conn: conn} do
@@ -177,10 +268,10 @@ defmodule Moonwalk.Web.BodyTest do
 
           conn =
             post_reply(conn, ~p"/body/undefined-operation", payload, fn conn, _params ->
-              text(conn, "anyway")
+              text(conn, "ok")
             end)
 
-          assert "anyway" == response(conn, 200)
+          assert "ok" == response(conn, 200)
         end)
 
       assert log =~
@@ -196,10 +287,10 @@ defmodule Moonwalk.Web.BodyTest do
 
           conn =
             post_reply(conn, ~p"/body/ignored-action", payload, fn conn, _params ->
-              text(conn, "anyway")
+              text(conn, "ok")
             end)
 
-          assert "anyway" == response(conn, 200)
+          assert "ok" == response(conn, 200)
         end)
 
       refute log =~ "BodyController"
@@ -214,25 +305,32 @@ defmodule Moonwalk.Web.BodyTest do
 
       assert %{
                "error" => %{
-                 "body" => %{
-                   "details" => [
-                     %{
-                       "errors" => [
+                 "message" => "Unprocessable Entity",
+                 "operation_id" => "body_wildcard_media_type",
+                 "errors" => [
+                   %{
+                     "in" => "body",
+                     "kind" => "invalid_body",
+                     "message" => "invalid body",
+                     "validation_error" => %{
+                       "details" => [
                          %{
-                           "kind" => "boolean_schema",
-                           "message" => "value was rejected from boolean schema: false"
+                           "errors" => [
+                             %{
+                               "kind" => "boolean_schema",
+                               "message" => "value was rejected from boolean schema: false"
+                             }
+                           ],
+                           "evaluationPath" => "#",
+                           "instanceLocation" => "#",
+                           "schemaLocation" => "#",
+                           "valid" => false
                          }
                        ],
-                       "evaluationPath" => "#",
-                       "instanceLocation" => "#",
-                       "schemaLocation" => "#",
                        "valid" => false
                      }
-                   ],
-                   "valid" => false
-                 },
-                 "message" => "Unprocessable Entity",
-                 "operation_id" => "body_wildcard_media_type"
+                   }
+                 ]
                }
              } = json_response(conn, 422)
     end
@@ -241,10 +339,10 @@ defmodule Moonwalk.Web.BodyTest do
       # the route exposes the regular PlantSchema for application/json
       conn =
         post_reply(conn, ~p"/body/wildcard", @valid_payload, fn conn, _params ->
-          json(conn, %{data: "still here"})
+          json(conn, %{data: "ok"})
         end)
 
-      assert %{"data" => "still here"} = json_response(conn, 200)
+      assert %{"data" => "ok"} = json_response(conn, 200)
     end
   end
 end

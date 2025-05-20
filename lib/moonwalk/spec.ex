@@ -1,6 +1,9 @@
 defmodule Moonwalk.Spec do
+  @moduledoc false
+
   defmacro __using__(_) do
     # placeholder for future functionality
+    # TODO replace `use` by `import` if not used
     quote do
       import unquote(__MODULE__)
     end

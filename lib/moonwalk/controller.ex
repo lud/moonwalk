@@ -1,4 +1,5 @@
 defmodule Moonwalk.Controller do
+  alias Moonwalk.SchemaBuilder
   alias Moonwalk.Spec.Operation
   alias Moonwalk.Spec.RequestBody
 
@@ -121,7 +122,7 @@ defmodule Moonwalk.Controller do
         validation_root =
           case parameter.schema do
             true -> :no_validation
-            schema -> build_schema(schema)
+            schema -> SchemaBuilder.build(schema, cast_strings: true)
           end
 
         required? = parameter.required
@@ -169,7 +170,7 @@ defmodule Moonwalk.Controller do
       _ ->
         schema
         |> Moonwalk.Spec.expand_components("schemas")
-        |> build_schema()
+        |> SchemaBuilder.build()
     end
   end
 
@@ -205,9 +206,5 @@ defmodule Moonwalk.Controller do
 
   defp media_priority(m) when is_binary(m) do
     0
-  end
-
-  defp build_schema(schema) do
-    JSV.build!(schema)
   end
 end

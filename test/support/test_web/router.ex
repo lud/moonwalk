@@ -14,13 +14,13 @@ defmodule Moonwalk.TestWeb.Router do
     post "/wildcard", BodyController, :wildcard_media_type
   end
 
-  # "s" for scope without param
   scope "/params", Moonwalk.TestWeb do
     get "/t/:theme", ParamController, :single_path_param
     get "/t/:theme/c/:color", ParamController, :two_path_params
+    get "/generic", ParamController, :generic_param_types
+    get "/arrays", ParamController, :array_types
   end
 
-  # "sp" for scope with param
   scope "/params/s/:shape", Moonwalk.TestWeb do
     get "/", ParamController, :scope_only
     get "/t/:theme", ParamController, :scope_and_single
