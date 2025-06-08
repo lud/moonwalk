@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Callback do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Map of possible out-of-band callbacks related to the parent operation.
   def schema do

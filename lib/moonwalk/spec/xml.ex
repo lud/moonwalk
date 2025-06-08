@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.XML do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Metadata for fine-tuned XML model definitions.
   JSV.defschema(%{

@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Reference do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Allows referencing other components in the OpenAPI Description.
   JSV.defschema(%{
@@ -22,6 +22,7 @@ defmodule Moonwalk.Spec.Reference do
         description: "A description that should override the referenced component's description."
       }
     },
+    additionalProperties: false,
     required: [:"$ref"]
   })
 end

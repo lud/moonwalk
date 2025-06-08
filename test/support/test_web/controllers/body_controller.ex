@@ -3,7 +3,7 @@ defmodule Moonwalk.TestWeb.BodyController do
   alias Moonwalk.TestWeb.Responder
   use Moonwalk.TestWeb, :controller
 
-  plug Moonwalk.Plug.ValidateRequest
+  plug Moonwalk.Plugs.ValidateRequest
 
   @plant_schema %{
     type: :object,
@@ -50,7 +50,7 @@ defmodule Moonwalk.TestWeb.BodyController do
 
   operation :module_single,
     operation_id: :custom_operation_id_module_single,
-    request_body: PlantSchema
+    request_body: {PlantSchema, []}
 
   def module_single(conn, params) do
     Responder.reply(conn, params)

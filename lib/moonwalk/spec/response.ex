@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Response do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Describes a single response from an API operation.
   JSV.defschema(%{
@@ -11,7 +11,7 @@ defmodule Moonwalk.Spec.Response do
       description: %{type: :string, description: "A description of the response. Required."},
       headers: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Header, Moonwalk.Spec.Reference]},
+        additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Header]},
         description: "A map of header names to their definitions."
       },
       content: %{
@@ -21,10 +21,23 @@ defmodule Moonwalk.Spec.Response do
       },
       links: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Link, Moonwalk.Spec.Reference]},
+        additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Link]},
         description: "A map of operation links that can be followed from the response."
       }
     },
     required: [:description]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([:description])
+    |> normalize_subs(
+      headers: {:map, {:or_ref, Moonwalk.Spec.Header}},
+      content: {:map, Moonwalk.Spec.MediaType},
+      links: {:map, {:or_ref, Moonwalk.Spec.Link}}
+    )
+    |> collect()
+  end
 end

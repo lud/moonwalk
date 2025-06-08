@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.OpenAPI do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Root object describing the entire OpenAPI document and its structure.
   JSV.defschema(%{
@@ -45,4 +45,22 @@ defmodule Moonwalk.Spec.OpenAPI do
     },
     required: [:openapi, :info, :paths]
   })
+
+  IO.warn("todo do not delete components")
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> Map.drop([:components, "components"])
+    |> make(__MODULE__, ctx)
+    |> normalize_subs(
+      openapi: :default,
+      info: Moonwalk.Spec.Info,
+      paths: Moonwalk.Spec.Paths,
+      externalDocs: Moonwalk.Spec.ExternalDocumentation,
+      servers: {:list, Moonwalk.Spec.Server},
+      tags: {:list, Moonwalk.Spec.Tag}
+    )
+    |> collect()
+  end
 end

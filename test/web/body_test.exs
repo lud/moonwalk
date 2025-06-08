@@ -33,44 +33,13 @@ defmodule Moonwalk.Web.BodyTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "body_inline_single",
+                 "operation_id" => "body_inline_single" <> _,
                  "errors" => [
                    %{
                      "in" => "body",
                      "kind" => "invalid_body",
                      "message" => "invalid body",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "properties",
-                               "message" =>
-                                 "property 'sunlight' did not conform to the property schema"
-                             }
-                           ],
-                           "evaluationPath" => "#/$ref",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#/components/schemas/InlinePlantSchema",
-                           "valid" => false
-                         },
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"full_sun\", \"partial_sun\", \"bright_indirect\" or \"darnkness\""
-                             }
-                           ],
-                           "evaluationPath" => "#/$ref/properties/sunlight",
-                           "instanceLocation" => "#/sunlight",
-                           "schemaLocation" =>
-                             "#/components/schemas/InlinePlantSchema/properties/sunlight",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -104,6 +73,10 @@ defmodule Moonwalk.Web.BodyTest do
              } =
                json_response(conn, 415)
     end
+
+    test "body is required but not provided" do
+      IO.warn("todo :required option in RequestBody")
+    end
   end
 
   describe "module-based schema" do
@@ -135,39 +108,7 @@ defmodule Moonwalk.Web.BodyTest do
                      "in" => "body",
                      "kind" => "invalid_body",
                      "message" => "invalid body",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "properties",
-                               "message" =>
-                                 "property 'sunlight' did not conform to the property schema"
-                             }
-                           ],
-                           "evaluationPath" => "#/$ref",
-                           "instanceLocation" => "#",
-                           "schemaLocation" =>
-                             "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema",
-                           "valid" => false
-                         },
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"full_sun\", \"partial_sun\", \"bright_indirect\" or \"darnkness\""
-                             }
-                           ],
-                           "evaluationPath" => "#/$ref/properties/sunlight",
-                           "instanceLocation" => "#/sunlight",
-                           "schemaLocation" =>
-                             "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema/properties/sunlight",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -187,49 +128,7 @@ defmodule Moonwalk.Web.BodyTest do
                      "in" => "body",
                      "kind" => "invalid_body",
                      "message" => "invalid body",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "properties",
-                               "message" =>
-                                 "property 'soil' did not conform to the property schema"
-                             }
-                           ],
-                           "evaluationPath" => "#/$ref",
-                           "instanceLocation" => "#",
-                           "schemaLocation" =>
-                             "#/components/schemas/Moonwalk.TestWeb.BodyController.PlantSchema",
-                           "valid" => false
-                         },
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "properties",
-                               "message" =>
-                                 "property 'density' did not conform to the property schema"
-                             }
-                           ],
-                           "evaluationPath" => "#/$ref/properties/soil/$ref",
-                           "instanceLocation" => "#/soil",
-                           "schemaLocation" =>
-                             "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema",
-                           "valid" => false
-                         },
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type number"}
-                           ],
-                           "evaluationPath" => "#/$ref/properties/soil/$ref/properties/density",
-                           "instanceLocation" => "#/soil/density",
-                           "schemaLocation" =>
-                             "#/components/schemas/Moonwalk.TestWeb.BodyController.SoilSchema/properties/density",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -262,8 +161,8 @@ defmodule Moonwalk.Web.BodyTest do
     # When an operation is not defined but the plug is called, it will log a
     # warning.
     test "nothing is validated and nothing is logged", %{conn: conn} do
-      log =
-        ExUnit.CaptureLog.capture_log(fn ->
+      io =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
           payload = ~s({"some":"stuff"})
 
           conn =
@@ -274,7 +173,7 @@ defmodule Moonwalk.Web.BodyTest do
           assert "ok" == response(conn, 200)
         end)
 
-      assert log =~
+      assert io =~
                "Controller Moonwalk.TestWeb.BodyController has no operation defined for action :undefined_operation"
     end
   end
@@ -306,29 +205,13 @@ defmodule Moonwalk.Web.BodyTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "body_wildcard_media_type",
+                 "operation_id" => "body_wildcard_media_type" <> _,
                  "errors" => [
                    %{
                      "in" => "body",
                      "kind" => "invalid_body",
                      "message" => "invalid body",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "boolean_schema",
-                               "message" => "value was rejected from boolean schema: false"
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }

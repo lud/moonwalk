@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Link do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   JSV.defschema(%{
     title: "Link",

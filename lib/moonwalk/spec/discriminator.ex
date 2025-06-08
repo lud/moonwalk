@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Discriminator do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Provides a hint about the expected schema when request bodies or responses may be one of several schemas.
   JSV.defschema(%{

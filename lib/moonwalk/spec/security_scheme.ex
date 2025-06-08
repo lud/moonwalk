@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.SecurityScheme do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Defines a security scheme for operations.
   JSV.defschema(%{

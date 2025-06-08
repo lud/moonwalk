@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.License do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # License information for the exposed API.
   JSV.defschema(%{
@@ -20,4 +20,12 @@ defmodule Moonwalk.Spec.License do
     },
     required: [:name]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default(:all)
+    |> collect()
+  end
 end

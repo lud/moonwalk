@@ -1,14 +1,14 @@
 defmodule Moonwalk.ErrorHandler do
-  alias Moonwalk.Plug.ValidateRequest.InvalidBodyError
-  alias Moonwalk.Plug.ValidateRequest.InvalidParameterError
-  alias Moonwalk.Plug.ValidateRequest.MissingParameterError
-  alias Moonwalk.Plug.ValidateRequest.UnsupportedMediaTypeError
+  alias Moonwalk.Errors.InvalidBodyError
+  alias Moonwalk.Errors.InvalidParameterError
+  alias Moonwalk.Errors.MissingParameterError
+  alias Moonwalk.Errors.UnsupportedMediaTypeError
   alias Plug.Conn
 
   @moduledoc false
 
   def handle_errors(conn, status, errors, opts) do
-    operation = Moonwalk.Plug.ValidateRequest.fetch_operation!(conn)
+    operation = Moonwalk.Plugs.ValidateRequest.fetch_operation!(conn)
 
     # we will render HTML for any content
     format =
@@ -130,7 +130,7 @@ defmodule Moonwalk.ErrorHandler do
       "kind" => "invalid_parameter",
       "parameter" => name,
       "in" => loc,
-      "validation_error" => JSV.normalize_error(verr),
+      "validation_error" => JSV.normalize_error(verr, sort: :asc),
       # we do not want the JSV error in the message here, but we want it on the
       # exception message if it is risen.
       "message" => "invalid parameter #{name} in #{loc}"
@@ -150,7 +150,7 @@ defmodule Moonwalk.ErrorHandler do
     %{
       "kind" => "invalid_body",
       "in" => "body",
-      "validation_error" => JSV.normalize_error(verr),
+      "validation_error" => JSV.normalize_error(verr, sort: :asc),
       "message" => "invalid body"
     }
   end

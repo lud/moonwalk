@@ -10,7 +10,8 @@ defmodule Moonwalk.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       docs: [],
       deps: deps(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      modkit: modkit()
     ]
   end
 
@@ -65,6 +66,16 @@ defmodule Moonwalk.MixProject do
       plt_add_deps: :app_tree,
       plt_add_apps: [:ex_unit, :mix, :jsv],
       plt_local_path: "_build/plts"
+    ]
+  end
+
+  defp modkit do
+    [
+      mount: [
+        {Moonwalk.TestWeb, "test/support/test_web", flavor: :phoenix},
+        {Moonwalk, "lib/moonwalk"},
+        {Mix.Tasks, "lib/mix/tasks", flavor: :mix_task}
+      ]
     ]
   end
 end

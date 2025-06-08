@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Encoding do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   JSV.defschema(%{
     title: "Encoding",
@@ -10,7 +10,7 @@ defmodule Moonwalk.Spec.Encoding do
       contentType: %{type: :string, description: "Content type"},
       headers: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Header, Moonwalk.Spec.Reference]},
+        additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Header]},
         description: "Headers"
       },
       style: %{type: :string, description: "Style"},

@@ -1,6 +1,8 @@
 defmodule Moonwalk.Spec.Components do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
+
+  IO.warn("We need to be able to build operations from any referenced component")
 
   # Holds reusable objects for different aspects of the OpenAPI Specification.
   JSV.defschema(%{
@@ -16,42 +18,42 @@ defmodule Moonwalk.Spec.Components do
       },
       responses: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Response, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.Response,
         description: "A map of reusable Response Objects or Reference Objects."
       },
       parameters: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Parameter, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.Parameter,
         description: "A map of reusable Parameter Objects or Reference Objects."
       },
       examples: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Example, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.Example,
         description: "A map of reusable Example Objects or Reference Objects."
       },
       requestBodies: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.RequestBody, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.RequestBody,
         description: "A map of reusable Request Body Objects or Reference Objects."
       },
       headers: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Header, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.Header,
         description: "A map of reusable Header Objects or Reference Objects."
       },
       securitySchemes: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.SecurityScheme, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.SecurityScheme,
         description: "A map of reusable Security Scheme Objects or Reference Objects."
       },
       links: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Link, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.Link,
         description: "A map of reusable Link Objects or Reference Objects."
       },
       callbacks: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Callback, Moonwalk.Spec.Reference]},
+        additionalProperties: Moonwalk.Spec.Callback,
         description: "A map of reusable Callback Objects or Reference Objects."
       },
       pathItems: %{

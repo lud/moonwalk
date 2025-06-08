@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Server do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # An object representing a server for the API.
   JSV.defschema(%{
@@ -25,4 +25,13 @@ defmodule Moonwalk.Spec.Server do
     },
     required: [:url]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([:url, :description])
+    |> normalize_subs(variables: {:map, Moonwalk.Spec.ServerVariable})
+    |> collect()
+  end
 end

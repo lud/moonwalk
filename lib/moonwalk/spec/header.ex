@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Header do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Describes a single header.
   JSV.defschema(%{
@@ -25,11 +25,11 @@ defmodule Moonwalk.Spec.Header do
         type: :boolean,
         description: "When true, array or object values generate a comma-separated list."
       },
-      schema: %{oneOf: [Moonwalk.Spec.SchemaWrapper, Moonwalk.Spec.Reference]},
+      schema: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.SchemaWrapper]},
       example: %{description: "An example of the header's potential value."},
       examples: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Example, Moonwalk.Spec.Reference]},
+        additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Example]},
         description: "Examples of the header's potential value."
       },
       content: %{
@@ -40,4 +40,22 @@ defmodule Moonwalk.Spec.Header do
     },
     required: []
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([
+      :description,
+      :required,
+      :deprecated,
+      :style,
+      :explode,
+      :example,
+      :examples
+    ])
+    |> normalize_schema(:schema)
+    |> normalize_subs(content: {:map, Moonwalk.Spec.MediaType})
+    |> collect()
+  end
 end

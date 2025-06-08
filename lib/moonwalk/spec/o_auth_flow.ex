@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.OAuthFlow do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Configuration details for a supported OAuth Flow.
   JSV.defschema(%{

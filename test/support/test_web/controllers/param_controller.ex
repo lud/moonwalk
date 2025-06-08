@@ -3,7 +3,7 @@ defmodule Moonwalk.TestWeb.ParamController do
   alias Moonwalk.TestWeb.Responder
   use Moonwalk.TestWeb, :controller
 
-  plug Moonwalk.Plug.ValidateRequest
+  plug Moonwalk.Plugs.ValidateRequest
 
   @shape Schema.string_to_atom_enum([:square, :circle])
   @theme Schema.string_to_atom_enum([:dark, :light])
@@ -77,7 +77,15 @@ defmodule Moonwalk.TestWeb.ParamController do
       color: [in: :path, schema: @color],
       shape: [in: :query, schema: @query_int, required: true],
       theme: [in: :query, schema: @query_int],
-      color: [in: :query, schema: @query_int]
+      # That last param uses a self ref and it should work
+      color: [
+        in: :query,
+        schema: %{
+          "$id" => "test://test",
+          "d" => %{"shape" => @query_int},
+          "$ref" => "test://test#/d/shape"
+        }
+      ]
     ]
 
   def scope_and_two_path_params(conn, params) do

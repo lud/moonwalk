@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.SchemaWrapper do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Allows definition of input and output data types.
   def schema do

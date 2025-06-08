@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Contact do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Contact information for the exposed API.
   JSV.defschema(%{
@@ -20,4 +20,13 @@ defmodule Moonwalk.Spec.Contact do
     },
     required: []
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_subs(openapi: :default, info: Moonwalk.Spec.Info, paths: Moonwalk.Spec.Paths)
+    |> normalize_default(:all)
+    |> collect()
+  end
 end

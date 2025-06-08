@@ -1,6 +1,7 @@
 defmodule Moonwalk.Spec.Parameter do
+  import Moonwalk.Internal.ControllerBuilder
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Describes a single operation parameter.
   JSV.defschema(%{
@@ -48,40 +49,62 @@ defmodule Moonwalk.Spec.Parameter do
       #       :deepObject
       #     ]
       #   ),
-      # explode: %{
-      #   type: :boolean,
-      #   description: "When true, array or object values generate separate parameters."
-      # },
-      # allowReserved: %{
-      #   type: :boolean,
-      #   description: "Allows reserved characters in parameter values."
-      # },
-      schema: %{oneOf: [Moonwalk.Spec.SchemaWrapper, Moonwalk.Spec.Reference]},
+      explode: %{
+        type: :boolean,
+        description: "When true, array or object values generate separate parameters."
+      },
+      allowReserved: %{
+        type: :boolean,
+        description: "Allows reserved characters in parameter values."
+      },
+      schema: Moonwalk.Spec.SchemaWrapper,
       examples: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Example, Moonwalk.Spec.Reference]},
+        additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Example]},
         description: "Examples of the parameter's potential value."
+      },
+      content: %{
+        type: :object,
+        additionalProperties: Moonwalk.Spec.MediaType,
+        description: "A map containing parameter representations for different media types."
       }
-      # content: %{
-      #   type: :object,
-      #   additionalProperties: Moonwalk.Spec.MediaType,
-      #   description: "A map containing parameter representations for different media types."
-      # }
     },
     required: [:name, :in]
   })
 
-  def from_controller!(name, spec) when is_atom(name) and is_list(spec) do
+  # TODO(doc) content is not supported, always use schema
+  IO.warn("todo document content is not supported")
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([
+      :name,
+      :in,
+      :description,
+      :required,
+      :deprecated,
+      :explode,
+      :allowReserved,
+      :examples
+    ])
+    |> normalize_schema(:schema)
+    |> skip(:content)
+    |> collect()
+  end
+
+  def from_controller!(spec, name) when is_atom(name) and is_list(spec) do
     default_examples =
       case Access.fetch(spec, :example) do
         {:ok, example} -> [example]
-        :error -> []
+        :error -> nil
       end
 
     default_required = Access.fetch(spec, :in) == {:ok, :path}
 
     spec
-    |> make(__MODULE__)
+    |> build(__MODULE__)
     |> put(:name, name)
     |> take_required(:in, &validate_location/1)
     |> take_default(:schema, _boolean_schema = true)

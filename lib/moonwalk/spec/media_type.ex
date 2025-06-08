@@ -1,6 +1,7 @@
 defmodule Moonwalk.Spec.MediaType do
+  import Moonwalk.Internal.ControllerBuilder
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   JSV.defschema(%{
     title: "MediaType",
@@ -10,27 +11,39 @@ defmodule Moonwalk.Spec.MediaType do
       schema: Moonwalk.Spec.SchemaWrapper,
       examples: %{
         type: :object,
-        additionalProperties: %{oneOf: [Moonwalk.Spec.Example, Moonwalk.Spec.Reference]},
+        additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Example]},
         description: "Examples"
+      },
+      encoding: %{
+        type: :object,
+        additionalProperties: Moonwalk.Spec.Encoding,
+        description: "Encoding"
       }
-      # encoding: %{
-      #   type: :object,
-      #   additionalProperties: Moonwalk.Spec.Encoding,
-      #   description: "Encoding"
-      # }
     },
     required: []
   })
 
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([:tags, :summary, :description, :operationId, :deprecated])
+    |> normalize_subs(
+      examples: {:map, {:or_ref, :defaultxxx}},
+      encoding: {:map, Moonwalk.Spec.Encoding}
+    )
+    |> normalize_schema(:schema)
+    |> collect()
+  end
+
   def from_controller!(spec) do
     default_examples =
       case Access.fetch(spec, :example) do
-        {:ok, example} -> [example]
-        :error -> []
+        {:ok, example} -> %{"default" => example}
+        :error -> nil
       end
 
     spec
-    |> make(__MODULE__)
+    |> build(__MODULE__)
     |> take_required(:schema)
     |> take_default(:examples, default_examples)
     |> into()

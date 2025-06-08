@@ -1,7 +1,8 @@
 defmodule Moonwalk.Spec.RequestBody do
   alias Moonwalk.Spec.MediaType
+  import Moonwalk.Internal.ControllerBuilder
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Describes a single request body.
   JSV.defschema(%{
@@ -47,36 +48,41 @@ defmodule Moonwalk.Spec.RequestBody do
 
   def from_controller!(spec) when is_list(spec) do
     spec
-    |> make(__MODULE__)
+    |> build(__MODULE__)
     |> take_required(:content, &cast_content/1)
     |> take_default(:required, false)
     |> into()
   end
 
   defp cast_content(content) when is_map(content) when is_list(content) do
-    map =
-      content
-      |> Enum.to_list()
-      |> tap(fn
-        [] -> raise ArgumentError, ":content cannot by empty"
-        _ -> :ok
-      end)
-      |> Enum.reduce(%{}, fn
-        {mime_type, _media_spec}, _ when not is_binary(mime_type) ->
-          {:halt, {:error, "media mime types must be strings, got: #{inspect(mime_type)}"}}
+    content
+    |> Enum.to_list()
+    |> tap(fn
+      [] -> raise ArgumentError, ":content cannot by empty"
+      _ -> :ok
+    end)
+    |> Enum.reduce_while({:ok, %{}}, fn
+      {mime_type, _media_spec}, _ when not is_binary(mime_type) ->
+        {:halt, {:error, "media mime types must be strings, got: #{inspect(mime_type)}"}}
 
-        {mime_type, media_spec}, acc ->
-          case Plug.Conn.Utils.media_type(mime_type) do
-            {:ok, _, _, _} ->
-              media = MediaType.from_controller!(media_spec)
-              Map.put(acc, mime_type, media)
+      {mime_type, media_spec}, {:ok, acc} ->
+        case Plug.Conn.Utils.media_type(mime_type) do
+          {:ok, _, _, _} ->
+            media = MediaType.from_controller!(media_spec)
+            {:cont, {:ok, Map.put(acc, mime_type, media)}}
 
-            :error ->
-              raise ArgumentError,
-                    "cannot parse media type #{inspect(mime_type)}"
-          end
-      end)
+          :error ->
+            {:halt, {:error, "cannot parse media type #{inspect(mime_type)}"}}
+        end
+    end)
+  end
 
-    {:ok, map}
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([:description, :required])
+    |> normalize_subs(content: {:map, Moonwalk.Spec.MediaType})
+    |> collect()
   end
 end

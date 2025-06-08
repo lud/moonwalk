@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Info do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Provides metadata about the API, such as title, version, and contact information.
   JSV.defschema(%{
@@ -18,4 +18,16 @@ defmodule Moonwalk.Spec.Info do
     },
     required: [:title, :version]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_subs(
+      contact: Moonwalk.Spec.Contact,
+      license: Moonwalk.Spec.License
+    )
+    |> normalize_default(:all)
+    |> collect()
+  end
 end

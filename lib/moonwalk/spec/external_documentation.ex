@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.ExternalDocumentation do
   require JSV
-  use Moonwalk.Spec
+  use Moonwalk.Internal.Normalizer
 
   # Allows referencing an external resource for extended documentation.
   JSV.defschema(%{
@@ -13,4 +13,12 @@ defmodule Moonwalk.Spec.ExternalDocumentation do
     },
     required: [:url]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default(:all)
+    |> collect()
+  end
 end

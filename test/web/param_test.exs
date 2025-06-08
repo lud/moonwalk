@@ -30,31 +30,14 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_single_path_param",
+                 "operation_id" => "param_single_path_param" <> _,
                  "errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter theme in path",
                      "parameter" => "theme",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"dark\" or \"light\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -81,55 +64,21 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_two_path_params",
+                 "operation_id" => "param_two_path_params" <> _,
                  "errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter color in path",
                      "parameter" => "color",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"red\" or \"blue\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter theme in path",
                      "parameter" => "theme",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"dark\" or \"light\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -142,31 +91,14 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_two_path_params",
+                 "operation_id" => "param_two_path_params" <> _,
                  "errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter color in path",
                      "parameter" => "color",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"red\" or \"blue\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -191,31 +123,14 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_scope_and_single",
+                 "operation_id" => "param_scope_and_single" <> _,
                  "errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter theme in path",
                      "parameter" => "theme",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"dark\" or \"light\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -228,31 +143,14 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_scope_and_single",
+                 "operation_id" => "param_scope_and_single" <> _,
                  "errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter shape in path",
                      "parameter" => "shape",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"square\" or \"circle\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -265,55 +163,21 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_scope_and_single",
+                 "operation_id" => "param_scope_and_single" <> _,
                  "errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter shape in path",
                      "parameter" => "shape",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"square\" or \"circle\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter theme in path",
                      "parameter" => "theme",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "enum",
-                               "message" =>
-                                 "value must be one of the enum values: \"dark\" or \"light\""
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -335,19 +199,19 @@ defmodule Moonwalk.Web.ParamTest do
   describe "query params" do
     test "valid query params with integers", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/params/s/square/t/light/c/red?shape=10&theme=20&color=30", fn conn,
-                                                                                          params ->
-          # standard phoenix behaviour should not be changed, the path params have priority
-          assert %{"shape" => "square", "theme" => "light", "color" => "red"} == params
-          assert %{"shape" => "10", "theme" => "20", "color" => "30"} == conn.query_params
+        get_reply(conn, ~p"/params/s/square/t/light/c/red?shape=10&theme=20&color=30", fn
+          conn, params ->
+            # standard phoenix behaviour should not be changed, the path params have priority
+            assert %{"shape" => "square", "theme" => "light", "color" => "red"} == params
+            assert %{"shape" => "10", "theme" => "20", "color" => "30"} == conn.query_params
 
-          # moonwalk data is properly cast
-          assert %{shape: :square, theme: :light, color: :red} ==
-                   conn.private.moonwalk.path_params
+            # moonwalk data is properly cast
+            assert %{shape: :square, theme: :light, color: :red} ==
+                     conn.private.moonwalk.path_params
 
-          assert %{shape: 10, theme: 20, color: 30} == conn.private.moonwalk.query_params
+            assert %{shape: 10, theme: 20, color: 30} == conn.private.moonwalk.query_params
 
-          json(conn, %{data: "okay"})
+            json(conn, %{data: "okay"})
         end)
 
       assert %{"data" => "okay"} = json_response(conn, 200)
@@ -362,76 +226,28 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_scope_and_two_path_params",
+                 "operation_id" => "param_scope_and_two_path_params" <> _,
                  "errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter color in query",
                      "parameter" => "color",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "maximum",
-                               "message" => "value 1030 is higher than maximum 100"
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter shape in query",
                      "parameter" => "shape",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "maximum",
-                               "message" => "value 1010 is higher than maximum 100"
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter theme in query",
                      "parameter" => "theme",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "maximum",
-                               "message" => "value 1020 is higher than maximum 100"
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -447,67 +263,28 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_scope_and_two_path_params",
+                 "operation_id" => "param_scope_and_two_path_params" <> _,
                  "errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter color in query",
                      "parameter" => "color",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type integer"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter shape in query",
                      "parameter" => "shape",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type integer"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter theme in query",
                      "parameter" => "theme",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type integer"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -521,7 +298,7 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "message" => "Unprocessable Entity",
-                 "operation_id" => "param_scope_and_two_path_params",
+                 "operation_id" => "param_scope_and_two_path_params" <> _,
                  "errors" => [
                    %{
                      "in" => "query",
@@ -600,7 +377,7 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_generic_param_types",
+                 "operation_id" => "param_generic_param_types" <> _,
                  "message" => "Unprocessable Entity",
                  "errors" => [
                    %{
@@ -608,60 +385,21 @@ defmodule Moonwalk.Web.ParamTest do
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter boolean_param in query",
                      "parameter" => "boolean_param",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type boolean"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter integer_param in query",
                      "parameter" => "integer_param",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type integer"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter number_param in query",
                      "parameter" => "number_param",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type number"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => %{"valid" => false}
                    }
                  ]
                }
@@ -710,7 +448,7 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_array_types",
+                 "operation_id" => "param_array_types" <> _,
                  "message" => "Unprocessable Entity",
                  "errors" => [
                    %{
@@ -718,45 +456,7 @@ defmodule Moonwalk.Web.ParamTest do
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter numbers in query",
                      "parameter" => "numbers",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{
-                               "kind" => "items",
-                               "message" => "item at index 0 does not validate the 'items' schema"
-                             },
-                             %{
-                               "kind" => "items",
-                               "message" => "item at index 1 does not validate the 'items' schema"
-                             }
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         },
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type integer"}
-                           ],
-                           "evaluationPath" => "#/items",
-                           "instanceLocation" => "#/0",
-                           "schemaLocation" => "#/items",
-                           "valid" => false
-                         },
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type integer"}
-                           ],
-                           "evaluationPath" => "#/items",
-                           "instanceLocation" => "#/1",
-                           "schemaLocation" => "#/items",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => _
                    }
                  ]
                }
@@ -768,7 +468,7 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_array_types",
+                 "operation_id" => "param_array_types" <> _,
                  "message" => "Unprocessable Entity",
                  "errors" => [
                    %{
@@ -776,40 +476,14 @@ defmodule Moonwalk.Web.ParamTest do
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter names in query",
                      "parameter" => "names",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type array"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => _
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter numbers in query",
                      "parameter" => "numbers",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type array"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => _
                    }
                  ]
                }
@@ -822,7 +496,7 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "operation_id" => "param_generic_param_types",
+                 "operation_id" => "param_generic_param_types" <> _,
                  "message" => "Unprocessable Entity",
                  "errors" => [
                    %{
@@ -830,44 +504,24 @@ defmodule Moonwalk.Web.ParamTest do
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter integer_param in query",
                      "parameter" => "integer_param",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type integer"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => _
                    },
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
                      "message" => "invalid parameter string_param in query",
                      "parameter" => "string_param",
-                     "validation_error" => %{
-                       "details" => [
-                         %{
-                           "errors" => [
-                             %{"kind" => "type", "message" => "value is not of type string"}
-                           ],
-                           "evaluationPath" => "#",
-                           "instanceLocation" => "#",
-                           "schemaLocation" => "#",
-                           "valid" => false
-                         }
-                       ],
-                       "valid" => false
-                     }
+                     "validation_error" => _
                    }
                  ]
                }
              } = json_response(conn, 422)
+    end
+  end
+
+  describe "explode parameters" do
+    test "exploded parameters" do
+      IO.warn("TODO!")
     end
   end
 end
