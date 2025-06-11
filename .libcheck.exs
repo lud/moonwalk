@@ -1,3 +1,3 @@
 [
-  github_workflows: [elixir_checks: false]
+  github_workflows: [elixir_checks: false, dependencies: false]
 ]
