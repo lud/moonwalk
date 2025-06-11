@@ -20,8 +20,27 @@ defmodule Moonwalk.Internal.Normalizer do
     quote do
       import unquote(__MODULE__)
       @behaviour unquote(__MODULE__)
-      @moonwalk_object_name List.last(Module.split(__MODULE__))
-      @moduledoc "Representation of the `#{@moonwalk_object_name} Object` in OpenAPI Specification."
+      snake_object_name =
+        __MODULE__
+        |> Module.split()
+        |> List.last()
+        |> Macro.underscore()
+
+      object_name =
+        snake_object_name
+        |> String.replace(~r{(^|_).}, fn
+          "_" <> char -> " " <> String.upcase(char)
+          char -> " " <> String.upcase(char)
+        end)
+
+      object_fragment =
+        snake_object_name
+        |> String.replace("_", "-")
+        |> Kernel.<>("-object")
+
+      obect_link = "https://spec.openapis.org/oas/v3.1.1.html##{object_fragment}"
+
+      @moduledoc "Representation of the [#{object_name} Object](#{obect_link}) in OpenAPI Specification."
 
       @impl true
       def normalize!(_, _) do
