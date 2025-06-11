@@ -518,10 +518,4 @@ defmodule Moonwalk.Web.ParamTest do
              } = json_response(conn, 422)
     end
   end
-
-  describe "explode parameters" do
-    test "exploded parameters" do
-      IO.warn("TODO!")
-    end
-  end
 end

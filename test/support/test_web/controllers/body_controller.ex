@@ -10,8 +10,7 @@ defmodule Moonwalk.TestWeb.BodyController do
     title: "InlinePlantSchema",
     properties: %{
       name: Schema.non_empty_string(),
-      sunlight:
-        Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness])
+      sunlight: Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness])
     },
     required: [:name, :sunlight]
   }
@@ -40,8 +39,7 @@ defmodule Moonwalk.TestWeb.BodyController do
       type: :object,
       properties: %{
         name: Schema.non_empty_string(),
-        sunlight:
-          Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness]),
+        sunlight: Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness]),
         soil: SoilSchema
       },
       required: [:name, :sunlight]
@@ -53,6 +51,13 @@ defmodule Moonwalk.TestWeb.BodyController do
     request_body: {PlantSchema, []}
 
   def module_single(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  operation :module_single_not_required,
+    request_body: {PlantSchema, [required: false]}
+
+  def module_single_not_required(conn, params) do
     Responder.reply(conn, params)
   end
 
@@ -75,6 +80,7 @@ defmodule Moonwalk.TestWeb.BodyController do
 
   operation :wildcard_media_type,
     request_body: [
+      required: false,
       content: %{
         "*/*" => %{schema: false},
         "application/json" => %{schema: PlantSchema}

@@ -14,8 +14,7 @@ defmodule Moonwalk.Spec.Header do
       style:
         JSV.Schema.string_to_atom_enum(
           %{
-            description:
-              "Describes how the header value will be serialized. Default and only legal value is 'simple'."
+            description: "Describes how the header value will be serialized. Default and only legal value is 'simple'."
           },
           [
             :simple

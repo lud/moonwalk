@@ -11,8 +11,7 @@ defmodule Moonwalk.Spec.Discriminator do
     properties: %{
       propertyName: %{
         type: :string,
-        description:
-          "The name of the property in the payload with the discriminating value. Required."
+        description: "The name of the property in the payload with the discriminating value. Required."
       },
       mapping: %{
         type: :object,

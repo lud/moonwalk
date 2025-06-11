@@ -10,7 +10,6 @@ config :moonwalk, Moonwalk.TestWeb.Endpoint,
 config :logger, level: :warning
 
 # config :phoenix, :plug_init_mode, :compile
-IO.warn("compile/runtime")
 config :phoenix, :plug_init_mode, :runtime
 
 config :jsv,

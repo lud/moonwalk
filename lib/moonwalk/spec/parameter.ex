@@ -16,8 +16,7 @@ defmodule Moonwalk.Spec.Parameter do
       in:
         JSV.Schema.string_to_atom_enum(
           %{
-            description:
-              "The location of the parameter. Allowed values: query, header, path, cookie. Required."
+            description: "The location of the parameter. Allowed values: query, header, path, cookie. Required."
           },
           [
             :query,
@@ -29,6 +28,8 @@ defmodule Moonwalk.Spec.Parameter do
       description: %{type: :string, description: "A brief description of the parameter."},
       required: %{type: :boolean, description: "Determines whether this parameter is mandatory."},
       deprecated: %{type: :boolean, description: "Specifies that the parameter is deprecated."},
+      # TODO(doc): Not supported for now, add in roadmap and allow parsing
+      #
       # allowEmptyValue: %{
       #   type: :boolean,
       #   description: "Sets the ability to pass empty-valued parameters."
@@ -37,7 +38,8 @@ defmodule Moonwalk.Spec.Parameter do
       #   JSV.Schema.string_to_atom_enum(
       #     %{
       #       description:
-      #         "Describes how the parameter value will be serialized. See OpenAPI spec for allowed values."
+      #         "Describes how the parameter value will be serialized. See OpenAPI spec for allowed values.",
+      #         "default": :simple
       #     },
       #     [
       #       :matrix,
@@ -49,10 +51,10 @@ defmodule Moonwalk.Spec.Parameter do
       #       :deepObject
       #     ]
       #   ),
-      explode: %{
-        type: :boolean,
-        description: "When true, array or object values generate separate parameters."
-      },
+      # explode: %{
+      #   type: :boolean,
+      #   description: "When true, array or object values generate separate parameters."
+      # },
       allowReserved: %{
         type: :boolean,
         description: "Allows reserved characters in parameter values."

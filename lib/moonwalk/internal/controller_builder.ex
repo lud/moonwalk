@@ -19,8 +19,7 @@ defmodule Moonwalk.Internal.ControllerBuilder do
 
       {:error, errmsg} when is_binary(errmsg) ->
         raise ArgumentError,
-          message:
-            "could not cast key #{inspect(key)} when building #{inspect(target)}, got: #{errmsg}"
+          message: "could not cast key #{inspect(key)} when building #{inspect(target)}, got: #{errmsg}"
     end
   end
 
@@ -54,6 +53,10 @@ defmodule Moonwalk.Internal.ControllerBuilder do
       {@undef, _} -> :error
       {value, container} -> {:ok, value, container}
     end
+  end
+
+  defp pop(container, key) do
+    raise "cannot fetch key #{inspect(key)} from data, expected a map or keyword list, got: #{inspect(container)}"
   end
 
   defp set(container, key, value) when is_list(container) do

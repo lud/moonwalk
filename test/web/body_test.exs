@@ -17,6 +17,9 @@ defmodule Moonwalk.Web.BodyTest do
     "soil" => %{"acid" => true, "density" => "NOT A NUMBER"}
   }
 
+  # Phoenix.ConnTest.post defaults to nil when no payload is provided
+  @no_payload nil
+
   describe "inline schema" do
     test "valid body", %{conn: conn} do
       conn =
@@ -72,10 +75,6 @@ defmodule Moonwalk.Web.BodyTest do
                }
              } =
                json_response(conn, 415)
-    end
-
-    test "body is required but not provided" do
-      IO.warn("todo :required option in RequestBody")
     end
   end
 
@@ -199,7 +198,9 @@ defmodule Moonwalk.Web.BodyTest do
   describe "wildcard content types" do
     @tag req_content_type: "some-unknown-content-type"
     test "wildcard take any content type", %{conn: conn} do
-      # schema with wildcard content type is just `false`
+      # schema with wildcard content type is just `false`, so it should reject
+      # everything BUT as the content-type does not tell that it's JSON or a
+      # form, no parsing is done.
       conn = post(conn, ~p"/body/wildcard", "some payload")
 
       assert %{
@@ -228,4 +229,58 @@ defmodule Moonwalk.Web.BodyTest do
       assert %{"data" => "ok"} = json_response(conn, 200)
     end
   end
+
+  describe "non-required body" do
+    @tag req_content_type: "some/unknown"
+    test "empty body is accepted", %{conn: conn} do
+      # schema with wildcard content type is just `false`
+      conn =
+        post_reply(conn, ~p"/body/module-single-no-required", @no_payload, fn conn, _params ->
+          # No content is set
+          refute is_map_key(conn.private.moonwalk, :body_params)
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = json_response(conn, 200)
+    end
+
+    test "valid body is parsed as usual", %{conn: conn} do
+      # schema with wildcard content type is just `false`
+      conn =
+        post_reply(conn, ~p"/body/module-single-no-required", @valid_payload, fn conn, _params ->
+          # the controller using a defschema module, so we should have a struct here
+          assert %Moonwalk.TestWeb.BodyController.PlantSchema{
+                   name: "Monstera Deliciosa",
+                   sunlight: :bright_indirect
+                 } = conn.private.moonwalk.body_params
+
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = json_response(conn, 200)
+    end
+
+    test "invalid body still returns an error", %{conn: conn} do
+      # schema with wildcard content type is just `false`
+      conn = post(conn, ~p"/body/module-single-no-required", @invalid_payload)
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Entity",
+                 "operation_id" => "body_module_single_not_required" <> _,
+                 "errors" => [
+                   %{
+                     "in" => "body",
+                     "kind" => "invalid_body",
+                     "message" => "invalid body",
+                     "validation_error" => %{"valid" => false}
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+  end
+
+  IO.warn("@todo test body too large with no parsed content type")
 end

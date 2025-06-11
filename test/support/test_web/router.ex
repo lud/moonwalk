@@ -15,6 +15,7 @@ defmodule Moonwalk.TestWeb.Router do
     scope "/body", Moonwalk.TestWeb do
       post "/inline-single", BodyController, :inline_single
       post "/module-single", BodyController, :module_single
+      post "/module-single-no-required", BodyController, :module_single_not_required
       post "/form", BodyController, :handle_form
       post "/undefined-operation", BodyController, :undefined_operation
       post "/ignored-action", BodyController, :ignored_action

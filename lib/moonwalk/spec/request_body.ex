@@ -26,15 +26,22 @@ defmodule Moonwalk.Spec.RequestBody do
 
   def from_controller(spec) do
     {:ok, from_controller!(spec)}
+
+    # The debang version is made to work with the cast system, there is no need to return {:error, _}
   end
 
+  # TODO(doc) document that maps are always used as schemas
   def from_controller!(schema)
       when is_map(schema) or is_atom(schema)
       when is_boolean(schema) do
     from_controller!({schema, []})
   end
 
+  # TODO(doc) document that required is set to true by default when passing a
+  # schema
   def from_controller!({schema, spec}) do
+    spec = Keyword.put_new(spec, :required, true)
+
     case Keyword.fetch(spec, :content) do
       :error ->
         spec = Keyword.put(spec, :content, %{"application/json" => %{schema: schema}})

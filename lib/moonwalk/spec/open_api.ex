@@ -6,13 +6,11 @@ defmodule Moonwalk.Spec.OpenAPI do
   JSV.defschema(%{
     title: "OpenAPI",
     type: :object,
-    description:
-      "Root object of the OpenAPI description, containing metadata, paths, components, and more.",
+    description: "Root object of the OpenAPI description, containing metadata, paths, components, and more.",
     properties: %{
       openapi: %{
         type: :string,
-        description:
-          "The version number of the OpenAPI Specification used in this document. Required."
+        description: "The version number of the OpenAPI Specification used in this document. Required."
       },
       info: Moonwalk.Spec.Info,
       jsonSchemaDialect: %{

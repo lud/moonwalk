@@ -47,7 +47,7 @@ defmodule Moonwalk.Controller do
     # hash the controller name to allow multiple controllers to have the same
     # name, for instance "Api.V1.User" and "Api.V2.User". Collisions can happen
     # but users are supposed to provide operation ids.
-    mod_hash = :erlang.phash2(env.module)
+    mod_hash = Base.url_encode64(<<:erlang.phash2(env.module, 2 ** 32)::32>>, padding: false)
 
     "#{controller_name}_#{to_string(action)}_#{mod_hash}"
   end

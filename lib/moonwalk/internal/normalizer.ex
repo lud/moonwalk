@@ -60,8 +60,7 @@ defmodule Moonwalk.Internal.Normalizer do
   def make(other, target, ctx) do
     raise NormalizeError,
       ctx: ctx,
-      reason:
-        "invalid value for Open API model #{inspect(target)}, expected a map or struct, got: #{inspect(other)}"
+      reason: "invalid value for Open API model #{inspect(target)}, expected a map or struct, got: #{inspect(other)}"
   end
 
   def normalize_subs(bld, keymap) when is_list(keymap) do
@@ -93,7 +92,7 @@ defmodule Moonwalk.Internal.Normalizer do
         {[{bin_key, value} | outlist], ctx}
       end)
 
-    %__MODULE__{bld | data: %{}, ctx: ctx, out: outlist}
+    %{bld | data: %{}, ctx: ctx, out: outlist}
   end
 
   def normalize_default(bld, :all) do
@@ -104,7 +103,7 @@ defmodule Moonwalk.Internal.Normalizer do
         [{ensure_binary_key(key), to_json_decoded(value)} | outlist]
       end)
 
-    %__MODULE__{bld | data: %{}, out: outlist}
+    %{bld | data: %{}, out: outlist}
   end
 
   def normalize_default(bld, keys) when is_list(keys) do
@@ -117,7 +116,7 @@ defmodule Moonwalk.Internal.Normalizer do
     case pop_normal(data, key) do
       {:ok, bin_key, {schema, data}} ->
         {replacement_schema, ctx} = do_normalize_schema(schema, ctx)
-        %__MODULE__{bld | data: data, ctx: ctx, out: [{bin_key, replacement_schema} | outlist]}
+        %{bld | data: data, ctx: ctx, out: [{bin_key, replacement_schema} | outlist]}
 
       :error ->
         bld
@@ -128,7 +127,7 @@ defmodule Moonwalk.Internal.Normalizer do
     %__MODULE__{data: data} = bld
 
     case pop_normal(data, key) do
-      {:ok, _bin_key, {_value, data}} -> %__MODULE__{bld | data: data}
+      {:ok, _bin_key, {_value, data}} -> %{bld | data: data}
       :error -> bld
     end
   end
@@ -146,8 +145,7 @@ defmodule Moonwalk.Internal.Normalizer do
         _ ->
           raise NormalizeError,
             ctx: ctx,
-            reason:
-              "some keys were not normalized from #{inspect(target)}: #{inspect(Map.keys(data))}"
+            reason: "some keys were not normalized from #{inspect(target)}: #{inspect(Map.keys(data))}"
       end
 
       {Map.new(outlist), ctx}
@@ -373,18 +371,12 @@ defmodule Moonwalk.Internal.Normalizer do
     title = schema_title(schema, module)
     name = available_schema_name(ctx.schemas, title)
 
-    ctx = %NormalizationContext{
-      ctx
-      | seen_schema_mods: Map.put(ctx.seen_schema_mods, module, name)
-    }
+    ctx = %{ctx | seen_schema_mods: Map.put(ctx.seen_schema_mods, module, name)}
 
     # Recursion
     {normal_schema, ctx} = do_normalize_schema(schema, ctx)
 
-    ctx = %NormalizationContext{
-      ctx
-      | schemas: Map.put(ctx.schemas, name, normal_schema)
-    }
+    ctx = %{ctx | schemas: Map.put(ctx.schemas, name, normal_schema)}
 
     replacement = %{"$ref" => ref_to_schema(name)}
     {replacement, ctx}

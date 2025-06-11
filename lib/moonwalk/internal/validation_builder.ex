@@ -23,6 +23,8 @@ defmodule Moonwalk.Internal.ValidationBuilder do
       end)
 
     jsv_root = JSV.to_root!(jsv_ctx, :root)
+
+    # TODO here we must ensure no duplicates in the map
     {Map.new(validations_by_op_id), jsv_root}
   end
 
@@ -47,7 +49,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
           {validations, jsv_ctx}
 
         {required?, body_validations, jsv_ctx} ->
-          {validations ++ [require_body: required?, body: body_validations], jsv_ctx}
+          {validations ++ [{:body, required?, body_validations}], jsv_ctx}
       end
 
     {{op_id, validations}, jsv_ctx}

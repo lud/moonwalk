@@ -10,8 +10,7 @@ defmodule Moonwalk.Spec.OAuthFlow do
     properties: %{
       authorizationUrl: %{
         type: :string,
-        description:
-          "The authorization URL for this flow. Required for implicit and authorizationCode flows."
+        description: "The authorization URL for this flow. Required for implicit and authorizationCode flows."
       },
       tokenUrl: %{
         type: :string,

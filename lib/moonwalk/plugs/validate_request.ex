@@ -38,19 +38,19 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     {controller, action} = fetch_phoenix!(conn)
 
     with {:ok, validations_with_root} <- fetch_validations(conn, controller, action),
-         {:ok, private} <- run_validations(conn, validations_with_root) do
+         {:ok, private, conn} <- run_validations(conn, validations_with_root) do
       Conn.put_private(conn, :moonwalk, private)
     else
-      {:error, errors} when is_list(errors) ->
+      {:error, {:params_errors, errors}, conn} when is_list(errors) ->
         handle_errors(conn, :unprocessable_entity, errors, opts)
 
-      {:error, %InvalidBodyError{} = e} ->
+      {:error, %InvalidBodyError{} = e, conn} ->
         handle_errors(conn, :unprocessable_entity, [e], opts)
 
-      {:error, %UnsupportedMediaTypeError{} = e} ->
+      {:error, %UnsupportedMediaTypeError{} = e, conn} ->
         handle_errors(conn, :unsupported_media_type, [e], opts)
 
-      {:error, {:not_built, operation_id}} ->
+      {:error, {:not_built, operation_id}, _conn} ->
         raise "operation with id #{inspect(operation_id)} was not built"
 
       {:skip, _} ->
@@ -80,7 +80,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
         case validations do
           %{^operation_id => op_validations} -> {:ok, {op_validations, jsv_root}}
-          _ -> {:error, {:not_built, operation_id}}
+          _ -> {:error, {:not_built, operation_id}, conn}
         end
 
       {:skip, _} = err ->
@@ -127,14 +127,15 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   end
 
   defp run_validations(conn, {validations, jsv_root}) do
-    Enum.reduce_while(validations, {:ok, _privates = %{}}, fn validation, {:ok, private} ->
-      # we are not collecting all errors but rather stop on the first error. If
-      # parameters are wrong, as they handle path parameters we act as if the
-      # route is wrong, and do not want to validate the body.
-      case validate(conn, validation, jsv_root) do
-        {:ok, new_private} -> {:cont, {:ok, Map.merge(private, new_private)}}
-        {:error, reason} -> {:halt, {:error, reason}}
-      end
+    Enum.reduce_while(validations, {:ok, _private = %{}, conn}, fn
+      validation, {:ok, private, conn} ->
+        # we are not collecting all errors but rather stop on the first error. If
+        # parameters are wrong, as they handle path parameters we act as if the
+        # route is wrong, and do not want to validate the body.
+        case validate(conn, validation, jsv_root) do
+          {:ok, new_private, conn} -> {:cont, {:ok, Map.merge(private, new_private), conn}}
+          {:error, reason, conn} -> {:halt, {:error, reason, conn}}
+        end
     end)
   end
 
@@ -142,15 +143,28 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     validate_parameters(conn, by_location, jsv_root)
   end
 
-  IO.warn("todo required body")
-
-  defp validate(_conn, {:require_body, _required?}, _jsv_root) do
-    {:ok, %{}}
+  defp validate(conn, {:body, required?, media_matchers}, jsv_root) do
+    case ensure_fetched_body(conn) do
+      {:ok, body, conn} -> validate_body(conn, body, required?, media_matchers, jsv_root)
+    end
   end
 
-  defp validate(conn, {:body, media_matchers}, jsv_root) do
-    validate_body(conn, media_matchers, jsv_root)
+  defp ensure_fetched_body(%{body_params: %Plug.Conn.Unfetched{}} = conn) do
+    # If we read the body from there we will not try to turn it into json or
+    # something, this is the responisibility of the users.
+    #
+    # TODO(doc) The plug will populate conn.body_params with the raw body
+    case Plug.Conn.read_body(conn) do
+      {:ok, body, conn} -> {:ok, body, %{conn | body_params: body}}
+      {:more, _, conn} -> {:error, :too_large, conn}
+    end
   end
+
+  defp ensure_fetched_body(conn) do
+    {:ok, conn.body_params, conn}
+  end
+
+  IO.warn("todo make sure parameters are fetched")
 
   defp validate_parameters(conn, by_location, jsv_root) do
     %{path_params: raw_path_params, query_params: raw_query_params} = conn
@@ -167,10 +181,10 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     case {path_errors, query_errors} do
       {[], []} ->
         private = %{path_params: cast_path_params, query_params: cast_query_params}
-        {:ok, private}
+        {:ok, private, conn}
 
       _ ->
-        {:error, path_errors ++ query_errors}
+        {:error, {:params_errors, path_errors ++ query_errors}, conn}
     end
   end
 
@@ -210,19 +224,31 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     end
   end
 
-  defp validate_body(conn, media_matchers, jsv_root) do
-    {primary, secondary} = fetch_content_type(conn)
-    %{body_params: body} = conn
+  # TODO(doc) a body is considered empty if "" or nil, and in this case we do
+  # not run the validations.
+  #
+  # The JSON parser plug will only set an empty map as the body_params when the
+  # content type of the request is JSON but the body is empty. We do not handle
+  # that case, as an application/json request should have a JSON body.
+  defp validate_body(conn, body, false = _required?, _, _) when body in [nil, ""] do
+    {:ok, %{}, conn}
+  end
 
-    with {:ok, jsv_key} <- match_media_type(media_matchers, {primary, secondary}),
-         {:ok, cast_body} <- validate_body_with_schema(body, jsv_key, jsv_root) do
-      {:ok, %{body_params: cast_body}}
+  defp validate_body(conn, body, _required?, media_matchers, jsv_root) do
+    {primary, secondary} = fetch_content_type(conn)
+
+    with {:ok, {_, jsv_key}} <- match_media_type(media_matchers, {primary, secondary}),
+         {:ok, cast_body} <- validate_with_schema(body, jsv_key, jsv_root) do
+      {:ok, %{body_params: cast_body}, conn}
     else
-      {:error, {:validation, validation_error}} ->
-        {:error, %InvalidBodyError{validation_error: validation_error, value: body}}
+      {:error, %JSV.ValidationError{} = validation_error} ->
+        {:error, %InvalidBodyError{validation_error: validation_error, value: body}, conn}
 
       {:error, :unsupported} ->
-        {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body}}
+        {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body}, conn}
+
+      {:error, :unfetched} ->
+        raise "cannot validate request with content type '#{primary}/#{secondary}' as body was not fetched"
     end
   end
 
@@ -241,16 +267,16 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     end
   end
 
-  defp match_media_type([{{primary, secondary}, jsv_key} | _], {primary, secondary}) do
-    {:ok, jsv_key}
+  defp match_media_type([{{primary, secondary}, _jsv_key} = matched | _], {primary, secondary}) do
+    {:ok, matched}
   end
 
-  defp match_media_type([{{"*", _secondary}, jsv_key} | _], _) do
-    {:ok, jsv_key}
+  defp match_media_type([{{"*", _secondary}, _jsv_key} = matched | _], _) do
+    {:ok, matched}
   end
 
-  defp match_media_type([{{primary, "*"}, jsv_key} | _], {primary, _}) do
-    {:ok, jsv_key}
+  defp match_media_type([{{primary, "*"}, _jsv_key} = matched | _], {primary, _}) do
+    {:ok, matched}
   end
 
   defp match_media_type([_ | matchspecs], content_type_tuple) do
@@ -261,14 +287,9 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     {:error, :unsupported}
   end
 
-  defp validate_body_with_schema(body, jsv_key, jsv_root) do
-    case validate_with_schema(body, jsv_key, jsv_root) do
-      {:ok, cast_body} -> {:ok, cast_body}
-      {:error, validation_error} -> {:error, {:validation, validation_error}}
-    end
-  end
-
   defp validate_with_schema(value, jsv_key, jsv_root)
+
+  IO.warn("todo no validation")
 
   defp validate_with_schema(value, :no_validation, _) do
     raise "noval!"

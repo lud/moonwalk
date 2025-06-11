@@ -1,14 +1,14 @@
 defmodule Moonwalk.SpecTest do
-  alias Moonwalk.Spec.Paths
-  alias Moonwalk.TestWeb
   alias Moonwalk.Spec
   alias Moonwalk.Spec.Components
   alias Moonwalk.Spec.MediaType
   alias Moonwalk.Spec.OpenAPI
   alias Moonwalk.Spec.Operation
   alias Moonwalk.Spec.PathItem
+  alias Moonwalk.Spec.Paths
   alias Moonwalk.Spec.RequestBody
   alias Moonwalk.Spec.SchemaWrapper
+  alias Moonwalk.TestWeb
   use ExUnit.Case, async: true
 
   test "meta - handling references and schema wrappers in oneOf/anyOf" do
