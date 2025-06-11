@@ -25,7 +25,7 @@ defmodule Moonwalk.Internal.Normalizer do
 
       @impl true
       def normalize!(_, _) do
-        raise "todo normalize"
+        raise "this is only to suppress warnings"
       end
 
       defoverridable normalize!: 2
@@ -33,15 +33,8 @@ defmodule Moonwalk.Internal.Normalizer do
   end
 
   def normalize!(data) do
-    ctx = %NormalizationContext{
-      seen_schema_mods: %{},
-      schemas: %{},
-      operations_paths: %{},
-      path: []
-    }
-
+    ctx = %NormalizationContext{seen_schema_mods: %{}, schemas: %{}, path: []}
     {normal, ctx} = normalize!(data, OpenAPI, ctx)
-
     put_in(normal, [Access.key("components", %{}), Access.key("schemas", %{})], ctx.schemas)
   end
 
@@ -149,28 +142,6 @@ defmodule Moonwalk.Internal.Normalizer do
       end
 
       {Map.new(outlist), ctx}
-    end
-  end
-
-  IO.warn("no need to collect operations anymore as we will fetch them from a normal spec")
-  # a special version of collect where we also put the operation under the
-  # current path in context
-  def collect_operation(%__MODULE__{} = bld) do
-    case collect(bld) do
-      {%{"operationId" => operation_id}, %{operations_paths: known}}
-      when is_map_key(known, operation_id) ->
-        raise NormalizeError,
-          ctx: bld.ctx,
-          reason: "operation #{inspect(operation_id)} is already defined"
-
-      {%{"operationId" => operation_id} = operation, ctx} ->
-        operations_paths = Map.put(ctx.operations_paths, operation_id, current_path(ctx))
-        {operation, %{ctx | operations_paths: operations_paths}}
-
-      {operation, _} ->
-        raise NormalizeError,
-          ctx: bld.ctx,
-          reason: "operation has no operationId: #{inspect(operation)}"
     end
   end
 

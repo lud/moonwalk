@@ -12,11 +12,7 @@ defmodule Moonwalk.Spec.NormalizationContext do
     :seen_schema_mods,
 
     # A map of %{component name => normal schema}.
-    :schemas,
-
-    # A map of %{operation_id => operation (normal form)} that should be built
-    # and cached for validation of requests.
-    :operations_paths
+    :schemas
   ]
   defstruct @enforce_keys
   @type t :: %__MODULE__{}

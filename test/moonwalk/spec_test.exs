@@ -207,29 +207,31 @@ defmodule Moonwalk.SpecTest do
              |> cast_to_structs()
   end
 
-  test "extracting operations from phoenix routes" do
-    assert %Moonwalk.Spec.OpenAPI{
-             paths: %{
-               "/body/form" => %Moonwalk.Spec.PathItem{},
-               "/body/inline-single" => %Moonwalk.Spec.PathItem{},
-               "/body/module-single" => %Moonwalk.Spec.PathItem{},
-               "/body/wildcard" => %Moonwalk.Spec.PathItem{},
-               "/params/arrays" => %Moonwalk.Spec.PathItem{},
-               "/params/generic" => %Moonwalk.Spec.PathItem{},
-               "/params/s/{shape}" => %Moonwalk.Spec.PathItem{},
-               "/params/s/{shape}/t/{theme}" => %Moonwalk.Spec.PathItem{},
-               "/params/s/{shape}/t/{theme}/c/{color}" => %Moonwalk.Spec.PathItem{},
-               "/params/t/{theme}" => %Moonwalk.Spec.PathItem{},
-               "/params/t/{theme}/c/{color}" => %Moonwalk.Spec.PathItem{}
-             }
-           } =
-             %{
-               :openapi => "3.1.1",
-               :info => %{"title" => "Moonwalk Test API", :version => "0.0.0"},
-               :paths => Paths.from_router(TestWeb.Router)
-             }
-             |> Spec.normalize!()
-             |> cast_to_structs()
+  describe "phoenix routes" do
+    test "extracting operations from phoenix routes" do
+      assert %Moonwalk.Spec.OpenAPI{
+               paths: %{
+                 "/body/form" => %Moonwalk.Spec.PathItem{},
+                 "/body/inline-single" => %Moonwalk.Spec.PathItem{},
+                 "/body/module-single" => %Moonwalk.Spec.PathItem{},
+                 "/body/wildcard" => %Moonwalk.Spec.PathItem{},
+                 "/params/arrays" => %Moonwalk.Spec.PathItem{},
+                 "/params/generic" => %Moonwalk.Spec.PathItem{},
+                 "/params/s/{shape}" => %Moonwalk.Spec.PathItem{},
+                 "/params/s/{shape}/t/{theme}" => %Moonwalk.Spec.PathItem{},
+                 "/params/s/{shape}/t/{theme}/c/{color}" => %Moonwalk.Spec.PathItem{},
+                 "/params/t/{theme}" => %Moonwalk.Spec.PathItem{},
+                 "/params/t/{theme}/c/{color}" => %Moonwalk.Spec.PathItem{}
+               }
+             } =
+               %{
+                 :openapi => "3.1.1",
+                 :info => %{"title" => "Moonwalk Test API", :version => "0.0.0"},
+                 :paths => Paths.from_router(TestWeb.Router)
+               }
+               |> Spec.normalize!()
+               |> cast_to_structs()
+    end
   end
 
   IO.warn("""
@@ -239,10 +241,6 @@ defmodule Moonwalk.SpecTest do
   deterministic. Maybe we can just sort when normalize_subs is called with a
   function that will iterate on all keys, it's the only point when keys are not
   given in order
-  """)
-
-  IO.warn("""
-  todo test that duplicate operation ids are not valid, even from different controllers
   """)
 
   IO.warn("""

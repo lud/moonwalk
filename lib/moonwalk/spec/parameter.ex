@@ -75,7 +75,6 @@ defmodule Moonwalk.Spec.Parameter do
   })
 
   # TODO(doc) content is not supported, always use schema
-  IO.warn("todo document content is not supported")
 
   @impl true
   def normalize!(data, ctx) do

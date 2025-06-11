@@ -36,7 +36,6 @@ defmodule Moonwalk.ControllerTest do
   describe "required body" do
     test "when using shortcut, body is required by default" do
       defmodule SomeInlineSchema do
-        alias Moonwalk.ControllerTest.SomeInlineSchema
         require(JSV).defschema(JSV.Schema.props(a: %{type: :integer}))
       end
 

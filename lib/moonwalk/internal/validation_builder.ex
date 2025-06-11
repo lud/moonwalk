@@ -25,7 +25,14 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     jsv_root = JSV.to_root!(jsv_ctx, :root)
 
     # TODO here we must ensure no duplicates in the map
-    {Map.new(validations_by_op_id), jsv_root}
+    {to_ops_map(validations_by_op_id), jsv_root}
+  end
+
+  defp to_ops_map(ops_list) do
+    Enum.reduce(ops_list, %{}, fn
+      {op_id, _}, acc when is_map_key(acc, op_id) -> raise ArgumentError, "duplicate operation id #{inspect(op_id)}"
+      {op_id, op_spec}, acc -> Map.put(acc, op_id, op_spec)
+    end)
   end
 
   defp jsv_opts do

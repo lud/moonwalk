@@ -9,6 +9,12 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   @behaviour Plug
 
+  IO.warn("""
+  TODO if phoenix is in compile mode, we shall try to build the operations,
+  without caching it, to ensure that it is valid. Otherwise error would only
+  pop up at runtime. This will prevent to build an invalid release.
+  """)
+
   def init(opts) do
     if opts[:spec] do
       IO.warn("obsolete spec option")

@@ -39,17 +39,29 @@ defmodule Moonwalk.Controller do
   defp operation_id_from_env(action, env) do
     controller_name =
       env.module
-      |> Module.split()
-      |> List.last()
+      |> Atom.to_string()
+      |> case do
+        "Elixir." <> rest -> rest
+        str -> str
+      end
       |> Phoenix.Naming.unsuffix("Controller")
+
+    # id prefix is the last part of the controller name
+    id_prefix =
+      controller_name
+      |> String.split(".")
+      |> List.last()
       |> Macro.underscore()
 
-    # hash the controller name to allow multiple controllers to have the same
-    # name, for instance "Api.V1.User" and "Api.V2.User". Collisions can happen
-    # but users are supposed to provide operation ids.
-    mod_hash = Base.url_encode64(<<:erlang.phash2(env.module, 2 ** 32)::32>>, padding: false)
+    # Hash the controller name to allow multiple controllers to have the same ID
+    # prefix, for instance "Api.V1.User" and "Api.V2.User". Collisions can
+    # happen but users are supposed to provide their own operation ids.
+    mod_hash =
+      controller_name
+      |> then(&<<:erlang.phash2(&1, 2 ** 32)::little-32>>)
+      |> Base.encode32(padding: false)
 
-    "#{controller_name}_#{to_string(action)}_#{mod_hash}"
+    "#{id_prefix}_#{to_string(action)}_#{mod_hash}"
   end
 
   defmacro __before_compile__(env) do

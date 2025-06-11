@@ -68,7 +68,7 @@ defmodule Moonwalk.Spec.Operation do
       responses: Moonwalk.Spec.Responses,
       security: {:list, Moonwalk.Spec.SecurityRequirement}
     )
-    |> collect_operation()
+    |> collect()
   end
 
   def from_controller!(spec) do
