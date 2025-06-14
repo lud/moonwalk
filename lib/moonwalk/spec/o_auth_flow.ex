@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.OAuthFlow do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Configuration details for a supported OAuth Flow.
   JSV.defschema(%{
@@ -26,4 +26,12 @@ defmodule Moonwalk.Spec.OAuthFlow do
     },
     required: [:scopes]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([:authorizationUrl, :tokenUrl, :refreshUrl, :scopes])
+    |> collect()
+  end
 end

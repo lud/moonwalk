@@ -3,7 +3,7 @@ defmodule Moonwalk.Spec.Operation do
   alias Moonwalk.Spec.RequestBody
   require JSV
   import Moonwalk.Internal.ControllerBuilder
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Describes a single API operation on a path.
   JSV.defschema(%{

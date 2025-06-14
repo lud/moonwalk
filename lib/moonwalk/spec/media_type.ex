@@ -1,7 +1,7 @@
 defmodule Moonwalk.Spec.MediaType do
   import Moonwalk.Internal.ControllerBuilder
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   JSV.defschema(%{
     title: "MediaType",

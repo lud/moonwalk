@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.License do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # License information for the exposed API.
   JSV.defschema(%{

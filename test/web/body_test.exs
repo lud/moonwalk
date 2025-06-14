@@ -20,10 +20,42 @@ defmodule Moonwalk.Web.BodyTest do
   # Phoenix.ConnTest.post defaults to nil when no payload is provided
   @no_payload nil
 
+  describe "boolean schema false" do
+    test "any body should be rejected with boolean schema false", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/boolean-schema-false", @valid_payload)
+
+      assert %{
+               "error" => %{
+                 "message" => "Unprocessable Entity",
+                 "operation_id" => "body_boolean_schema_false" <> _,
+                 "errors" => [
+                   %{
+                     "in" => "body",
+                     "kind" => "invalid_body",
+                     "message" => "invalid body",
+                     "validation_error" => %{"valid" => false}
+                   }
+                 ]
+               }
+             } = json_response(conn, 422)
+    end
+
+    @tag req_content_type: "foo/bar"
+    test "non required body should be ok when data is not parsed", %{conn: conn} do
+      # This works only because the route accepts content type */*
+      conn =
+        post_reply(conn, ~p"/generated/body/boolean-schema-false", @no_payload, fn conn, _params ->
+          json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = json_response(conn, 200)
+    end
+  end
+
   describe "inline schema" do
     test "valid body", %{conn: conn} do
       conn =
-        post_reply(conn, ~p"/body/inline-single", @valid_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/inline-single", @valid_payload, fn conn, _params ->
           json(conn, %{data: "ok"})
         end)
 
@@ -31,7 +63,7 @@ defmodule Moonwalk.Web.BodyTest do
     end
 
     test "invalid body", %{conn: conn} do
-      conn = post(conn, ~p"/body/inline-single", @invalid_payload)
+      conn = post(conn, ~p"/generated/body/inline-single", @invalid_payload)
 
       assert %{
                "error" => %{
@@ -51,7 +83,7 @@ defmodule Moonwalk.Web.BodyTest do
 
     @tag req_accept: "text/html"
     test "can return textual errors", %{conn: conn} do
-      conn = post(conn, ~p"/body/inline-single", @invalid_payload)
+      conn = post(conn, ~p"/generated/body/inline-single", @invalid_payload)
 
       assert errmsg = response(conn, 422)
       assert is_binary(errmsg)
@@ -59,14 +91,14 @@ defmodule Moonwalk.Web.BodyTest do
 
     @tag req_content_type: "application/x-www-form-urlencoded", req_accept: "text/html"
     test "invalid content type returns 415 Unsupported Media Type", %{conn: conn} do
-      conn = post(conn, ~p"/body/inline-single", URI.encode_query(a: 1, b: 2))
+      conn = post(conn, ~p"/generated/body/inline-single", URI.encode_query(a: 1, b: 2))
 
       assert response(conn, 415) =~ ~r{<!doctype html>.+Unsupported Media Type}s
     end
 
     @tag req_content_type: "application/x-www-form-urlencoded"
     test "invalid content type returns 415 Unsupported Media Type in JSON format", %{conn: conn} do
-      conn = post(conn, ~p"/body/inline-single", URI.encode_query(a: 1, b: 2))
+      conn = post(conn, ~p"/generated/body/inline-single", URI.encode_query(a: 1, b: 2))
 
       assert %{
                "error" => %{
@@ -82,7 +114,7 @@ defmodule Moonwalk.Web.BodyTest do
     # Same test as before but the schema is given as a module
     test "valid body", %{conn: conn} do
       conn =
-        post_reply(conn, ~p"/body/module-single", @valid_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/module-single", @valid_payload, fn conn, _params ->
           # the controller using a defschema module, so we should have a struct here
           assert %Moonwalk.TestWeb.BodyController.PlantSchema{
                    name: "Monstera Deliciosa",
@@ -96,7 +128,7 @@ defmodule Moonwalk.Web.BodyTest do
     end
 
     test "invalid body", %{conn: conn} do
-      conn = post(conn, ~p"/body/module-single", @invalid_payload)
+      conn = post(conn, ~p"/generated/body/module-single", @invalid_payload)
 
       assert %{
                "error" => %{
@@ -115,7 +147,7 @@ defmodule Moonwalk.Web.BodyTest do
     end
 
     test "invalid body in sub schema", %{conn: conn} do
-      conn = post(conn, ~p"/body/module-single", @invalid_sub)
+      conn = post(conn, ~p"/generated/body/module-single", @invalid_sub)
 
       # schema locations should be in #/components/schemas/...
       assert %{
@@ -141,7 +173,7 @@ defmodule Moonwalk.Web.BodyTest do
       form_data = URI.encode_query(@valid_payload)
 
       conn =
-        post_reply(conn, ~p"/body/form", form_data, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/form", form_data, fn conn, _params ->
           text(conn, "ok")
         end)
 
@@ -149,7 +181,7 @@ defmodule Moonwalk.Web.BodyTest do
     end
 
     test "invalid body", %{conn: conn} do
-      conn = post(conn, ~p"/body/form", @invalid_payload)
+      conn = post(conn, ~p"/generated/body/form", @invalid_payload)
 
       assert errmsg = response(conn, 422)
       assert is_binary(errmsg)
@@ -165,7 +197,7 @@ defmodule Moonwalk.Web.BodyTest do
           payload = ~s({"some":"stuff"})
 
           conn =
-            post_reply(conn, ~p"/body/undefined-operation", payload, fn conn, _params ->
+            post_reply(conn, ~p"/generated/body/undefined-operation", payload, fn conn, _params ->
               text(conn, "ok")
             end)
 
@@ -184,7 +216,7 @@ defmodule Moonwalk.Web.BodyTest do
           payload = ~s({"some":"stuff"})
 
           conn =
-            post_reply(conn, ~p"/body/ignored-action", payload, fn conn, _params ->
+            post_reply(conn, ~p"/generated/body/ignored-action", payload, fn conn, _params ->
               text(conn, "ok")
             end)
 
@@ -201,7 +233,7 @@ defmodule Moonwalk.Web.BodyTest do
       # schema with wildcard content type is just `false`, so it should reject
       # everything BUT as the content-type does not tell that it's JSON or a
       # form, no parsing is done.
-      conn = post(conn, ~p"/body/wildcard", "some payload")
+      conn = post(conn, ~p"/generated/body/wildcard", "some payload")
 
       assert %{
                "error" => %{
@@ -222,7 +254,7 @@ defmodule Moonwalk.Web.BodyTest do
     test "wildcard does not take priority over more specific content types", %{conn: conn} do
       # the route exposes the regular PlantSchema for application/json
       conn =
-        post_reply(conn, ~p"/body/wildcard", @valid_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/wildcard", @valid_payload, fn conn, _params ->
           json(conn, %{data: "ok"})
         end)
 
@@ -235,7 +267,7 @@ defmodule Moonwalk.Web.BodyTest do
     test "empty body is accepted", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn =
-        post_reply(conn, ~p"/body/module-single-no-required", @no_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/module-single-no-required", @no_payload, fn conn, _params ->
           # No content is set
           refute is_map_key(conn.private.moonwalk, :body_params)
 
@@ -248,7 +280,7 @@ defmodule Moonwalk.Web.BodyTest do
     test "valid body is parsed as usual", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn =
-        post_reply(conn, ~p"/body/module-single-no-required", @valid_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/module-single-no-required", @valid_payload, fn conn, _params ->
           # the controller using a defschema module, so we should have a struct here
           assert %Moonwalk.TestWeb.BodyController.PlantSchema{
                    name: "Monstera Deliciosa",
@@ -263,7 +295,7 @@ defmodule Moonwalk.Web.BodyTest do
 
     test "invalid body still returns an error", %{conn: conn} do
       # schema with wildcard content type is just `false`
-      conn = post(conn, ~p"/body/module-single-no-required", @invalid_payload)
+      conn = post(conn, ~p"/generated/body/module-single-no-required", @invalid_payload)
 
       assert %{
                "error" => %{

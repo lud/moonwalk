@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Encoding do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   JSV.defschema(%{
     title: "Encoding",

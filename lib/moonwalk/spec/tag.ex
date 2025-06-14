@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Tag do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Adds metadata to a single tag.
   JSV.defschema(%{

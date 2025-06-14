@@ -90,4 +90,11 @@ defmodule Moonwalk.TestWeb.BodyController do
   def wildcard_media_type(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :boolean_schema_false,
+    request_body: {false, required: false}
+
+  def boolean_schema_false(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

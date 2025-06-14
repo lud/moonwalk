@@ -2,7 +2,7 @@ defmodule Moonwalk.Spec.RequestBody do
   alias Moonwalk.Spec.MediaType
   import Moonwalk.Internal.ControllerBuilder
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Describes a single request body.
   JSV.defschema(%{
@@ -18,6 +18,7 @@ defmodule Moonwalk.Spec.RequestBody do
       },
       required: %{
         type: :boolean,
+        default: false,
         description: "Determines if the request body is required in the request."
       }
     },

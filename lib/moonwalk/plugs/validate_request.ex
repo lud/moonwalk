@@ -120,7 +120,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         Make sure to provide a spec module before calling #{inspect(__MODULE__)}:
 
         pipeline :api do
-          plug Moonwalk.Plugs.SpecProvider, spec: Moonwalk.TestWeb.ApiSpec
+          plug Moonwalk.Plugs.SpecProvider, spec: Moonwalk.TestWeb.PathsApiSpec
         end
 
         scope "/api", MyAppWeb.Api do
@@ -252,9 +252,6 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
       {:error, :unsupported} ->
         {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body}, conn}
-
-      {:error, :unfetched} ->
-        raise "cannot validate request with content type '#{primary}/#{secondary}' as body was not fetched"
     end
   end
 

@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Contact do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Contact information for the exposed API.
   JSV.defschema(%{

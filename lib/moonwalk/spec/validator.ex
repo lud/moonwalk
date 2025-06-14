@@ -1,4 +1,4 @@
-defmodule Moonwalk.Spec.Validator do
+defmodule Moonwalk.Internal.SpecValidator do
   alias Moonwalk.Spec.OpenAPI
   require Moonwalk.Internal.Normalizer
   require Moonwalk.Spec.Callback

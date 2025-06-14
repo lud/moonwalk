@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.ServerVariable do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Object representing a server variable for server URL template substitution.
   JSV.defschema(%{

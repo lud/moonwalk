@@ -1,26 +1,28 @@
 defmodule Moonwalk.Spec.Paths do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Holds the relative paths to individual endpoints and their operations.
   def schema do
-    JSV.Schema.normalize(%{
+    %{
       title: "Paths",
       type: :object,
       description:
         "Holds the relative paths to individual endpoints and their operations, mapping each path to a Path Item Object.",
-      additionalProperties: Moonwalk.Spec.PathItem
-    })
+      additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.PathItem]}
+    }
   end
 
   @impl true
   def normalize!(data, ctx) do
     data
     |> make(__MODULE__, ctx)
-    |> normalize_subs(fn _key, value, ctx ->
-      {_value, _ctx} =
-        Moonwalk.Internal.Normalizer.normalize!(value, Moonwalk.Spec.PathItem, ctx)
-    end)
+    |> normalize_subs(
+      {:or_ref,
+       fn value, ctx ->
+         {_, _} = Moonwalk.Internal.Normalizer.normalize!(value, Moonwalk.Spec.PathItem, ctx)
+       end}
+    )
     |> collect()
   end
 

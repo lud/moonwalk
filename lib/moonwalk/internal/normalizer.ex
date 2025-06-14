@@ -12,49 +12,76 @@ defmodule Moonwalk.Internal.Normalizer do
 
   @callback normalize!(term, NormalizationContext.t()) :: {struct, NormalizationContext.t()}
 
-  IO.warn("remove fallback impl of normalize in quoted")
+  def normalize!(openapi_spec) when is_map(openapi_spec) do
+    # Boostrap normalization by creating a context with all schemas from
+    # #/components/schemas normalized.
+    {openapi_spec, ctx} = normalize_predef_schemas(openapi_spec)
+    {normal, ctx} = normalize!(openapi_spec, OpenAPI, ctx)
+    put_in(normal, [Access.key("components", %{}), Access.key("schemas", %{})], ctx.components_schemas)
+  end
 
-  defmacro __using__(_) do
-    # placeholder for future functionality
-    # TODO replace `use` by `import` if not used
-    quote do
-      import unquote(__MODULE__)
-      @behaviour unquote(__MODULE__)
-      snake_object_name =
-        __MODULE__
-        |> Module.split()
-        |> List.last()
-        |> Macro.underscore()
+  defp empty_context do
+    %NormalizationContext{seen_schema_mods: %{}, components_schemas: %{}, rev_path: []}
+  end
 
-      object_name =
-        snake_object_name
-        |> String.replace(~r{(^|_).}, fn
-          "_" <> char -> " " <> String.upcase(char)
-          char -> " " <> String.upcase(char)
-        end)
+  defp normalize_predef_schemas(openapi_spec) do
+    with {:ok, "components", {components, rest_spec}} <- pop_normal(openapi_spec, :components),
+         {:ok, "schemas", {components_schemas, rest_components}} <- pop_normal(components, :schemas) do
+      ctx = initialize_context_with_predefs(components_schemas)
+      ctx = %{ctx | rev_path: []}
 
-      object_fragment =
-        snake_object_name
-        |> String.replace("_", "-")
-        |> Kernel.<>("-object")
-
-      obect_link = "https://spec.openapis.org/oas/v3.1.1.html##{object_fragment}"
-
-      @moduledoc "Representation of the [#{object_name} Object](#{obect_link}) in OpenAPI Specification."
-
-      @impl true
-      def normalize!(_, _) do
-        raise "this is only to suppress warnings"
-      end
-
-      defoverridable normalize!: 2
+      {Map.put(rest_spec, "components", rest_components), ctx}
+    else
+      :error -> {openapi_spec, empty_context()}
     end
   end
 
-  def normalize!(data) do
-    ctx = %NormalizationContext{seen_schema_mods: %{}, schemas: %{}, path: []}
-    {normal, ctx} = normalize!(data, OpenAPI, ctx)
-    put_in(normal, [Access.key("components", %{}), Access.key("schemas", %{})], ctx.schemas)
+  defp initialize_context_with_predefs(schemas_map) do
+    {predefs, others} =
+      Enum.split_with(schemas_map, fn {_refname, schema} -> is_atom(schema) and JSV.Schema.schema_module?(schema) end)
+
+    # Other schemas can be maps, and those maps can contain schema modules that
+    # we will normalize. So we need to reserve the refname and mark the schemas
+    # as already seen. To do so we will initialize the context with
+    # placeholders.
+    placeholders = Map.new(schemas_map, fn {k, _} -> {k, :__placeholder__} end)
+
+    # We also mark all the schemas that we will normalize as seen, to avoid
+    # building them if present in sub schemas.
+    seen = Map.new(predefs, fn {refname, module} -> {module, refname} end)
+
+    # We can boostrap the normalization with that in the context.
+    ctx = %NormalizationContext{
+      seen_schema_mods: seen,
+      components_schemas: placeholders,
+      rev_path: ["schemas", "components"]
+    }
+
+    # To normalize the module schemas we just have to normalize their exported
+    # .schema() and replace the placeholder with the result
+
+    ctx =
+      Enum.reduce(predefs, ctx, fn {refname, module}, ctx ->
+        {normal_schema, ctx} = do_normalize_schema(module.schema(), ctx)
+
+        %{
+          ctx
+          | components_schemas: Map.update!(ctx.components_schemas, refname, fn :__placeholder__ -> normal_schema end)
+        }
+      end)
+
+    # # The raw schemas are easier to normalize
+    ctx =
+      Enum.reduce(others, ctx, fn {refname, raw_schema}, ctx ->
+        {normal_schema, ctx} = do_normalize_schema(raw_schema, ctx)
+
+        %{
+          ctx
+          | components_schemas: Map.update!(ctx.components_schemas, refname, fn :__placeholder__ -> normal_schema end)
+        }
+      end)
+
+    ctx
   end
 
   def normalize!(data, target, ctx) do
@@ -75,7 +102,7 @@ defmodule Moonwalk.Internal.Normalizer do
       reason: "invalid value for Open API model #{inspect(target)}, expected a map or struct, got: #{inspect(other)}"
   end
 
-  def normalize_subs(bld, keymap) when is_list(keymap) do
+  def normalize_subs(bld, [{_, _} | _] = keymap) when is_list(keymap) do
     %__MODULE__{data: data, target: target, ctx: ctx, out: outlist} = bld
 
     {data, outlist, ctx} =
@@ -94,13 +121,15 @@ defmodule Moonwalk.Internal.Normalizer do
   end
 
   # accepting a function to handle additional properties
-  def normalize_subs(bld, handler) when is_function(handler, 3) do
+  def normalize_subs(bld, caster) when is_function(caster, 2) when is_tuple(caster) do
     %__MODULE__{data: data, ctx: ctx, out: outlist} = bld
 
     {outlist, ctx} =
-      Enum.reduce(data, {outlist, ctx}, fn {key, value}, {outlist, ctx} ->
+      data
+      |> sort_by_key()
+      |> Enum.reduce({outlist, ctx}, fn {key, value}, {outlist, ctx} ->
         bin_key = ensure_binary_key(key)
-        {value, ctx} = downpath(ctx, bin_key, &handler.(bin_key, value, &1))
+        {value, ctx} = downpath(ctx, bin_key, &apply_caster(value, caster, &1))
         {[{bin_key, value} | outlist], ctx}
       end)
 
@@ -170,16 +199,15 @@ defmodule Moonwalk.Internal.Normalizer do
   end
 
   def current_path(ctx) do
-    :lists.reverse(ctx.path)
+    :lists.reverse(ctx.rev_path)
   end
 
   def push_path(ctx, key) when is_binary(key) when is_integer(key) and key >= 0 do
-    %{ctx | path: [key | ctx.path]}
+    %{ctx | rev_path: [key | ctx.rev_path]}
   end
 
   def pop_path(ctx) do
-    [_ | path] = ctx.path
-    %{ctx | path: path}
+    %{ctx | rev_path: tl(ctx.rev_path)}
   end
 
   # pops a key regardless of atom/binary encoding:
@@ -228,6 +256,10 @@ defmodule Moonwalk.Internal.Normalizer do
     {to_json_decoded(data), ctx}
   end
 
+  defp apply_caster(data, fun, ctx) when is_function(fun, 2) do
+    fun.(data, ctx)
+  end
+
   defp apply_caster(data, {:list, caster}, ctx) when is_list(data) do
     data
     |> Enum.with_index()
@@ -242,7 +274,9 @@ defmodule Moonwalk.Internal.Normalizer do
 
   defp apply_caster(data, {:map, caster}, ctx) when is_map(data) do
     {pairs, ctx} =
-      Enum.map_reduce(data, ctx, fn {key, value}, ctx ->
+      data
+      |> sort_by_key()
+      |> Enum.map_reduce(ctx, fn {key, value}, ctx ->
         bin_key = ensure_binary_key(key)
         {value, ctx} = downpath(ctx, bin_key, &apply_caster(value, caster, &1))
         {{bin_key, value}, ctx}
@@ -300,14 +334,51 @@ defmodule Moonwalk.Internal.Normalizer do
     data
   end
 
+  # Used when iterating over a map to ensure that generated schema refname is
+  # made in a deterministic order.
+  def sort_by_key(enum) do
+    Enum.sort_by(enum, &elem(&1, 0))
+  end
+
   # Normalizing schemas
+
+  # Scalar values
   #
-  # When normalizing, schemas that are given as module names are expanded by
-  # calling the schema/0 function in the module and adding the result in the
-  # context for later addition to the #/components/schemas collection.
+  # At the top level this will have the following behaviour:
+  # * Booleans are valid schemas so we will store them.
+  # * Other scalar values are not valid but we do not care here, we store them.
+  #   They will be rejected on validation.
   #
-  # The atom is replaced in its original location by a map schema with a $ref to
-  # that component.
+  # When nested in a list or map, it's a sub schema value.
+  defp do_normalize_schema(scalar, ctx)
+       when is_binary(scalar)
+       when is_number(scalar)
+       when is_boolean(scalar)
+       when is_nil(scalar) do
+    {scalar, ctx}
+  end
+
+  # Atom schemas
+  #
+  # When the atom is a module  that has already been normalized, we can just
+  # reuse the reference name of the schema.
+  defp do_normalize_schema(module, ctx) when is_map_key(ctx.seen_schema_mods, module) do
+    refname = Map.fetch!(ctx.seen_schema_mods, module)
+    replacement = refname_to_schema(refname)
+    {replacement, ctx}
+  end
+
+  # Atom schemas
+  #
+  # When the atom is a module we will call the .schema() function from it,
+  # otherwise it's a sub schema value, we turn it into a string.
+  defp do_normalize_schema(atom, ctx) when is_atom(atom) do
+    if JSV.Schema.schema_module?(atom) do
+      normalize_module_schema(atom, ctx)
+    else
+      do_normalize_schema(Atom.to_string(atom), ctx)
+    end
+  end
 
   defp do_normalize_schema(struct, ctx) when is_struct(struct) do
     struct
@@ -325,28 +396,6 @@ defmodule Moonwalk.Internal.Normalizer do
     {Map.new(pairs), ctx}
   end
 
-  defp do_normalize_schema(scalar, ctx)
-       when is_binary(scalar)
-       when is_number(scalar)
-       when is_boolean(scalar)
-       when is_nil(scalar) do
-    {scalar, ctx}
-  end
-
-  defp do_normalize_schema(module, ctx) when is_map_key(ctx.seen_schema_mods, module) do
-    name = Map.fetch!(ctx.seen_schema_mods, module)
-    replacement = %{"$ref" => ref_to_schema(name)}
-    {replacement, ctx}
-  end
-
-  defp do_normalize_schema(atom, ctx) when is_atom(atom) do
-    if JSV.Schema.schema_module?(atom) do
-      normalize_module_schema(atom, ctx)
-    else
-      {Atom.to_string(atom), ctx}
-    end
-  end
-
   defp do_normalize_schema(list, ctx) when is_list(list) do
     Enum.map_reduce(list, ctx, &do_normalize_schema/2)
   end
@@ -358,22 +407,33 @@ defmodule Moonwalk.Internal.Normalizer do
     #   references before storing the normal schema in context.
     # * Then return a reference.
     schema = module.schema()
+
+    # Title and name are not the same.
+    #
+    # `title` is whatever title the schema has, or fallback to the module name.
+    # We do not change the title given by users and when using the module name
+    # we do not put it into the schema. We just use it to define a name.
+    #
+    # `refname` will be part of "#/components/schemas/<name>", it is generated
+    # by us, starting from the title/module-name if available, or incrementing a
+    # `_#{i}` suffix until available.
     title = schema_title(schema, module)
-    name = available_schema_name(ctx.schemas, title)
+    refname = available_schema_refname(ctx.components_schemas, title)
 
-    ctx = %{ctx | seen_schema_mods: Map.put(ctx.seen_schema_mods, module, name)}
-
-    # Recursion
+    # Recursion with the module already seen to avoid denormalizing the same
+    # module twice. This also avoids infinite loops with two or more mutual
+    # recursive schemas.
+    ctx = %{ctx | seen_schema_mods: Map.put(ctx.seen_schema_mods, module, refname)}
     {normal_schema, ctx} = do_normalize_schema(schema, ctx)
 
-    ctx = %{ctx | schemas: Map.put(ctx.schemas, name, normal_schema)}
+    ctx = %{ctx | components_schemas: Map.put(ctx.components_schemas, refname, normal_schema)}
 
-    replacement = %{"$ref" => ref_to_schema(name)}
+    replacement = refname_to_schema(refname)
     {replacement, ctx}
   end
 
-  defp ref_to_schema(name) do
-    "#/components/schemas/#{name}"
+  defp refname_to_schema(refname) do
+    %{"$ref" => "#/components/schemas/#{refname}"}
   end
 
   defp schema_title(%{"title" => title}, _module) when is_binary(title) and title != "" do
@@ -388,19 +448,24 @@ defmodule Moonwalk.Internal.Normalizer do
     inspect(module)
   end
 
-  defp available_schema_name(schemas, title) do
+  defp available_schema_refname(schemas, title) do
     if Map.has_key?(schemas, title) do
-      available_schema_name(schemas, title, 1)
+      available_schema_refname(schemas, title, 1)
     else
       title
     end
   end
 
-  defp available_schema_name(schemas, title, n) do
+  defp available_schema_refname(_schemas, title, n) when n > 1000 do
+    # This should not happen but lets not iterate forever
+    raise "could not generate a unique name for #{title}"
+  end
+
+  defp available_schema_refname(schemas, title, n) do
     name = "#{title}_#{Integer.to_string(n)}"
 
-    if Map.has_key?(schemas, title) do
-      available_schema_name(schemas, title, n + 1)
+    if Map.has_key?(schemas, name) do
+      available_schema_refname(schemas, title, n + 1)
     else
       name
     end

@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.SecurityScheme do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Defines a security scheme for operations.
   JSV.defschema(%{
@@ -54,4 +54,13 @@ defmodule Moonwalk.Spec.SecurityScheme do
     },
     required: [:type]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_default([:type, :description, :name, :in, :scheme, :bearerFormat, :openIdConnectUrl])
+    |> normalize_subs(flows: Moonwalk.Spec.OAuthFlows)
+    |> collect()
+  end
 end

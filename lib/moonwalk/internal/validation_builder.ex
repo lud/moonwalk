@@ -2,14 +2,25 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   alias JSV.Key
   alias JSV.Ref
   alias JSV.RNS
+  alias Moonwalk.Internal.SpecValidator
+  alias Moonwalk.Spec.Operation
+  alias Moonwalk.Spec.Parameter
+  alias Moonwalk.Spec.PathItem
+  alias Moonwalk.Spec.Reference
+  alias Moonwalk.Spec.RequestBody
 
   def build_operations(normal_spec) do
+    spec = SpecValidator.validate!(normal_spec)
+
     to_build =
-      normal_spec
-      |> Map.get("paths", %{})
-      |> Enum.flat_map(fn {path, verb_to_ops} ->
-        Enum.map(verb_to_ops, fn {verb, operation} ->
-          %{"operationId" => operation_id} = operation
+      spec.paths
+      # TODO handle reference
+      |> Enum.flat_map(fn {path, path_item} ->
+        path_item
+        |> deref(PathItem, _dummy_rev_path = [], spec)
+        |> elem(0)
+        |> Enum.map(fn {verb, operation} ->
+          %Operation{operationId: operation_id} = operation
           {[verb, path, "paths"], operation_id, operation}
         end)
       end)
@@ -19,13 +30,43 @@ defmodule Moonwalk.Internal.ValidationBuilder do
 
     {validations_by_op_id, jsv_ctx} =
       Enum.map_reduce(to_build, jsv_ctx, fn {rev_path, op_id, op}, jsv_ctx ->
-        build_op_validation(rev_path, op_id, op, jsv_ctx)
+        build_op_validation(rev_path, op_id, op, spec, jsv_ctx)
       end)
 
     jsv_root = JSV.to_root!(jsv_ctx, :root)
 
     # TODO here we must ensure no duplicates in the map
     {to_ops_map(validations_by_op_id), jsv_root}
+  end
+
+  defp deref(%Reference{"$ref": "#/" <> bin_path = full_path}, expected, _rev_path, spec) do
+    path = bin_path |> String.split("/") |> Enum.map(&maybe_to_existing_atom/1)
+
+    case get_in(spec, path) do
+      %^expected{} = found ->
+        {found, :lists.reverse(path)}
+
+      nil ->
+        {nil, :lists.reverse(path)}
+
+      other ->
+        raise "could not dereference #{inspect(full_path)} (using #{inspect(path)}), " <>
+                "expected struct #{inspect(expected)}, found #{inspect(other)}"
+    end
+  end
+
+  defp deref(%mod{} = object, mod, rev_path, _spec) do
+    {object, rev_path}
+  end
+
+  defp deref(nil, _, rev_path, _spec) do
+    {nil, rev_path}
+  end
+
+  defp maybe_to_existing_atom(binary) when is_binary(binary) do
+    String.to_existing_atom(binary)
+  rescue
+    _ in ArgumentError -> binary
   end
 
   defp to_ops_map(ops_list) do
@@ -39,16 +80,14 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     []
   end
 
-  defp build_op_validation(rev_path, op_id, op, jsv_ctx) do
-    parameters = Map.get(op, "parameters", [])
-
+  defp build_op_validation(rev_path, op_id, op, spec, jsv_ctx) do
     {validations, jsv_ctx} =
-      case build_parameters_validation(parameters, rev_path, jsv_ctx) do
-        {:no_validation, jsv_ctx} -> {[], jsv_ctx}
+      case build_parameters_validation(op.parameters, rev_path, spec, jsv_ctx) do
+        {[], jsv_ctx} -> {[], jsv_ctx}
         {parameters_by_location, jsv_ctx} -> {[{:parameters, parameters_by_location}], jsv_ctx}
       end
 
-    request_body = Map.get(op, "requestBody", nil)
+    {request_body, rev_path} = deref(op.requestBody, RequestBody, ["requestBody" | rev_path], spec)
 
     {validations, jsv_ctx} =
       case build_body_validation(request_body, rev_path, jsv_ctx) do
@@ -62,25 +101,23 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     {{op_id, validations}, jsv_ctx}
   end
 
-  defp build_parameters_validation([], _rev_path, jsv_ctx) do
-    {:no_validation, jsv_ctx}
+  defp build_parameters_validation([], _rev_path, _spec, jsv_ctx) do
+    {[], jsv_ctx}
   end
 
-  defp build_parameters_validation(parameters, rev_path, jsv_ctx) do
+  defp build_parameters_validation(parameters, rev_path, spec, jsv_ctx) do
     {built_params, jsv_ctx} =
       parameters
       |> Enum.with_index()
+      |> Enum.map(fn {p_or_ref, index} -> deref(p_or_ref, Parameter, [index, "parameters" | rev_path], spec) end)
       |> Enum.flat_map_reduce(
         jsv_ctx,
         fn
-          {%{"in" => p_in} = parameter, index}, jsv_ctx when p_in in ["path", "query"] ->
+          {%{in: p_in} = parameter, rev_path}, jsv_ctx when p_in in [:path, :query] ->
             {built_param, jsv_ctx} =
-              build_parameter_validation(parameter, [index, "parameters" | rev_path], jsv_ctx)
+              build_parameter_validation(parameter, rev_path, jsv_ctx)
 
             {[built_param], jsv_ctx}
-
-          _, jsv_ctx ->
-            {[], jsv_ctx}
         end
       )
 
@@ -97,33 +134,36 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   # app is building validations on the fly. Maybe add an option to keep those as
   # binaries.
   defp build_parameter_validation(parameter, rev_path, jsv_ctx) do
-    name = Map.fetch!(parameter, "name")
-
-    p_in =
-      case Map.fetch!(parameter, "in") do
-        "path" -> :path
-        "query" -> :query
-      end
-
-    key = String.to_atom(name)
+    key = String.to_atom(parameter.name)
 
     {schema_key, jsv_ctx} =
       case parameter do
-        %{"schema" => true} -> {:no_validation, jsv_ctx}
-        %{"schema" => nil} -> {:no_validation, jsv_ctx}
-        %{"schema" => schema} -> build_parameter_schema(schema, ["schema" | rev_path], jsv_ctx)
+        %{schema: true} -> {:no_validation, jsv_ctx}
+        %{schema: nil} -> {:no_validation, jsv_ctx}
+        %{schema: schema} -> build_parameter_schema(schema, ["schema" | rev_path], jsv_ctx)
         _ -> {:no_validation, jsv_ctx}
       end
 
     built = %{
-      bin_key: name,
+      bin_key: parameter.name,
       key: key,
-      required: Map.get(parameter, "required") == true,
+      required: parameter_required(parameter),
       schema_key: schema_key,
-      in: p_in
+      in: parameter.in
     }
 
     {built, jsv_ctx}
+  end
+
+  defp parameter_required(%Parameter{required: req?}) when is_boolean(req?) do
+    req?
+  end
+
+  defp parameter_required(%Parameter{in: p_in}) do
+    case p_in do
+      :path -> true
+      :query -> false
+    end
   end
 
   defp build_parameter_schema(schema, rev_path, jsv_ctx) do
@@ -203,26 +243,23 @@ defmodule Moonwalk.Internal.ValidationBuilder do
       parameter_precast(new_schema, rev_path, new_ns, new_jsv_ctx)
   end
 
-  defp build_body_validation(%{} = req_body, rev_path, jsv_ctx) when is_map(req_body) do
-    required? = Map.get(req_body, "required", false)
-    content = Map.fetch!(req_body, "content")
-
+  defp build_body_validation(%RequestBody{} = req_body, rev_path, jsv_ctx) when is_map(req_body) do
     {matchers, jsv_ctx} =
-      content
+      req_body.content
       |> media_type_clauses()
       |> Enum.map_reduce(jsv_ctx, fn
         {original_media_type, media_matcher, media_spec}, jsv_ctx ->
           case media_spec do
-            %{"schema" => true} ->
+            %{schema: true} ->
               {{media_matcher, :no_validation}, jsv_ctx}
 
-            %{"schema" => nil} ->
+            %{schema: nil} ->
               {{media_matcher, :no_validation}, jsv_ctx}
 
-            %{"schema" => _schema} ->
+            %{schema: _schema} ->
               {schema, jsv_ctx} =
                 build_schema_key(
-                  ["schema", original_media_type, "content", "requestBody" | rev_path],
+                  ["schema", original_media_type, "content" | rev_path],
                   jsv_ctx
                 )
 
@@ -233,7 +270,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
           end
       end)
 
-    {required?, matchers, jsv_ctx}
+    {req_body.required, matchers, jsv_ctx}
   end
 
   defp build_body_validation(nil, _rev_path, jsv_ctx) do

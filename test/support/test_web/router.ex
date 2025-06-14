@@ -1,16 +1,20 @@
 defmodule Moonwalk.TestWeb.Router do
   use Phoenix.Router
 
-  pipeline :api do
-    plug Moonwalk.Plugs.SpecProvider, spec: Moonwalk.TestWeb.ApiSpec
+  pipeline :api_from_paths do
+    plug Moonwalk.Plugs.SpecProvider, spec: Moonwalk.TestWeb.PathsApiSpec
   end
 
-  scope "/" do
-    pipe_through :api
+  pipeline :api_from_doc do
+    plug Moonwalk.Plugs.SpecProvider, spec: Moonwalk.TestWeb.DeclarativeApiSpec
+  end
 
-    scope "/meta", Moonwalk.TestWeb do
-      get "/hello", MetaController, :hello
-    end
+  scope "/meta", Moonwalk.TestWeb do
+    get "/hello", MetaController, :hello
+  end
+
+  scope "/generated" do
+    pipe_through :api_from_paths
 
     scope "/body", Moonwalk.TestWeb do
       post "/inline-single", BodyController, :inline_single
@@ -20,6 +24,7 @@ defmodule Moonwalk.TestWeb.Router do
       post "/undefined-operation", BodyController, :undefined_operation
       post "/ignored-action", BodyController, :ignored_action
       post "/wildcard", BodyController, :wildcard_media_type
+      post "/boolean-schema-false", BodyController, :boolean_schema_false
     end
 
     scope "/params", Moonwalk.TestWeb do
@@ -27,6 +32,7 @@ defmodule Moonwalk.TestWeb.Router do
       get "/t/:theme/c/:color", ParamController, :two_path_params
       get "/generic", ParamController, :generic_param_types
       get "/arrays", ParamController, :array_types
+      get "/boolean-schema-false", ParamController, :boolean_schema_false
     end
 
     scope "/params/s/:shape", Moonwalk.TestWeb do
@@ -34,6 +40,11 @@ defmodule Moonwalk.TestWeb.Router do
       get "/t/:theme", ParamController, :scope_and_single
       get "/t/:theme/c/:color", ParamController, :scope_and_two_path_params
     end
+  end
+
+  scope "/provided" do
+    pipe_through :api_from_doc
+    post "/potions", Moonwalk.TestWeb.PotionController, :create_potion
   end
 
   match :*, "/*path", Moonwalk.TestWeb.Router.Catchall, :not_found, warn_on_verify: true

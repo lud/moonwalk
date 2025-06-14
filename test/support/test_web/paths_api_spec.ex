@@ -1,6 +1,6 @@
-defmodule Moonwalk.TestWeb.ApiSpec do
+defmodule Moonwalk.TestWeb.PathsApiSpec do
   alias Moonwalk.Spec.Paths
-  use Moonwalk
+  use Moonwalk.Spec
 
   def spec do
     %{

@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Info do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Provides metadata about the API, such as title, version, and contact information.
   JSV.defschema(%{

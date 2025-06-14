@@ -1,7 +1,7 @@
 defmodule Moonwalk.Spec.Parameter do
   import Moonwalk.Internal.ControllerBuilder
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Describes a single operation parameter.
   JSV.defschema(%{
@@ -102,14 +102,14 @@ defmodule Moonwalk.Spec.Parameter do
         :error -> nil
       end
 
-    default_required = Access.fetch(spec, :in) == {:ok, :path}
+    default_required? = Access.fetch(spec, :in) == {:ok, :path}
 
     spec
     |> build(__MODULE__)
     |> put(:name, name)
     |> take_required(:in, &validate_location/1)
     |> take_default(:schema, _boolean_schema = true)
-    |> take_default(:required, default_required)
+    |> take_default(:required, default_required?)
     |> take_default(:examples, default_examples)
     |> into()
   end

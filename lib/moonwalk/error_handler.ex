@@ -130,7 +130,7 @@ defmodule Moonwalk.ErrorHandler do
       "kind" => "invalid_parameter",
       "parameter" => name,
       "in" => loc,
-      "validation_error" => JSV.normalize_error(verr, sort: :asc),
+      "validation_error" => JSV.normalize_error(verr),
       # we do not want the JSV error in the message here, but we want it on the
       # exception message if it is risen.
       "message" => "invalid parameter #{name} in #{loc}"
@@ -150,7 +150,7 @@ defmodule Moonwalk.ErrorHandler do
     %{
       "kind" => "invalid_body",
       "in" => "body",
-      "validation_error" => JSV.normalize_error(verr, sort: :asc),
+      "validation_error" => JSV.normalize_error(verr),
       "message" => "invalid body"
     }
   end

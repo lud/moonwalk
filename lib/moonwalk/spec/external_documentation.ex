@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.ExternalDocumentation do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Allows referencing an external resource for extended documentation.
   JSV.defschema(%{

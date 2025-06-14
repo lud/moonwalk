@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Example do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Groups an example value with metadata.
   JSV.defschema(%{

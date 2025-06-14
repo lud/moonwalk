@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Reference do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Allows referencing other components in the OpenAPI Description.
   JSV.defschema(%{

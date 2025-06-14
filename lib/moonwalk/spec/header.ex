@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Header do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Describes a single header.
   JSV.defschema(%{

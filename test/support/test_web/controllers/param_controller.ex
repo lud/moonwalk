@@ -91,4 +91,14 @@ defmodule Moonwalk.TestWeb.ParamController do
   def scope_and_two_path_params(conn, params) do
     Responder.reply(conn, params)
   end
+
+  operation :boolean_schema_false,
+    parameters: [
+      reject_me: [in: :query, schema: false],
+      also_reject: [in: :query, schema: false]
+    ]
+
+  def boolean_schema_false(conn, params) do
+    Responder.reply(conn, params)
+  end
 end

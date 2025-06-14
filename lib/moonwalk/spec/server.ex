@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Server do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # An object representing a server for the API.
   JSV.defschema(%{

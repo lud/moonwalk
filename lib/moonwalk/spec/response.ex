@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Response do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Describes a single response from an API operation.
   JSV.defschema(%{

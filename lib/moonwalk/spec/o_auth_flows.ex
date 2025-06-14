@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.OAuthFlows do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Configures supported OAuth Flows for a security scheme.
   JSV.defschema(%{
@@ -15,4 +15,17 @@ defmodule Moonwalk.Spec.OAuthFlows do
     },
     required: []
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    |> normalize_subs(
+      implicit: Moonwalk.Spec.OAuthFlow,
+      password: Moonwalk.Spec.OAuthFlow,
+      clientCredentials: Moonwalk.Spec.OAuthFlow,
+      authorizationCode: Moonwalk.Spec.OAuthFlow
+    )
+    |> collect()
+  end
 end

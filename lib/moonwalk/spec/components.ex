@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.Components do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   IO.warn("We need to be able to build operations from any referenced component")
 
@@ -64,4 +64,24 @@ defmodule Moonwalk.Spec.Components do
     },
     required: []
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> make(__MODULE__, ctx)
+    # Schemas are handled at the top level when initializing the context
+    |> skip(:schemas)
+    |> normalize_subs(
+      responses: {:map, Moonwalk.Spec.Response},
+      parameters: {:map, Moonwalk.Spec.Parameter},
+      examples: {:map, Moonwalk.Spec.Example},
+      requestBodies: {:map, Moonwalk.Spec.RequestBody},
+      headers: {:map, Moonwalk.Spec.Header},
+      securitySchemes: {:map, Moonwalk.Spec.SecurityScheme},
+      links: {:map, Moonwalk.Spec.Link},
+      callbacks: {:map, Moonwalk.Spec.Callback},
+      pathItems: {:map, Moonwalk.Spec.PathItem}
+    )
+    |> collect()
+  end
 end

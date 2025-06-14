@@ -1,6 +1,6 @@
 defmodule Moonwalk.Spec.PathItem do
   require JSV
-  use Moonwalk.Internal.Normalizer
+  use Moonwalk.Internal.SpecObject
 
   # Describes operations available on a single path.
   JSV.defschema(%{
@@ -8,10 +8,6 @@ defmodule Moonwalk.Spec.PathItem do
     type: :object,
     description: "Describes operations available on a single path.",
     properties: %{
-      "$ref": %{
-        type: :string,
-        description: "Allows for a referenced definition of this path item."
-      },
       summary: %{
         type: :string,
         description: "An optional string summary for all operations in this path."
@@ -59,5 +55,37 @@ defmodule Moonwalk.Spec.PathItem do
       parameters: {:list, {:or_ref, Moonwalk.Spec.Parameter}}
     )
     |> collect()
+  end
+
+  defimpl Enumerable do
+    @op_keys [:get, :put, :post, :delete, :options, :head, :patch, :trace]
+
+    def reduce(path_item, arg, fun) do
+      # Take with ordering to avoid schema reference naming randomness
+      by_verb =
+        Enum.flat_map([:get, :put, :post, :delete, :options, :head, :patch, :trace], fn k ->
+          case Map.fetch!(path_item, k) do
+            nil -> []
+            v -> [{k, v}]
+          end
+        end)
+
+      Enumerable.List.reduce(by_verb, arg, fun)
+    end
+
+    def member?(path_item, {k, v}) do
+      case path_item do
+        %{^k => ^v} -> {:ok, true}
+        _ -> {:ok, false}
+      end
+    end
+
+    def count(path_item) do
+      {:ok, Enum.count(@op_keys, &(Map.fetch!(path_item, &1) != nil))}
+    end
+
+    def slice(_) do
+      {:error, __MODULE__}
+    end
   end
 end
