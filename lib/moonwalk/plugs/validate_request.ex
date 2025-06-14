@@ -15,10 +15,14 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   pop up at runtime. This will prevent to build an invalid release.
   """)
 
+  # TODO(doc) supports the options :query_string_length and :validate_utf8 as in
+  # plug parsers.
+  #
+  # TODO(doc) :pretty_errors and unknown options are passed to the error
+  # handler.
   def init(opts) do
-    if opts[:spec] do
-      IO.warn("obsolete spec option")
-    end
+    {query_string_length, opts} = Keyword.pop(opts, :query_string_length, 1_000_000)
+    {query_validate_utf8, opts} = Keyword.pop(opts, :validate_utf8, true)
 
     opts =
       Keyword.put_new_lazy(opts, :pretty_errors, fn ->
@@ -37,10 +41,11 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {mod, arg} when is_atom(mod) -> {mod, arg}
       end
 
-    [error_handler: error_handler]
+    %{error_handler: error_handler, query_string_length: query_string_length, query_validate_utf8: query_validate_utf8}
   end
 
   def call(conn, opts) do
+    conn = ensure_query_params(conn, opts)
     {controller, action} = fetch_phoenix!(conn)
 
     with {:ok, validations_with_root} <- fetch_validations(conn, controller, action),
@@ -48,13 +53,13 @@ defmodule Moonwalk.Plugs.ValidateRequest do
       Conn.put_private(conn, :moonwalk, private)
     else
       {:error, {:invalid_parameters, errors} = reason, conn} when is_list(errors) ->
-        call_error_handler(conn, reason, opts)
+        call_error_handler(conn, reason, opts.error_handler)
 
       {:error, %InvalidBodyError{} = reason, conn} ->
-        call_error_handler(conn, reason, opts)
+        call_error_handler(conn, reason, opts.error_handler)
 
       {:error, %UnsupportedMediaTypeError{} = reason, conn} ->
-        call_error_handler(conn, reason, opts)
+        call_error_handler(conn, reason, opts.error_handler)
 
       {:error, {:not_built, operation_id}, _conn} ->
         raise "operation with id #{inspect(operation_id)} was not built"
@@ -62,6 +67,14 @@ defmodule Moonwalk.Plugs.ValidateRequest do
       {:skip, _} ->
         conn
     end
+  end
+
+  defp ensure_query_params(conn, opts) do
+    # If already fetched this is idempotent
+    Conn.fetch_query_params(conn,
+      length: opts.query_string_length,
+      validate_utf8: opts.query_validate_utf8
+    )
   end
 
   defp fetch_phoenix!(conn) do
@@ -174,7 +187,6 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   defp validate_parameters(conn, by_location, jsv_root) do
     %{path_params: raw_path_params, query_params: raw_query_params} = conn
-    raw_query_params |> dbg()
     %{path: path_specs, query: query_specs} = by_location
 
     # parameters in path
@@ -340,8 +352,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     {:ok, :lists.reverse(acc)}
   end
 
-  defp call_error_handler(conn, reason, opts) do
-    {handler_mod, handler_arg} = Keyword.fetch!(opts, :error_handler)
+  defp call_error_handler(conn, reason, {handler_mod, handler_arg}) do
     handler_mod.handle_error(conn, reason, handler_arg)
   end
 
