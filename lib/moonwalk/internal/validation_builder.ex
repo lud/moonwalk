@@ -113,11 +113,14 @@ defmodule Moonwalk.Internal.ValidationBuilder do
       |> Enum.flat_map_reduce(
         jsv_ctx,
         fn
-          {%{in: p_in} = parameter, rev_path}, jsv_ctx when p_in in [:path, :query] ->
+          {%Parameter{in: p_in} = parameter, rev_path}, jsv_ctx when p_in in [:path, :query] ->
             {built_param, jsv_ctx} =
               build_parameter_validation(parameter, rev_path, jsv_ctx)
 
             {[built_param], jsv_ctx}
+
+          {%Parameter{}, _}, jsv_ctx ->
+            {[], jsv_ctx}
         end
       )
 

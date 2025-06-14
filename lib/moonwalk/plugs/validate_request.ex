@@ -174,6 +174,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   defp validate_parameters(conn, by_location, jsv_root) do
     %{path_params: raw_path_params, query_params: raw_query_params} = conn
+    raw_query_params |> dbg()
     %{path: path_specs, query: query_specs} = by_location
 
     # parameters in path

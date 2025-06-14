@@ -175,14 +175,13 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
     end
 
     test "building petstore where most things are given as references" do
-      # "test/support/data/petstore-refs.json"
-      # |> File.read!()
-      # |> JSV.Codec.decode!()
-      # |> Normalizer.normalize!()
-      # |> ValidationBuilder.build_operations()
-      # |> dbg()
-
-      IO.warn("todo build petstore refs")
+      # This should pass. We are not implementing a controller to test it
+      # thoroughly thoug.
+      "test/support/data/petstore-refs.json"
+      |> File.read!()
+      |> JSV.Codec.decode!()
+      |> Normalizer.normalize!()
+      |> ValidationBuilder.build_operations()
     end
   end
 end
