@@ -28,14 +28,8 @@ defmodule Moonwalk.Web.BodyTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "body_boolean_schema_false" <> _,
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -69,14 +63,8 @@ defmodule Moonwalk.Web.BodyTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "body_inline_single" <> _,
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -134,14 +122,8 @@ defmodule Moonwalk.Web.BodyTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "custom_operation_id_module_single",
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -154,14 +136,8 @@ defmodule Moonwalk.Web.BodyTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "custom_operation_id_module_single",
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -239,14 +215,8 @@ defmodule Moonwalk.Web.BodyTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "body_wildcard_media_type" <> _,
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -301,14 +271,8 @@ defmodule Moonwalk.Web.BodyTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "body_module_single_not_required" <> _,
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end

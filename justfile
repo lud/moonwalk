@@ -1,3 +1,6 @@
+run:
+  iex -S mix mnwk.phx.test
+
 deps:
   mix deps.get
 

@@ -124,14 +124,8 @@ defmodule Moonwalk.Web.PotionTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "createPotion",
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -143,14 +137,8 @@ defmodule Moonwalk.Web.PotionTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "createPotion",
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -162,14 +150,8 @@ defmodule Moonwalk.Web.PotionTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "createPotion",
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end
@@ -179,9 +161,10 @@ defmodule Moonwalk.Web.PotionTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "createPotion",
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -191,7 +174,7 @@ defmodule Moonwalk.Web.PotionTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "body is parsed for application/json", %{conn: conn} do
@@ -202,14 +185,8 @@ defmodule Moonwalk.Web.PotionTest do
                "error" => %{
                  "message" => "Unprocessable Entity",
                  "operation_id" => "createPotion",
-                 "errors" => [
-                   %{
-                     "in" => "body",
-                     "kind" => "invalid_body",
-                     "message" => "invalid body",
-                     "validation_error" => %{"valid" => false}
-                   }
-                 ]
+                 "in" => "body",
+                 "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
     end

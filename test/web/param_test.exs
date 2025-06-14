@@ -29,9 +29,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_single_path_param" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
@@ -41,7 +42,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     # plain text is rendered for everything else than json
@@ -49,10 +50,10 @@ defmodule Moonwalk.Web.ParamTest do
     test "invalid param text errors", %{conn: conn} do
       conn = get(conn, ~p"/generated/params/t/UNKNOWN_THEME")
 
-      body = response(conn, 422)
-      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
-      assert body =~ ~r{<p>Invalid parameter <code>theme</code> in <code>path</code>\.</p>}s
-      assert body =~ "<p>Invalid parameter <code>theme</code> in <code>path</code>.</p>"
+      body = response(conn, 400)
+      assert body =~ ~r{<!doctype html>.+Bad Request}s
+      assert body =~ ~r{<h2>Invalid parameter <code>theme</code> in <code>path</code>\.</h2>}s
+      assert body =~ "<h2>Invalid parameter <code>theme</code> in <code>path</code>.</h2>"
       assert body =~ ~S(value must be one of the enum values: "dark" or "light")
     end
   end
@@ -63,9 +64,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_two_path_params" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
@@ -82,7 +84,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "one valid, one invalid path param", %{conn: conn} do
@@ -90,9 +92,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_two_path_params" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
@@ -102,7 +105,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "both valid path params", %{conn: conn} do
@@ -122,9 +125,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_scope_and_single" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
@@ -134,7 +138,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "invalid scope param, valid path param", %{conn: conn} do
@@ -142,9 +146,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_scope_and_single" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
@@ -154,7 +159,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "both scope and path params invalid", %{conn: conn} do
@@ -162,9 +167,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_scope_and_single" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
@@ -181,7 +187,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "both scope and path params valid", %{conn: conn} do
@@ -225,9 +231,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_scope_and_two_path_params" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -251,7 +258,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "invalid query params with same values as path", %{conn: conn} do
@@ -262,9 +269,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_scope_and_two_path_params" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -288,7 +296,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "required query param is missing", %{conn: conn} do
@@ -297,9 +305,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_scope_and_two_path_params" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "missing_parameter",
@@ -308,7 +317,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "optional query params can be omitted", %{conn: conn} do
@@ -378,8 +387,9 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "operation_id" => "param_generic_param_types" <> _,
-                 "message" => "Unprocessable Entity",
-                 "errors" => [
+                 "message" => "Bad Request",
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -404,7 +414,7 @@ defmodule Moonwalk.Web.ParamTest do
                  ]
                }
              } =
-               json_response(conn, 422)
+               json_response(conn, 400)
     end
   end
 
@@ -449,8 +459,9 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "operation_id" => "param_array_types" <> _,
-                 "message" => "Unprocessable Entity",
-                 "errors" => [
+                 "message" => "Bad Request",
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -460,7 +471,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "non-array parameter when array expected", %{conn: conn} do
@@ -469,8 +480,9 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "operation_id" => "param_array_types" <> _,
-                 "message" => "Unprocessable Entity",
-                 "errors" => [
+                 "message" => "Bad Request",
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -487,7 +499,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "array parameters sent to non-array route", %{conn: conn} do
@@ -497,8 +509,9 @@ defmodule Moonwalk.Web.ParamTest do
       assert %{
                "error" => %{
                  "operation_id" => "param_generic_param_types" <> _,
-                 "message" => "Unprocessable Entity",
-                 "errors" => [
+                 "message" => "Bad Request",
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -515,7 +528,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
   end
 
@@ -525,9 +538,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_boolean_schema_false" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -537,7 +551,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "empty string query param should be rejected with boolean schema false", %{conn: conn} do
@@ -545,9 +559,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_boolean_schema_false" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -557,7 +572,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "multiple query params should all be rejected with boolean schema false", %{conn: conn} do
@@ -565,9 +580,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       assert %{
                "error" => %{
-                 "message" => "Unprocessable Entity",
+                 "message" => "Bad Request",
                  "operation_id" => "param_boolean_schema_false" <> _,
-                 "errors" => [
+                 "in" => "parameters",
+                 "parameters_errors" => [
                    %{
                      "in" => "query",
                      "kind" => "invalid_parameter",
@@ -584,7 +600,7 @@ defmodule Moonwalk.Web.ParamTest do
                    }
                  ]
                }
-             } = json_response(conn, 422)
+             } = json_response(conn, 400)
     end
 
     test "no query params should be accepted with boolean schema false", %{conn: conn} do
@@ -602,4 +618,5 @@ defmodule Moonwalk.Web.ParamTest do
 
   IO.warn("todo test parameters at the pathItem level, and how to declare them?")
   IO.warn("todo test parameters that do not have a schema")
+  IO.warn("missing html renderer test for missing param")
 end

@@ -47,14 +47,14 @@ defmodule Moonwalk.Plugs.ValidateRequest do
          {:ok, private, conn} <- run_validations(conn, validations_with_root) do
       Conn.put_private(conn, :moonwalk, private)
     else
-      {:error, {:params_errors, errors}, conn} when is_list(errors) ->
-        handle_errors(conn, :unprocessable_entity, errors, opts)
+      {:error, {:invalid_parameters, errors} = reason, conn} when is_list(errors) ->
+        call_error_handler(conn, reason, opts)
 
-      {:error, %InvalidBodyError{} = e, conn} ->
-        handle_errors(conn, :unprocessable_entity, [e], opts)
+      {:error, %InvalidBodyError{} = reason, conn} ->
+        call_error_handler(conn, reason, opts)
 
-      {:error, %UnsupportedMediaTypeError{} = e, conn} ->
-        handle_errors(conn, :unsupported_media_type, [e], opts)
+      {:error, %UnsupportedMediaTypeError{} = reason, conn} ->
+        call_error_handler(conn, reason, opts)
 
       {:error, {:not_built, operation_id}, _conn} ->
         raise "operation with id #{inspect(operation_id)} was not built"
@@ -190,7 +190,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {:ok, private, conn}
 
       _ ->
-        {:error, {:params_errors, path_errors ++ query_errors}, conn}
+        {:error, {:invalid_parameters, path_errors ++ query_errors}, conn}
     end
   end
 
@@ -250,7 +250,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
       {:error, %JSV.ValidationError{} = validation_error} ->
         {:error, %InvalidBodyError{validation_error: validation_error, value: body}, conn}
 
-      {:error, :unsupported} ->
+      {:error, :unsupported_media_type} ->
         {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body}, conn}
     end
   end
@@ -287,7 +287,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   end
 
   defp match_media_type([], _) do
-    {:error, :unsupported}
+    {:error, :unsupported_media_type}
   end
 
   defp validate_with_schema(value, jsv_key, jsv_root)
@@ -339,9 +339,9 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     {:ok, :lists.reverse(acc)}
   end
 
-  defp handle_errors(conn, status, errors, opts) do
+  defp call_error_handler(conn, reason, opts) do
     {handler_mod, handler_arg} = Keyword.fetch!(opts, :error_handler)
-    handler_mod.handle_errors(conn, status, errors, handler_arg)
+    handler_mod.handle_error(conn, reason, handler_arg)
   end
 
   @doc """

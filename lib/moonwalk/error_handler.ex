@@ -7,24 +7,47 @@ defmodule Moonwalk.ErrorHandler do
 
   @moduledoc false
 
-  def handle_errors(conn, status, errors, opts) do
+  # TODO(doc) define a behaviour with the right specs to know what error tuples
+  # are passed. Parameters errors can be invalid or missing.
+
+  def handle_error(conn, reason, opts) do
     operation = Moonwalk.Plugs.ValidateRequest.fetch_operation!(conn)
 
     # we will render HTML for any content
-    format =
-      case fetch_accept(conn) do
-        {"application", "json"} -> {:json, json_opts(opts)}
-        {"application", "vnd.api+json"} -> {:json, json_opts(opts)}
-        {"application", "ld+json"} -> {:json, json_opts(opts)}
-        _ -> :html
-      end
+    format = response_formatter(conn, opts)
+    status = response_status(reason)
 
-    formatted_errors = format_errors(format, errors, status, operation)
+    body = format_reason(format, reason, status, operation)
 
     conn
     |> Conn.put_resp_content_type(resp_content_type(format))
-    |> Conn.send_resp(status, formatted_errors)
+    |> Conn.send_resp(status, body)
     |> Conn.halt()
+  end
+
+  defp response_formatter(conn, opts) do
+    case fetch_accept(conn) do
+      {"application", "json"} ->
+        {:json, json_opts(opts)}
+
+      {"application", subtype} ->
+        if String.ends_with?(subtype, "+json") do
+          {:json, json_opts(opts)}
+        else
+          :html
+        end
+
+      _ ->
+        :html
+    end
+  end
+
+  defp response_status(reason) do
+    case reason do
+      %InvalidBodyError{} -> :unprocessable_entity
+      %UnsupportedMediaTypeError{} -> :unsupported_media_type
+      {:invalid_parameters, [_ | _]} -> :bad_request
+    end
   end
 
   defp fetch_accept(conn) do
@@ -52,39 +75,13 @@ defmodule Moonwalk.ErrorHandler do
     end
   end
 
-  defp format_errors(
-         {:json, opts},
-         [%UnsupportedMediaTypeError{media_type: media_type}],
-         status,
-         operation
-       ) do
-    payload = %{
-      error: %{
-        message: status_to_message(status),
-        operation_id: operation.operationId,
-        media_type: media_type
-      }
-    }
-
-    json_encode(payload, opts)
+  defp format_reason({:json, json_opts}, reason, status, operation) do
+    payload = %{error: reason_to_json(reason, status, operation)}
+    json_encode(payload, json_opts)
   end
 
-  defp format_errors({:json, opts}, errors, status, operation) do
-    errors_list = render_errors(:json, errors)
-
-    payload = %{
-      error: %{
-        message: status_to_message(status),
-        operation_id: operation.operationId,
-        errors: errors_list
-      }
-    }
-
-    json_encode(payload, opts)
-  end
-
-  defp format_errors(:html, errors, status, _operation) do
-    groups = render_errors(:html, errors)
+  defp format_reason(:html, reason, status, operation) do
+    errors = format_html_errors(reason)
     code = Conn.Status.code(status)
     message = status_to_message(status)
 
@@ -93,51 +90,66 @@ defmodule Moonwalk.ErrorHandler do
     <style>#{css()}</style>
     <title>#{message}</title>
 
-    <h1><small>HTTP ERROR #{code}</small>#{message}</h1>
+    <h1>
+    <span class="status">HTTP ERROR #{code}</span>
+    #{message}
+    </h1>
 
-    #{groups}
+    <p>Invalid request for operation <code>#{operation.operationId}</code>.</p>
+
+    <ol>
+      #{errors}
+    </ol>
     """
   end
 
-  defp status_to_message(status) do
-    status
-    |> Conn.Status.code()
-    |> Conn.Status.reason_phrase()
+  defp base_json_error(status, operation, overrides) do
+    Map.merge(
+      %{
+        message: status_to_message(status),
+        kind: status,
+        operation_id: operation.operationId
+      },
+      overrides
+    )
   end
 
-  defp render_errors(:json, errors) do
-    errors
-    |> sort_errors()
-    |> Enum.map(&err_to_json/1)
+  defp reason_to_json(%InvalidBodyError{} = e, status, operation) do
+    base_json_error(status, operation, %{
+      "in" => "body",
+      "validation_error" => JSV.normalize_error(e.validation_error)
+    })
   end
 
-  defp render_errors(:html, errors) do
-    errors
-    |> sort_errors()
-    |> Enum.map_intersperse(?\n, &err_to_html/1)
+  defp reason_to_json(%UnsupportedMediaTypeError{} = e, status, operation) do
+    base_json_error(status, operation, %{
+      "in" => "body",
+      "media_type" => e.media_type
+    })
   end
 
-  defp sort_errors(errors) do
-    Enum.sort_by(errors, fn
-      %MissingParameterError{in: loc, name: name} -> {0, loc, name}
-      %InvalidParameterError{in: loc, name: name} -> {1, loc, name}
-      _ -> {255, nil, nil}
-    end)
+  defp reason_to_json({:invalid_parameters, list}, status, operation) do
+    base_json_error(status, operation, %{
+      "in" => "parameters",
+      "parameters_errors" => list |> sort_errors() |> Enum.map(&parameter_error_to_json/1)
+    })
   end
 
-  defp err_to_json(%InvalidParameterError{in: loc, name: name, validation_error: verr}) do
+  defp parameter_error_to_json(%InvalidParameterError{} = e) do
+    %{in: loc, name: name, validation_error: verr} = e
+
     %{
       "kind" => "invalid_parameter",
       "parameter" => name,
       "in" => loc,
       "validation_error" => JSV.normalize_error(verr),
-      # we do not want the JSV error in the message here, but we want it on the
-      # exception message if it is risen.
       "message" => "invalid parameter #{name} in #{loc}"
     }
   end
 
-  defp err_to_json(%MissingParameterError{in: loc, name: name} = e) do
+  defp parameter_error_to_json(%MissingParameterError{} = e) do
+    %{in: loc, name: name} = e
+
     %{
       "kind" => "missing_parameter",
       "parameter" => name,
@@ -146,49 +158,75 @@ defmodule Moonwalk.ErrorHandler do
     }
   end
 
-  defp err_to_json(%InvalidBodyError{validation_error: verr}) do
-    %{
-      "kind" => "invalid_body",
-      "in" => "body",
-      "validation_error" => JSV.normalize_error(verr),
-      "message" => "invalid body"
-    }
+  defp status_to_message(status) when is_atom(status) do
+    status
+    |> Conn.Status.code()
+    |> Conn.Status.reason_phrase()
   end
 
-  defp err_to_json(%UnsupportedMediaTypeError{media_type: media_type}) do
-    %{
-      "kind" => "unsupported_media_type",
-      "in" => "body",
-      "media type" => media_type,
-      "message" => "unsupported media type"
-    }
+  defp format_html_errors(reason) do
+    reason
+    |> sort_errors()
+    |> Enum.map_intersperse(?\n, &reason_to_html/1)
   end
 
-  def err_to_html(%InvalidBodyError{validation_error: verr}) do
+  # sort_errors also converts the reason to a list if not already a list, this
+  # is useful to render html blocks. For json rendering it is only called for
+  # parameters.
+
+  defp sort_errors(%InvalidBodyError{} = e) do
+    [e]
+  end
+
+  defp sort_errors(%UnsupportedMediaTypeError{} = e) do
+    [e]
+  end
+
+  defp sort_errors({:invalid_parameters, list}) do
+    sort_errors(list)
+  end
+
+  defp sort_errors(errors) when is_list(errors) do
+    Enum.sort_by(errors, fn
+      %MissingParameterError{in: loc, name: name} -> {0, loc, name}
+      %InvalidParameterError{in: loc, name: name} -> {1, loc, name}
+      _ -> {255, nil, nil}
+    end)
+  end
+
+  defp reason_to_html(%InvalidBodyError{validation_error: verr}) do
     """
-    <section>
-    <p>Body payload is not valid.</p>
+    <li>
+    <h2>Body payload is not valid.</h2>
 
     <pre>#{String.trim_trailing(Exception.message(verr))}</pre>
-    </section>
+    </li>
     """
   end
 
-  def err_to_html(%InvalidParameterError{in: loc, name: name, validation_error: verr}) do
+  defp reason_to_html(%InvalidParameterError{in: loc, name: name, validation_error: verr}) do
     """
-    <section>
-    <p>Invalid parameter <code>#{name}</code> in <code>#{loc}</code>.</p>
+    <li>
+    <h2>Invalid parameter <code>#{name}</code> in <code>#{loc}</code>.</h2>
 
     <pre>#{String.trim_trailing(Exception.message(verr))}</pre>
-    </section>
+    </li>
     """
   end
 
-  def err_to_html(%UnsupportedMediaTypeError{media_type: media_type}) do
+  defp reason_to_html(%MissingParameterError{in: loc, name: name}) do
     """
-    <section>
-    <p>Validation for body of type <code>#{media_type}</code> is not supported.</p>
-    </section>
+    <li>
+    <h2>Missing required parameter <code>#{name}</code> in <code>#{loc}</code>.</h2>
+    </li>
+    """
+  end
+
+  defp reason_to_html(%UnsupportedMediaTypeError{media_type: media_type}) do
+    """
+    <li>
+    <h2>Validation for body of type <code>#{media_type}</code> is not supported.</h2>
+    </li>
     """
   end
 

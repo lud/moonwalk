@@ -12,6 +12,7 @@ defmodule Mix.Tasks.Mnwk.Phx.Test do
       Process.sleep(:infinity)
     end)
 
-    IO.puts("test with http://localhost:5001/params/t/some-invalid")
+    IO.puts("test with http://localhost:5001/generated/params/s/bad-shape/t/bad-theme/c/bad-color?color=not+an+int")
+    Mix.Tasks.Run.run(["--no-halt"])
   end
 end
