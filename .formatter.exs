@@ -1,4 +1,4 @@
-locals_without_parens = [operation: 2, operation: 1]
+locals_without_parens = [operation: 2, operation: 1, use_operation: 2]
 
 [
   import_deps: [:phoenix],

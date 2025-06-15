@@ -14,7 +14,8 @@ defmodule Moonwalk.TestWeb.ParamController do
       boolean_param: [in: :query, schema: Schema.boolean()],
       integer_param: [in: :query, schema: Schema.integer()],
       number_param: [in: :query, schema: Schema.number()]
-    ]
+    ],
+    responses: dummy_responses()
 
   def generic_param_types(conn, params) do
     Responder.reply(conn, params)
@@ -24,7 +25,8 @@ defmodule Moonwalk.TestWeb.ParamController do
     parameters: [
       numbers: [in: :query, schema: Schema.array_of(Schema.integer())],
       names: [in: :query, schema: Schema.array_of(Schema.string())]
-    ]
+    ],
+    responses: dummy_responses()
 
   def array_types(conn, params) do
     Responder.reply(conn, params)
@@ -33,7 +35,8 @@ defmodule Moonwalk.TestWeb.ParamController do
   operation :single_path_param,
     parameters: [
       theme: [in: :path, schema: @theme]
-    ]
+    ],
+    responses: dummy_responses()
 
   def single_path_param(conn, params) do
     Responder.reply(conn, params)
@@ -43,7 +46,8 @@ defmodule Moonwalk.TestWeb.ParamController do
     parameters: [
       theme: [in: :path, schema: @theme],
       color: [in: :path, schema: @color]
-    ]
+    ],
+    responses: dummy_responses()
 
   def two_path_params(conn, params) do
     Responder.reply(conn, params)
@@ -52,7 +56,8 @@ defmodule Moonwalk.TestWeb.ParamController do
   operation :scope_only,
     parameters: [
       shape: [in: :path, schema: @shape]
-    ]
+    ],
+    responses: dummy_responses()
 
   def scope_only(conn, params) do
     Responder.reply(conn, params)
@@ -62,7 +67,8 @@ defmodule Moonwalk.TestWeb.ParamController do
     parameters: [
       shape: [in: :path, schema: @shape],
       theme: [in: :path, schema: @theme]
-    ]
+    ],
+    responses: dummy_responses()
 
   def scope_and_single(conn, params) do
     Responder.reply(conn, params)
@@ -84,7 +90,8 @@ defmodule Moonwalk.TestWeb.ParamController do
           "$ref" => "test://test#/d/shape"
         }
       ]
-    ]
+    ],
+    responses: dummy_responses()
 
   def scope_and_two_path_params(conn, params) do
     Responder.reply(conn, params)
@@ -94,7 +101,8 @@ defmodule Moonwalk.TestWeb.ParamController do
     parameters: [
       reject_me: [in: :query, schema: false],
       also_reject: [in: :query, schema: false]
-    ]
+    ],
+    responses: dummy_responses()
 
   def boolean_schema_false(conn, params) do
     Responder.reply(conn, params)

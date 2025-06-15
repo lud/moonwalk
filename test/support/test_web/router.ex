@@ -44,6 +44,10 @@ defmodule Moonwalk.TestWeb.Router do
       get "/t/:theme", ParamController, :scope_and_single
       get "/t/:theme/c/:color", ParamController, :scope_and_two_path_params
     end
+
+    scope "/resp", Moonwalk.TestWeb do
+      get "/fortune-200-valid", ResponseController, :fortune_200_valid
+    end
   end
 
   scope "/provided" do

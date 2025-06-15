@@ -2,8 +2,6 @@ defmodule Moonwalk.Spec.Responses do
   require JSV
   use Moonwalk.Internal.SpecObject
 
-  IO.warn("TODO enable minProperties: 1")
-
   # Container for expected responses of an operation.
   def schema do
     %JSV.Schema{
@@ -16,7 +14,7 @@ defmodule Moonwalk.Spec.Responses do
           description: "Documentation of responses other than ones declared for specific HTTP response codes."
         }
       },
-      # minProperties: 1,
+      minProperties: 1,
       additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Response]}
     }
   end

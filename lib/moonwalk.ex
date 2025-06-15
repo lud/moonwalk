@@ -2,6 +2,7 @@ defmodule Moonwalk do
   alias Moonwalk.Internal.Normalizer
   alias Moonwalk.Internal.ValidationBuilder
 
+  # TODO(doc) returns a tuple with the JSV root
   def build_spec!(spec_module, opts \\ []) do
     case Keyword.fetch(opts, :cache) do
       {:ok, false} ->

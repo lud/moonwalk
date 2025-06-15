@@ -30,6 +30,13 @@ defmodule Moonwalk.Controller do
     end
   end
 
+  # TODO(doc) used to reference operations given by an external spec
+  defmacro use_operation(action, operation_id) do
+    quote bind_quoted: binding() do
+      @moonwalk_operations {action, {:use_operation, to_string(operation_id)}}
+    end
+  end
+
   defp ensure_operation_id(spec, action, env) do
     case Keyword.fetch(spec, :operation_id) do
       {:ok, atom} when is_atom(atom) -> Keyword.put(spec, :operation_id, Atom.to_string(atom))
@@ -72,8 +79,14 @@ defmodule Moonwalk.Controller do
     clauses =
       Enum.map(moonwalk_operations, fn {action, operation} ->
         case operation do
-          false -> Moonwalk.Controller._ignore_action(action)
-          %Operation{} -> Moonwalk.Controller._define_operation(action, operation)
+          false ->
+            Moonwalk.Controller._ignore_action(action)
+
+          %Operation{} ->
+            Moonwalk.Controller._define_operation(action, operation)
+
+          {:use_operation, operation_id} ->
+            Moonwalk.Controller._define_operation(action, {:use_operation, operation_id})
         end
       end)
 
@@ -100,7 +113,7 @@ defmodule Moonwalk.Controller do
   end
 
   @doc false
-  def _define_operation(action, operation) when is_atom(action) do
+  def _define_operation(action, %Operation{} = operation) when is_atom(action) do
     operation_id = operation.operationId
     operation = Macro.escape(operation)
 
@@ -112,6 +125,18 @@ defmodule Moonwalk.Controller do
       def __moonwalk__(:operation, unquote(action), _method) do
         {:ok, unquote(Macro.escape(operation))}
       end
+
+      # This is used by the ValidateRequest plug to retrieve the operation from
+      # the phoenix controller/action.
+      def __moonwalk__(:operation_id, unquote(action), _method) do
+        {:ok, unquote(operation_id)}
+      end
+    end
+  end
+
+  def _define_operation(action, {:use_operation, operation_id}) do
+    quote bind_quoted: binding() do
+      @doc false
 
       # This is used by the ValidateRequest plug to retrieve the operation from
       # the phoenix controller/action.

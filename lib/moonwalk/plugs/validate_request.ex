@@ -3,7 +3,6 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   alias Moonwalk.Errors.InvalidParameterError
   alias Moonwalk.Errors.MissingParameterError
   alias Moonwalk.Errors.UnsupportedMediaTypeError
-  alias Moonwalk.Spec.Operation
   alias Plug.Conn
   require Logger
 
@@ -355,12 +354,12 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   The conn given to this function must have been through the
   #{inspect(__MODULE__)} plug with an error result.
   """
-  def fetch_operation!(conn) do
+  def fetch_operation_id!(conn) do
     {controller, action} = fetch_phoenix!(conn)
 
-    case hook(controller, :operation, action, conn.method) do
-      {:ok, %Operation{} = operation} -> operation
-      _ -> raise ArgumentError, "could not fetch operation from Plug.Conn struct"
+    case hook(controller, :operation_id, action, conn.method) do
+      {:ok, operation_id} -> operation_id
+      _ -> raise ArgumentError, "could not fetch operation ID from Plug.Conn struct"
     end
   end
 
