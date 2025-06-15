@@ -66,6 +66,25 @@ defmodule Moonwalk.TestWeb.BodyController do
     Responder.reply(conn, params)
   end
 
+  operation :manual_form_handle,
+    request_body: [content: %{"application/x-www-form-urlencoded" => %{schema: PlantSchema}}]
+
+  @spec manual_form_handle(term, term) :: no_return
+  def manual_form_handle(_conn, _params) do
+    raise "this should only be tested with invalid bodies"
+  end
+
+  operation :manual_form_show
+
+  def manual_form_show(conn, _params) do
+    html(conn, """
+    <form action="/generated/body/manual-form-handle" method="POST">
+      <input type="text" name="dummy" />
+      <input type="submit" value="OK" />
+    </form>
+    """)
+  end
+
   def undefined_operation(conn, params) do
     Responder.reply(conn, params)
   end

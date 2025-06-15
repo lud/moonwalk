@@ -25,6 +25,10 @@ defmodule Moonwalk.TestWeb.Router do
       post "/ignored-action", BodyController, :ignored_action
       post "/wildcard", BodyController, :wildcard_media_type
       post "/boolean-schema-false", BodyController, :boolean_schema_false
+
+      # Manual tests
+      post "/manual-form-handle", BodyController, :manual_form_handle
+      get "/manual-form-show", BodyController, :manual_form_show
     end
 
     scope "/params", Moonwalk.TestWeb do

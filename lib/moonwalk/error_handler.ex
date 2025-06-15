@@ -182,7 +182,7 @@ defmodule Moonwalk.ErrorHandler do
   defp reason_to_html(%InvalidBodyError{validation_error: verr}) do
     """
     <li>
-    <h2>Body payload is not valid.</h2>
+    <h2>Invalid request body.</h2>
 
     <pre>#{String.trim_trailing(Exception.message(verr))}</pre>
     </li>

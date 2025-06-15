@@ -68,21 +68,6 @@ defmodule Moonwalk.Web.BodyTest do
              } = json_response(conn, 422)
     end
 
-    @tag req_accept: "text/html"
-    test "can return textual errors", %{conn: conn} do
-      conn = post(conn, ~p"/generated/body/inline-single", @invalid_payload)
-
-      assert errmsg = response(conn, 422)
-      assert is_binary(errmsg)
-    end
-
-    @tag req_content_type: "application/x-www-form-urlencoded", req_accept: "text/html"
-    test "invalid content type returns 415 Unsupported Media Type", %{conn: conn} do
-      conn = post(conn, ~p"/generated/body/inline-single", URI.encode_query(a: 1, b: 2))
-
-      assert response(conn, 415) =~ ~r{<!doctype html>.+Unsupported Media Type}s
-    end
-
     @tag req_content_type: "application/x-www-form-urlencoded"
     test "invalid content type returns 415 Unsupported Media Type in JSON format", %{conn: conn} do
       conn = post(conn, ~p"/generated/body/inline-single", URI.encode_query(a: 1, b: 2))
@@ -143,7 +128,7 @@ defmodule Moonwalk.Web.BodyTest do
   end
 
   describe "form data" do
-    @describetag req_content_type: "application/x-www-form-urlencoded", req_accept: "text/html"
+    @describetag req_content_type: "application/x-www-form-urlencoded"
     test "valid body", %{conn: conn} do
       form_data = URI.encode_query(@valid_payload)
 
@@ -153,13 +138,6 @@ defmodule Moonwalk.Web.BodyTest do
         end)
 
       assert "ok" = response(conn, 200)
-    end
-
-    test "invalid body", %{conn: conn} do
-      conn = post(conn, ~p"/generated/body/form", @invalid_payload)
-
-      assert errmsg = response(conn, 422)
-      assert is_binary(errmsg)
     end
   end
 
@@ -276,6 +254,57 @@ defmodule Moonwalk.Web.BodyTest do
                  "validation_error" => %{"valid" => false}
                }
              } = json_response(conn, 422)
+    end
+  end
+
+  describe "html error rendering" do
+    @describetag req_accept: "text/html"
+
+    test "invalid body returns HTML error for InvalidBodyError", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/inline-single", @invalid_payload)
+
+      body = response(conn, 422)
+      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ "<h2>Invalid request body.</h2>"
+    end
+
+    test "invalid body in module schema returns HTML error", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/module-single", @invalid_payload)
+
+      body = response(conn, 422)
+      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ "<h2>Invalid request body.</h2>"
+    end
+
+    test "invalid body in sub schema returns HTML error", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/module-single", @invalid_sub)
+
+      body = response(conn, 422)
+      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ "<h2>Invalid request body.</h2>"
+    end
+
+    @tag req_content_type: "application/x-www-form-urlencoded"
+    test "unsupported media type returns HTML error for UnsupportedMediaTypeError", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/inline-single", URI.encode_query(a: 1, b: 2))
+
+      body = response(conn, 415)
+      assert body =~ ~r{<!doctype html>.+Unsupported Media Type}s
+
+      assert body =~
+               ~r{<h2>Validation for body of type <code>application/x-www-form-urlencoded</code> is not supported\.</h2>}s
+
+      assert body =~
+               "<h2>Validation for body of type <code>application/x-www-form-urlencoded</code> is not supported.</h2>"
+    end
+
+    @tag req_content_type: "application/x-www-form-urlencoded"
+    test "form data with invalid body returns HTML error", %{conn: conn} do
+      conn = post(conn, ~p"/generated/body/form", @invalid_payload)
+
+      body = response(conn, 422)
+      assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ "<h2>Invalid request body.</h2>"
     end
   end
 end
