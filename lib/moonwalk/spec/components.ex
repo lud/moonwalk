@@ -2,7 +2,7 @@ defmodule Moonwalk.Spec.Components do
   require JSV
   use Moonwalk.Internal.SpecObject
 
-  IO.warn("We need to be able to build operations from any referenced component")
+  IO.warn("We need to be able to build operations from any referenced component, missing responses for tests")
 
   # Holds reusable objects for different aspects of the OpenAPI Specification.
   JSV.defschema(%{

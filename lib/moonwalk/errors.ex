@@ -1,4 +1,6 @@
 defmodule Moonwalk.Errors do
+  alias Moonwalk.Internal.Normalizer
+
   defmodule InvalidBodyError do
     @enforce_keys [:value, :validation_error]
     defexception value: nil, validation_error: nil
@@ -54,7 +56,7 @@ defmodule Moonwalk.Errors do
       # For errors no need to encode as a json pointer, we just wrap the key in
       # square brackets if it contains slashes
       wrapped =
-        Enum.map_intersperse(Moonwalk.Internal.Normalizer.current_path(ctx), "/", fn
+        Enum.map_intersperse(Normalizer.current_path(ctx), "/", fn
           segment when is_binary(segment) ->
             if String.contains?(segment, "/") do
               [?[, segment, ?]]

@@ -74,7 +74,8 @@ defmodule Moonwalk.MixProject do
       mount: [
         {Moonwalk.TestWeb, "test/support/test_web", flavor: :phoenix},
         {Moonwalk, "lib/moonwalk"},
-        {Mix.Tasks, "lib/mix/tasks", flavor: :mix_task}
+        {Mix.Tasks, "lib/mix/tasks", flavor: :mix_task},
+        {Plug, "test/support/test_web/plug"}
       ]
     ]
   end
