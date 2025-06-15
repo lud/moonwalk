@@ -8,6 +8,8 @@ defmodule Moonwalk.TestWeb do
         formats: [:html, :json],
         layouts: []
 
+      plug Moonwalk.Plugs.ValidateRequest
+
       unquote(verified_routes())
     end
   end

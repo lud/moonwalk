@@ -3,8 +3,6 @@ defmodule Moonwalk.TestWeb.ParamController do
   alias Moonwalk.TestWeb.Responder
   use Moonwalk.TestWeb, :controller
 
-  plug Moonwalk.Plugs.ValidateRequest
-
   @shape Schema.string_to_atom_enum([:square, :circle])
   @theme Schema.string_to_atom_enum([:dark, :light])
   @color Schema.string_to_atom_enum([:red, :blue])

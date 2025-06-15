@@ -13,6 +13,8 @@ defmodule Moonwalk.Controller do
 
   defmacro operation(action, spec \\ [])
 
+  # TODO(doc) when using the {schema, opts} syntax, the :required option of a
+  # request body is set to true by default.
   defmacro operation(action, false) do
     quote do
       @moonwalk_operations {unquote(action), false}

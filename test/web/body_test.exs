@@ -34,8 +34,7 @@ defmodule Moonwalk.Web.BodyTest do
              } = json_response(conn, 422)
     end
 
-    @tag req_content_type: "foo/bar"
-    test "non required body should be ok when data is not parsed", %{conn: conn} do
+    test "non required body should be ok when body is empty", %{conn: conn} do
       # This works only because the route accepts content type */*
       conn =
         post_reply(conn, ~p"/generated/body/boolean-schema-false", @no_payload, fn conn, _params ->
@@ -204,11 +203,14 @@ defmodule Moonwalk.Web.BodyTest do
   end
 
   describe "wildcard content types" do
-    @tag req_content_type: "some-unknown-content-type"
+    @tag req_content_type: "test/test"
     test "wildcard take any content type", %{conn: conn} do
       # schema with wildcard content type is just `false`, so it should reject
       # everything BUT as the content-type does not tell that it's JSON or a
       # form, no parsing is done.
+
+      # the test/test content type has a custom parser that will just copy the
+      # raw body into conn.body_params
       conn = post(conn, ~p"/generated/body/wildcard", "some payload")
 
       assert %{
@@ -233,7 +235,6 @@ defmodule Moonwalk.Web.BodyTest do
   end
 
   describe "non-required body" do
-    @tag req_content_type: "some/unknown"
     test "empty body is accepted", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn =
@@ -277,6 +278,4 @@ defmodule Moonwalk.Web.BodyTest do
              } = json_response(conn, 422)
     end
   end
-
-  IO.warn("@todo test body too large with no parsed content type")
 end

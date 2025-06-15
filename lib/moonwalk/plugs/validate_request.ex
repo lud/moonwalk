@@ -15,14 +15,22 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   pop up at runtime. This will prevent to build an invalid release.
   """)
 
-  # TODO(doc) supports the options :query_string_length and :validate_utf8 as in
-  # plug parsers.
+  # TODO(doc) the option :query_reader option is passed to
+  # Conn.fetch_query_params/2
+  #
+  # TODO(doc) the body must be fetched. If unfetched but body should be
+  # validated, this is an error.
   #
   # TODO(doc) :pretty_errors and unknown options are passed to the error
   # handler.
   def init(opts) do
-    {query_string_length, opts} = Keyword.pop(opts, :query_string_length, 1_000_000)
-    {query_validate_utf8, opts} = Keyword.pop(opts, :validate_utf8, true)
+    {query_reader_opts, opts} =
+      Keyword.pop(opts, :query_reader,
+        length: 1_000_000,
+        validate_utf8: true
+      )
+
+    {body_reader, opts} = Keyword.pop(opts, :body_reader, {Plug.Conn, :read_body, []})
 
     opts =
       Keyword.put_new_lazy(opts, :pretty_errors, fn ->
@@ -41,7 +49,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {mod, arg} when is_atom(mod) -> {mod, arg}
       end
 
-    %{error_handler: error_handler, query_string_length: query_string_length, query_validate_utf8: query_validate_utf8}
+    %{error_handler: error_handler, query_reader_opts: query_reader_opts, body_reader: body_reader}
   end
 
   def call(conn, opts) do
@@ -71,10 +79,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   defp ensure_query_params(conn, opts) do
     # If already fetched this is idempotent
-    Conn.fetch_query_params(conn,
-      length: opts.query_string_length,
-      validate_utf8: opts.query_validate_utf8
-    )
+    Conn.fetch_query_params(conn, opts.query_reader_opts)
   end
 
   defp fetch_phoenix!(conn) do
@@ -163,27 +168,8 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   end
 
   defp validate(conn, {:body, required?, media_matchers}, jsv_root) do
-    case ensure_fetched_body(conn) do
-      {:ok, body, conn} -> validate_body(conn, body, required?, media_matchers, jsv_root)
-    end
+    validate_body(conn, conn.body_params, required?, media_matchers, jsv_root)
   end
-
-  defp ensure_fetched_body(%{body_params: %Plug.Conn.Unfetched{}} = conn) do
-    # If we read the body from there we will not try to turn it into json or
-    # something, this is the responisibility of the users.
-    #
-    # TODO(doc) The plug will populate conn.body_params with the raw body
-    case Plug.Conn.read_body(conn) do
-      {:ok, body, conn} -> {:ok, body, %{conn | body_params: body}}
-      {:more, _, conn} -> {:error, :too_large, conn}
-    end
-  end
-
-  defp ensure_fetched_body(conn) do
-    {:ok, conn.body_params, conn}
-  end
-
-  IO.warn("todo make sure parameters are fetched")
 
   defp validate_parameters(conn, by_location, jsv_root) do
     %{path_params: raw_path_params, query_params: raw_query_params} = conn
@@ -244,12 +230,11 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   end
 
   # TODO(doc) a body is considered empty if "" or nil, and in this case we do
-  # not run the validations.
+  # not run the validations. This also applies when the body params is an empty
+  # map, because plug parsers will always return a map.
   #
-  # The JSON parser plug will only set an empty map as the body_params when the
-  # content type of the request is JSON but the body is empty. We do not handle
-  # that case, as an application/json request should have a JSON body.
-  defp validate_body(conn, body, false = _required?, _, _) when body in [nil, ""] do
+
+  defp validate_body(conn, body, false = _required?, _, _) when body in [nil, ""] when map_size(body) == 0 do
     {:ok, %{}, conn}
   end
 
@@ -257,6 +242,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     {primary, secondary} = fetch_content_type(conn)
 
     with {:ok, {_, jsv_key}} <- match_media_type(media_matchers, {primary, secondary}),
+         :ok <- ensure_fetched_body!(body),
          {:ok, cast_body} <- validate_with_schema(body, jsv_key, jsv_root) do
       {:ok, %{body_params: cast_body}, conn}
     else
@@ -303,12 +289,19 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     {:error, :unsupported_media_type}
   end
 
+  defp ensure_fetched_body!(body) do
+    case body do
+      %Plug.Conn.Unfetched{} ->
+        raise ArgumentError, "body is not fetched, use plug parsers or a custom plug to fetch the body"
+
+      _ ->
+        :ok
+    end
+  end
+
   defp validate_with_schema(value, jsv_key, jsv_root)
 
-  IO.warn("todo no validation")
-
   defp validate_with_schema(value, :no_validation, _) do
-    raise "noval!"
     {:ok, value}
   end
 

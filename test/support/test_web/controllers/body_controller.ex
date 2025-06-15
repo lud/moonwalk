@@ -3,8 +3,6 @@ defmodule Moonwalk.TestWeb.BodyController do
   alias Moonwalk.TestWeb.Responder
   use Moonwalk.TestWeb, :controller
 
-  plug Moonwalk.Plugs.ValidateRequest
-
   @plant_schema %{
     type: :object,
     title: "InlinePlantSchema",
