@@ -10,6 +10,10 @@ defmodule Moonwalk.ErrorHandler do
   # TODO(doc) define a behaviour with the right specs to know what error tuples
   # are passed. Parameters errors can be invalid or missing.
 
+  # TODO(doc) the default error handler will serve text/html only if the request
+  # specifically allows it. Otherwise it's JSON. This help when debugging with
+  # cURL by not having to put the Accept header all the time.
+
   def handle_error(conn, reason, opts) do
     operation = Moonwalk.Plugs.ValidateRequest.fetch_operation!(conn)
 
@@ -26,19 +30,11 @@ defmodule Moonwalk.ErrorHandler do
   end
 
   defp response_formatter(conn, opts) do
-    case fetch_accept(conn) do
-      {"application", "json"} ->
-        {:json, json_opts(opts)}
-
-      {"application", subtype} ->
-        if String.ends_with?(subtype, "+json") do
-          {:json, json_opts(opts)}
-        else
-          :html
-        end
-
-      _ ->
-        :html
+    with [accept | _] <- Plug.Conn.get_req_header(conn, "accept"),
+         true <- accept =~ "html" do
+      :html
+    else
+      _ -> {:json, json_opts(opts)}
     end
   end
 
@@ -47,17 +43,6 @@ defmodule Moonwalk.ErrorHandler do
       %InvalidBodyError{} -> :unprocessable_entity
       %UnsupportedMediaTypeError{} -> :unsupported_media_type
       {:invalid_parameters, [_ | _]} -> :bad_request
-    end
-  end
-
-  defp fetch_accept(conn) do
-    %{req_headers: req_headers} = conn
-
-    with {"accept", content_type} <- List.keyfind(req_headers, "accept", 0, :error),
-         {:ok, primary, secondary, _params} <- Conn.Utils.content_type(content_type) do
-      {primary, secondary}
-    else
-      :error -> :error
     end
   end
 

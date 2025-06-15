@@ -44,18 +44,6 @@ defmodule Moonwalk.Web.ParamTest do
                }
              } = json_response(conn, 400)
     end
-
-    # plain text is rendered for everything else than json
-    @tag req_accept: "text/html"
-    test "invalid param text errors", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/t/UNKNOWN_THEME")
-
-      body = response(conn, 400)
-      assert body =~ ~r{<!doctype html>.+Bad Request}s
-      assert body =~ ~r{<h2>Invalid parameter <code>theme</code> in <code>path</code>\.</h2>}s
-      assert body =~ "<h2>Invalid parameter <code>theme</code> in <code>path</code>.</h2>"
-      assert body =~ ~S(value must be one of the enum values: "dark" or "light")
-    end
   end
 
   describe "two path params (no scope)" do
@@ -616,7 +604,30 @@ defmodule Moonwalk.Web.ParamTest do
     end
   end
 
+  describe "html error rendering" do
+    @describetag [req_accept: "text/html"]
+
+    test "required query param is missing HTML", %{conn: conn} do
+      # The shape query param is required
+      conn = get(conn, ~p"/generated/params/s/square/t/light/c/red?theme=20&color=30")
+
+      body = response(conn, 400)
+      assert body =~ ~r{<!doctype html>.+Bad Request}s
+      assert body =~ ~r{<h2>Missing required parameter <code>shape</code> in <code>query</code>\.</h2>}s
+      assert body =~ "<h2>Missing required parameter <code>shape</code> in <code>query</code>.</h2>"
+    end
+
+    test "invalid param text errors", %{conn: conn} do
+      conn = get(conn, ~p"/generated/params/t/UNKNOWN_THEME")
+
+      body = response(conn, 400)
+      assert body =~ ~r{<!doctype html>.+Bad Request}s
+      assert body =~ ~r{<h2>Invalid parameter <code>theme</code> in <code>path</code>\.</h2>}s
+      assert body =~ "<h2>Invalid parameter <code>theme</code> in <code>path</code>.</h2>"
+      assert body =~ ~S(value must be one of the enum values: "dark" or "light")
+    end
+  end
+
   IO.warn("todo test parameters at the pathItem level, and how to declare them?")
   IO.warn("todo test parameters that do not have a schema")
-  IO.warn("missing html renderer test for missing param")
 end
