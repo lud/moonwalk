@@ -92,14 +92,15 @@ defmodule Moonwalk.Internal.Normalizer do
     make(JSV.Helpers.MapExt.from_struct_no_nils(data), target, ctx)
   end
 
-  def make(data, target, ctx) when is_map(data) do
+  def make(data, target, ctx) when is_map(data) and not is_struct(data) do
     %__MODULE__{data: data, target: target, ctx: ctx, out: []}
   end
 
   def make(other, target, ctx) do
     raise NormalizeError,
       ctx: ctx,
-      reason: "invalid value for Open API model #{inspect(target)}, expected a map or struct, got: #{inspect(other)}"
+      reason:
+        "invalid value for Open API model #{inspect(target)}, expected a map or %#{inspect(target)}{}, got: #{inspect(other)}"
   end
 
   def normalize_subs(bld, [{_, _} | _] = keymap) when is_list(keymap) do

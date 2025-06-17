@@ -8,6 +8,8 @@ defmodule Moonwalk.TestWeb do
         formats: [:html, :json],
         layouts: []
 
+      import Moonwalk.TestWeb.Helpers
+
       plug Moonwalk.Plugs.ValidateRequest
 
       unquote(verified_routes())
@@ -24,5 +26,11 @@ defmodule Moonwalk.TestWeb do
 
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
+  end
+end
+
+defmodule Moonwalk.TestWeb.Helpers do
+  def dummy_responses do
+    [ok: %{_dummy_schema: true}]
   end
 end

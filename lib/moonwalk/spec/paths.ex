@@ -26,25 +26,35 @@ defmodule Moonwalk.Spec.Paths do
     |> collect()
   end
 
-  def from_router(router) when is_atom(router) do
-    from_routes(router.__routes__())
+  # TODO(doc) opts
+  def from_router(router, opts \\ []) when is_atom(router) do
+    from_routes(router.__routes__(), opts)
   end
 
-  defp from_routes(routes) do
+  # TODO(doc) opts
+  def from_routes(routes, opts \\ []) do
+    user_filter = Keyword.get(opts, :filter, fn _ -> true end)
+
     routes
-    |> Enum.flat_map(fn route ->
-      with %{path: path, plug: controller, plug_opts: action, verb: verb} when is_atom(action) <-
-             route,
-           true <- Code.ensure_loaded?(controller),
-           true <- function_exported?(controller, :__moonwalk__, 3),
-           {:ok, op} <- controller.__moonwalk__(:operation, action, verb) do
-        path = encode_router_path(path)
-        [{[Access.key(path, %{}), Access.key(verb, %{})], op}]
-      else
-        _ -> []
-      end
+    |> Stream.flat_map(&operation_route/1)
+    |> Stream.filter(fn {route, _, _, _} -> user_filter.(route) end)
+    |> Stream.map(fn {_route, path, verb, op} ->
+      path = encode_router_path(path)
+      {[Access.key(path, %{}), Access.key(verb, %{})], op}
     end)
     |> Enum.reduce(%{}, fn {access_path, op}, acc -> put_in(acc, access_path, op) end)
+  end
+
+  defp operation_route(route) do
+    with %{path: path, plug: controller, plug_opts: action, verb: verb} when is_atom(action) <-
+           route,
+         true <- Code.ensure_loaded?(controller),
+         true <- function_exported?(controller, :__moonwalk__, 3),
+         {:ok, op} <- controller.__moonwalk__(:operation, action, verb) do
+      [{route, path, verb, op}]
+    else
+      _ -> []
+    end
   end
 
   defp encode_router_path(path) do

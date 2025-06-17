@@ -35,6 +35,7 @@ defmodule Moonwalk.Spec do
       @behaviour unquote(__MODULE__)
 
       @__ptk :moonwalk_cache
+
       @impl true
       def cache(:get) do
         case(:persistent_term.get({@__ptk, __MODULE__}, :__undef__)) do

@@ -4,6 +4,10 @@ defmodule Moonwalk.ControllerTest do
   alias Moonwalk.Spec.RequestBody
   use ExUnit.Case, async: true
 
+  defmodule SomeSchema do
+    require(JSV).defschema(JSV.Schema.props(a: %{type: :integer}))
+  end
+
   test "define with inline request body schema" do
     spec = [
       operation_id: :some_operation,
@@ -13,7 +17,8 @@ defmodule Moonwalk.ControllerTest do
       request_body: %{type: :string},
       tags: [:a, :b],
       description: "some description",
-      summary: "some summary"
+      summary: "some summary",
+      responses: [ok: %{}]
     ]
 
     op = Operation.from_controller!(spec)
@@ -35,33 +40,182 @@ defmodule Moonwalk.ControllerTest do
 
   describe "required body" do
     test "when using shortcut, body is required by default" do
-      defmodule SomeInlineSchema do
-        require(JSV).defschema(JSV.Schema.props(a: %{type: :integer}))
-      end
-
       # spec with a direct schema is required
-      spec0 = [operation_id: :some_operation, request_body: SomeInlineSchema]
+      spec0 = [operation_id: :some_operation, request_body: SomeSchema, responses: [ok: %{}]]
       op0 = Operation.from_controller!(spec0)
       assert %Operation{requestBody: %RequestBody{required: true}} = op0
 
       # spec with a schema and options is required
-      spec1 = [operation_id: :some_operation, request_body: {SomeInlineSchema, []}]
+      spec1 = [operation_id: :some_operation, request_body: {SomeSchema, []}, responses: [ok: %{}]]
       op1 = Operation.from_controller!(spec1)
       assert %Operation{requestBody: %RequestBody{required: true}} = op1
 
       # spec with a schema and options can be made non-required
-      spec2 = [operation_id: :some_operation, request_body: {SomeInlineSchema, [required: false]}]
+      spec2 = [operation_id: :some_operation, request_body: {SomeSchema, [required: false]}, responses: [ok: %{}]]
       op2 = Operation.from_controller!(spec2)
       assert %Operation{requestBody: %RequestBody{required: false}} = op2
 
       # spec with a nested definition will respect the definition
       spec3 = [
         operation_id: :some_operation,
-        request_body: [content: %{"application/json" => [schema: SomeInlineSchema]}]
+        request_body: [content: %{"application/json" => [schema: SomeSchema]}],
+        responses: [ok: %{}]
       ]
 
       op3 = Operation.from_controller!(spec3)
       assert %Operation{requestBody: %RequestBody{required: false}} = op3
+    end
+  end
+
+  describe "responses format" do
+    IO.warn("passing a %Reference{} as a response")
+    IO.warn("passing a %{$ref => #/...} as a response")
+
+    test "giving a map is giving a schema for the application/json content type" do
+      spec = [operation_id: :some_operation, request_body: SomeSchema, responses: %{200 => %{i_am_a_schema: true}}]
+      op = Operation.from_controller!(spec)
+
+      assert %Moonwalk.Spec.Operation{
+               responses: %{
+                 200 => %Moonwalk.Spec.Response{
+                   content: %{
+                     "application/json" => %Moonwalk.Spec.MediaType{
+                       schema: %{i_am_a_schema: true}
+                     }
+                   },
+                   description: "no description"
+                 }
+               },
+               tags: []
+             } = op
+    end
+
+    test "giving a tuple is giving a schema and other options" do
+      spec = [
+        operation_id: :some_operation,
+        request_body: SomeSchema,
+        responses: %{200 => {%{i_am_a_schema: true}, description: "some descr"}}
+      ]
+
+      op = Operation.from_controller!(spec)
+
+      assert %Moonwalk.Spec.Operation{
+               responses: %{
+                 200 => %Moonwalk.Spec.Response{
+                   content: %{
+                     "application/json" => %Moonwalk.Spec.MediaType{
+                       schema: %{i_am_a_schema: true}
+                     }
+                   },
+                   description: "some descr"
+                 }
+               },
+               tags: []
+             } = op
+    end
+
+    test "description is taken from the schema only if not provided" do
+      spec = [
+        operation_id: :some_operation,
+        request_body: SomeSchema,
+        responses: %{
+          200 => {%{i_am_a_schema: true, description: "from schema"}, description: "from opts"},
+          400 => {%{i_am_a_schema: true, description: "from schema"}, []}
+        }
+      ]
+
+      op = Operation.from_controller!(spec)
+
+      assert %Moonwalk.Spec.Operation{
+               responses: %{
+                 200 => %Moonwalk.Spec.Response{
+                   content: %{
+                     "application/json" => %Moonwalk.Spec.MediaType{
+                       schema: %{i_am_a_schema: true}
+                     }
+                   },
+                   description: "from opts"
+                 },
+                 400 => %Moonwalk.Spec.Response{
+                   content: %{
+                     "application/json" => %Moonwalk.Spec.MediaType{
+                       schema: %{i_am_a_schema: true}
+                     }
+                   },
+                   description: "from schema"
+                 }
+               },
+               tags: []
+             } = op
+    end
+
+    test "spec with provided content" do
+      spec = [
+        operation_id: :some_operation,
+        request_body: SomeSchema,
+        responses: %{200 => [description: "hello", content: %{"xxx/xxx" => [schema: %{i_am_a_schema: true}]}]}
+      ]
+
+      op = Operation.from_controller!(spec)
+
+      assert %Moonwalk.Spec.Operation{
+               responses: %{
+                 200 => %Moonwalk.Spec.Response{
+                   content: %{
+                     "xxx/xxx" => %Moonwalk.Spec.MediaType{
+                       schema: %{i_am_a_schema: true}
+                     }
+                   },
+                   description: "hello"
+                 }
+               },
+               tags: []
+             } = op
+    end
+
+    test "supports atom codes" do
+      spec = [operation_id: :some_operation, request_body: SomeSchema, responses: [ok: %{}, bad_request: %{}]]
+      op = Operation.from_controller!(spec)
+
+      assert %Moonwalk.Spec.Operation{
+               responses: %{
+                 200 => %Moonwalk.Spec.Response{
+                   content: %{
+                     "application/json" => %Moonwalk.Spec.MediaType{
+                       schema: %{}
+                     }
+                   },
+                   description: "no description"
+                 },
+                 400 => %Moonwalk.Spec.Response{
+                   content: %{
+                     "application/json" => %Moonwalk.Spec.MediaType{
+                       schema: %{}
+                     }
+                   },
+                   description: "no description"
+                 }
+               },
+               tags: []
+             } = op
+    end
+
+    test "invalid atom codes" do
+      spec = [operation_id: :some_operation, request_body: SomeSchema, responses: [SOME_UNKNOWN_STATUS: %{}]]
+
+      assert_raise ArgumentError, ~r/invalid status .+ :SOME_UNKNOWN_STATUS/, fn ->
+        Operation.from_controller!(spec)
+      end
+    end
+
+    test "unknown integer codes are accepted" do
+      spec = [operation_id: :some_operation, request_body: SomeSchema, responses: %{123_456 => %{}}]
+
+      assert %Moonwalk.Spec.Operation{
+               responses: %{
+                 123_456 => %Moonwalk.Spec.Response{}
+               }
+             } = Operation.from_controller!(spec)
     end
   end
 end

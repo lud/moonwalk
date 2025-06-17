@@ -613,6 +613,7 @@ defmodule Moonwalk.Web.ParamTest do
 
       body = response(conn, 400)
       assert body =~ ~r{<!doctype html>.+Bad Request}s
+      assert body =~ ~r{<p>Invalid request for operation <code>param_scope_and_two_path_params_.+</code>.</p>}s
       assert body =~ ~r{<h2>Missing required parameter <code>shape</code> in <code>query</code>\.</h2>}s
       assert body =~ "<h2>Missing required parameter <code>shape</code> in <code>query</code>.</h2>"
     end
@@ -622,6 +623,7 @@ defmodule Moonwalk.Web.ParamTest do
 
       body = response(conn, 400)
       assert body =~ ~r{<!doctype html>.+Bad Request}s
+      assert body =~ ~r{<p>Invalid request for operation <code>param_single_path_param_.+</code>.</p>}s
       assert body =~ ~r{<h2>Invalid parameter <code>theme</code> in <code>path</code>\.</h2>}s
       assert body =~ "<h2>Invalid parameter <code>theme</code> in <code>path</code>.</h2>"
       assert body =~ ~S(value must be one of the enum values: "dark" or "light")

@@ -6,7 +6,15 @@ defmodule Moonwalk.TestWeb.PathsApiSpec do
     %{
       :openapi => "3.1.1",
       :info => %{"title" => "Moonwalk Test API", :version => "0.0.0"},
-      :paths => Paths.from_router(Moonwalk.TestWeb.Router)
+      :paths =>
+        Paths.from_router(Moonwalk.TestWeb.Router,
+          filter: fn route ->
+            case route.path do
+              "/provided" <> _ -> false
+              _ -> true
+            end
+          end
+        )
     }
   end
 end

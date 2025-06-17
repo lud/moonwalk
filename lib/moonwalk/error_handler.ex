@@ -15,13 +15,13 @@ defmodule Moonwalk.ErrorHandler do
   # cURL by not having to put the Accept header all the time.
 
   def handle_error(conn, reason, opts) do
-    operation = Moonwalk.Plugs.ValidateRequest.fetch_operation!(conn)
+    operation_id = Moonwalk.Plugs.ValidateRequest.fetch_operation_id!(conn)
 
     # we will render HTML for any content
     format = response_formatter(conn, opts)
     status = response_status(reason)
 
-    body = format_reason(format, reason, status, operation)
+    body = format_reason(format, reason, status, operation_id)
 
     conn
     |> Conn.put_resp_content_type(resp_content_type(format))
@@ -60,12 +60,12 @@ defmodule Moonwalk.ErrorHandler do
     end
   end
 
-  defp format_reason({:json, json_opts}, reason, status, operation) do
-    payload = %{error: reason_to_json(reason, status, operation)}
+  defp format_reason({:json, json_opts}, reason, status, operation_id) do
+    payload = %{error: reason_to_json(reason, status, operation_id)}
     json_encode(payload, json_opts)
   end
 
-  defp format_reason(:html, reason, status, operation) do
+  defp format_reason(:html, reason, status, operation_id) do
     errors = format_html_errors(reason)
     code = Conn.Status.code(status)
     message = status_to_message(status)
@@ -75,46 +75,43 @@ defmodule Moonwalk.ErrorHandler do
     <style>#{css()}</style>
     <title>#{message}</title>
 
-    <h1>
-    <span class="status">HTTP ERROR #{code}</span>
-    #{message}
-    </h1>
+    <h1><span class="status">HTTP ERROR #{code}</span> #{message} </h1>
 
-    <p>Invalid request for operation <code>#{operation.operationId}</code>.</p>
+    <p>Invalid request for operation <code>#{operation_id}</code>.</p>
 
     <ol>
-      #{errors}
+    #{errors}
     </ol>
     """
   end
 
-  defp base_json_error(status, operation, overrides) do
+  defp base_json_error(status, operation_id, overrides) do
     Map.merge(
       %{
         message: status_to_message(status),
         kind: status,
-        operation_id: operation.operationId
+        operation_id: operation_id
       },
       overrides
     )
   end
 
-  defp reason_to_json(%InvalidBodyError{} = e, status, operation) do
-    base_json_error(status, operation, %{
+  defp reason_to_json(%InvalidBodyError{} = e, status, operation_id) do
+    base_json_error(status, operation_id, %{
       "in" => "body",
       "validation_error" => JSV.normalize_error(e.validation_error)
     })
   end
 
-  defp reason_to_json(%UnsupportedMediaTypeError{} = e, status, operation) do
-    base_json_error(status, operation, %{
+  defp reason_to_json(%UnsupportedMediaTypeError{} = e, status, operation_id) do
+    base_json_error(status, operation_id, %{
       "in" => "body",
       "media_type" => e.media_type
     })
   end
 
-  defp reason_to_json({:invalid_parameters, list}, status, operation) do
-    base_json_error(status, operation, %{
+  defp reason_to_json({:invalid_parameters, list}, status, operation_id) do
+    base_json_error(status, operation_id, %{
       "in" => "parameters",
       "parameters_errors" => list |> sort_errors() |> Enum.map(&parameter_error_to_json/1)
     })
@@ -152,7 +149,7 @@ defmodule Moonwalk.ErrorHandler do
   defp format_html_errors(reason) do
     reason
     |> sort_errors()
-    |> Enum.map_intersperse(?\n, &reason_to_html/1)
+    |> Enum.map_intersperse("\n\n\n", &reason_to_html/1)
   end
 
   # sort_errors also converts the reason to a list if not already a list, this

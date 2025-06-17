@@ -290,6 +290,7 @@ defmodule Moonwalk.Web.BodyTest do
 
       body = response(conn, 415)
       assert body =~ ~r{<!doctype html>.+Unsupported Media Type}s
+      assert body =~ ~r{<p>Invalid request for operation <code>body_inline_single_.+</code>.</p>}s
 
       assert body =~
                ~r{<h2>Validation for body of type <code>application/x-www-form-urlencoded</code> is not supported\.</h2>}s
@@ -304,6 +305,7 @@ defmodule Moonwalk.Web.BodyTest do
 
       body = response(conn, 422)
       assert body =~ ~r{<!doctype html>.+Unprocessable Entity}s
+      assert body =~ ~r{<p>Invalid request for operation <code>body_handle_form_.+</code>.</p>}s
       assert body =~ "<h2>Invalid request body.</h2>"
     end
   end

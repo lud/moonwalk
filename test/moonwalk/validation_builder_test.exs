@@ -8,7 +8,15 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
   alias Moonwalk.Spec.Paths
   alias Moonwalk.Spec.RequestBody
   alias Moonwalk.TestWeb.DeclarativeApiSpec
+  alias Moonwalk.TestWeb.PathsApiSpec
   use ExUnit.Case, async: true
+
+  IO.warn("""
+  check format validation of integers https://github.com/orgs/json-schema-org/discussions/922
+
+  maybe fix JSV
+  replace all `__format` by `format` in petstore-refs.json
+  """)
 
   defmodule BodySchema do
     require(JSV).defschema(%{
@@ -43,7 +51,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
                                   }
                                 }
                               },
-                              responses: %{}
+                              responses: %{ok: %{description: "some response"}}
                             }
                           }
                         }
@@ -102,12 +110,18 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
   test "duplicate operation ids" do
     defmodule DupAController do
       use Moonwalk.Controller
-      operation :a, operation_id: "same-same"
+
+      operation :a,
+        operation_id: "same-same",
+        responses: Moonwalk.TestWeb.Helpers.dummy_responses()
     end
 
     defmodule DupBController do
       use Moonwalk.Controller
-      operation :b, operation_id: "same-same"
+
+      operation :b,
+        operation_id: "same-same",
+        responses: Moonwalk.TestWeb.Helpers.dummy_responses()
     end
 
     defmodule SomeRouterWithDuplicates do
@@ -127,6 +141,31 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
 
     assert_raise ArgumentError, ~r{duplicate operation id "same-same"}, fn ->
       ValidationBuilder.build_operations(normal)
+    end
+  end
+
+  describe "using generated api spec" do
+    test "params and bodies" do
+      # just check that it can be built for now. The tests of the controllers
+      # ensures that the validation is effective
+      assert {built, _} = Moonwalk.build_spec!(PathsApiSpec, cache: false)
+
+      # We just want to make sure that by default there is no useless building
+      # of the responses schemas
+      Enum.each(built, fn {_opid, validations} ->
+        refute Keyword.has_key?(validations, :responses)
+      end)
+    end
+
+    test "with responses" do
+      assert {built, _} = Moonwalk.build_spec!(PathsApiSpec, cache: false, responses: true)
+
+      # We just want to make sure that by default there is no useless building
+      # of the responses schemas
+      Enum.each(built, fn {_opid, validations} ->
+        assert Keyword.has_key?(validations, :responses)
+        validations[:responses]
+      end)
     end
   end
 
@@ -174,9 +213,19 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
       assert %{module: JSV.Cast, name: :string_to_boolean, arity: 1} = Map.new(Function.info(caster))
     end
 
+    test "with responses" do
+      assert {built, _} = Moonwalk.build_spec!(DeclarativeApiSpec, cache: false, responses: true)
+
+      Enum.each(built, fn {_opid, validations} ->
+        assert Keyword.has_key?(validations, :responses)
+      end)
+
+      # if the responses are properly built we should be able to
+    end
+
     test "building petstore where most things are given as references" do
       # This should pass. We are not implementing a controller to test it
-      # thoroughly thoug.
+      # thoroughly though.
       "test/support/data/petstore-refs.json"
       |> File.read!()
       |> JSV.Codec.decode!()

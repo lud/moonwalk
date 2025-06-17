@@ -36,13 +36,11 @@ defmodule Moonwalk.MixProject do
       # {:jsv, "~> 0.7"},
       {:jsv, path: "../jsv"},
       {:phoenix, ">= 1.7.0"},
+      {:decimal, "~> 2.0", optional: true},
+      {:abnf_parsec, "~> 2.0", optional: true},
 
       # Dev
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.4", only: :test, runtime: false},
-      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
-      {:ex_check, "~> 0.16.0", only: [:dev, :test], runtime: false},
+      {:libdev, "~> 0.1.0", only: [:dev, :test], runtime: false},
 
       # Test
       # {:phoenix, "~> 1.8.0-rc", only: [:dev, :test]},
