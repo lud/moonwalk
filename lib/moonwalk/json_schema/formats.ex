@@ -11,7 +11,7 @@ defmodule Moonwalk.JsonSchema.Formats do
 
   import JSV.Vocabulary, only: [with_decimal: 1]
 
-  @string_formats ["base64url", "binary", "byte", "char", "commonmark", "html", "media-range", "password"]
+  @string_formats ["base64url", "binary", "byte", "char", "commonmark", "html", "media-range", "password", "sf-binary"]
   @number_formats ["double-int", "double", "float", "int16", "int32", "int8", "uint8", "uint16", "uint32"]
 
   # numbers as-is or as string
@@ -183,9 +183,9 @@ defmodule Moonwalk.JsonSchema.Formats do
 
   # --
 
-  # def validate_cast("sf-binary", _data) do
-  #   Moonwalk.JsonSchema.Formats.HttpStructuredField.parse_binary(data)
-  # end
+  def validate_cast("sf-binary", data) do
+    Moonwalk.JsonSchema.Formats.HttpStructuredField.parse_binary(data)
+  end
 
   # -- Helpers ----------------------------------------------------------------
 
