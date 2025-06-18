@@ -11,7 +11,22 @@ defmodule Moonwalk.JsonSchema.Formats do
 
   import JSV.Vocabulary, only: [with_decimal: 1]
 
-  @string_formats ["base64url", "binary", "byte", "char", "commonmark", "html", "media-range", "password", "sf-binary"]
+  @string_formats [
+    "base64url",
+    "binary",
+    "byte",
+    "char",
+    "commonmark",
+    "html",
+    "media-range",
+    "password",
+    "sf-binary",
+    "sf-boolean",
+    "sf-decimal",
+    "sf-integer",
+    "sf-string",
+    "sf-token"
+  ]
   @number_formats ["double-int", "double", "float", "int16", "int32", "int8", "uint8", "uint16", "uint32"]
 
   # numbers as-is or as string
@@ -184,7 +199,27 @@ defmodule Moonwalk.JsonSchema.Formats do
   # --
 
   def validate_cast("sf-binary", data) do
-    Moonwalk.JsonSchema.Formats.HttpStructuredField.parse_binary(data)
+    expect_sf_item(data, :byte_sequence)
+  end
+
+  def validate_cast("sf-boolean", data) do
+    expect_sf_item(data, :boolean)
+  end
+
+  def validate_cast("sf-decimal", data) do
+    expect_sf_item(data, :decimal)
+  end
+
+  def validate_cast("sf-integer", data) do
+    expect_sf_item(data, :integer)
+  end
+
+  def validate_cast("sf-string", data) do
+    expect_sf_item(data, :string)
+  end
+
+  def validate_cast("sf-token", data) do
+    expect_sf_item(data, :token)
   end
 
   # -- Helpers ----------------------------------------------------------------
@@ -240,5 +275,13 @@ defmodule Moonwalk.JsonSchema.Formats do
 
   defp integer_in_range(_n, _min, _max) do
     {:error, "not an integer"}
+  end
+
+  defp expect_sf_item(data, expected_type) do
+    case Moonwalk.JsonSchema.Formats.HttpStructuredField.parse_sf_item(data) do
+      {:ok, {^expected_type, value, _}} -> {:ok, value}
+      {:ok, _} -> {:error, "invalid structured field type"}
+      {:error, {errmsg, _}} -> {:error, errmsg}
+    end
   end
 end

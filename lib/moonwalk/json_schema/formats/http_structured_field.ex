@@ -480,7 +480,7 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredField do
     end
   end
 
-  defp post_process_item(elem, opts) do
+  def post_process_item(elem, opts) do
     maps? = true == opts[:maps]
     unwrap? = true == opts[:unwrap]
     post_process_item(elem, unwrap?, maps?)
@@ -512,7 +512,7 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredField do
     end
   end
 
-  defp post_process_list(list, opts) do
+  def post_process_list(list, opts) do
     maps? = true == opts[:maps]
     unwrap? = true == opts[:unwrap]
     post_process_list(list, unwrap?, maps?)
@@ -526,7 +526,7 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredField do
     Enum.map(list, &post_process_item(&1, unwrap?, maps?))
   end
 
-  defp post_process_dict(dict, opts) do
+  def post_process_dict(dict, opts) do
     maps? = true == opts[:maps]
     unwrap? = true == opts[:unwrap]
     post_process_dict(dict, unwrap?, maps?)
