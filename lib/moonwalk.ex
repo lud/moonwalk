@@ -43,12 +43,22 @@ defmodule Moonwalk do
   @callback jsv_opts :: [JSV.build_opt()]
 
   @doc """
-  This function is useful to change the cache key at runtime, depending on the
-  environment.
+  This function is intended to change cache keys at runtime. The variant is any
+  term used as the last element of a `t:cache_key/0`.
 
-  Note that previous cache keys are not automatically cleaned by this library.
+  This is useful if you need to rebuild the OpenAPI specification and its
+  validators at runtime, when the used schemas or even routes depend on current
+  application state. For instance, if a schema for a given entity is fetched
+  regularly from a remote source and changes over time.
 
-  The default implementation returns `[]`.
+  The default implementation returns `nil`.
+
+  > #### Stale cache entries are not purged automatically {: .warning}
+  >
+  > If you return a new variant from this callback, cache entries stored with
+  > previous variants in the key are not automatically cleaned. You will need to
+  > take care of that. See `c:cache/1` to implement you a cache mechanism that
+  > you can control.
   """
   @callback cache_variant :: term
 
@@ -70,12 +80,14 @@ defmodule Moonwalk do
         :ok = :persistent_term.put(key, cacheable)
       end
 
+      @impl true
       def jsv_opts do
         unquote(__MODULE__).default_jsv_opts()
       end
 
+      @impl true
       def cache_variant do
-        []
+        nil
       end
 
       defoverridable unquote(__MODULE__)

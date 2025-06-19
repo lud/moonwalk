@@ -218,7 +218,7 @@
             "required": true,
             "schema": {
               "type": "integer",
-              "__format": "int64"
+              "format": "int64"
             }
           }
         ],
@@ -267,7 +267,7 @@
             "required": true,
             "schema": {
               "type": "integer",
-              "__format": "int64"
+              "format": "int64"
             }
           }
         ],
@@ -322,7 +322,7 @@
             "required": true,
             "schema": {
               "type": "integer",
-              "__format": "int64"
+              "format": "int64"
             }
           }
         ],
@@ -355,7 +355,7 @@
             "required": true,
             "schema": {
               "type": "integer",
-              "__format": "int64"
+              "format": "int64"
             }
           }
         ],
@@ -472,7 +472,7 @@
             "required": true,
             "schema": {
               "type": "integer",
-              "__format": "int64",
+              "format": "int64",
               "minimum": 1,
               "maximum": 10
             }
@@ -515,7 +515,7 @@
             "required": true,
             "schema": {
               "type": "integer",
-              "__format": "int64",
+              "format": "int64",
               "minimum": 1
             }
           }
@@ -778,11 +778,11 @@
         "properties": {
           "id": {
             "type": "integer",
-            "__format": "int64"
+            "format": "int64"
           },
           "petId": {
             "type": "integer",
-            "__format": "int64"
+            "format": "int64"
           },
           "quantity": {
             "type": "integer",
@@ -811,7 +811,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "__format": "int64"
+            "format": "int64"
           },
           "name": {
             "type": "string"
@@ -826,7 +826,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "__format": "int64"
+            "format": "int64"
           },
           "username": {
             "type": "string"
@@ -861,7 +861,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "__format": "int64"
+            "format": "int64"
           },
           "name": {
             "type": "string"
@@ -877,7 +877,7 @@
         "properties": {
           "id": {
             "type": "integer",
-            "__format": "int64",
+            "format": "int64",
             "readOnly": true
           },
           "category": {

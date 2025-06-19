@@ -11,13 +11,6 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
   alias Moonwalk.TestWeb.PathsApiSpec
   use ExUnit.Case, async: true
 
-  IO.warn("""
-  check format validation of integers https://github.com/orgs/json-schema-org/discussions/922
-
-  maybe fix JSV
-  replace all `__format` by `format` in petstore-refs.json
-  """)
-
   defmodule BodySchema do
     require(JSV).defschema(%{
       type: :object,

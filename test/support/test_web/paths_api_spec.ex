@@ -2,6 +2,7 @@ defmodule Moonwalk.TestWeb.PathsApiSpec do
   alias Moonwalk.Spec.Paths
   use Moonwalk
 
+  @impl true
   def spec do
     %{
       :openapi => "3.1.1",
