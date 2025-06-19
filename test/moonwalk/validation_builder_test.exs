@@ -18,6 +18,8 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
   replace all `__format` by `format` in petstore-refs.json
   """)
 
+  @default_opts
+
   defmodule BodySchema do
     require(JSV).defschema(%{
       type: :object,
@@ -58,7 +60,11 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
                       })
 
   test "build validations for request bodies" do
-    assert {built, _} = ValidationBuilder.build_operations(@normal_sample_spec)
+    assert {built, _} =
+             ValidationBuilder.build_operations(@normal_sample_spec, %{
+               responses: false,
+               jsv_opts: Moonwalk.default_jsv_opts()
+             })
 
     assert is_map_key(built, "json_1")
 
@@ -140,7 +146,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
       })
 
     assert_raise ArgumentError, ~r{duplicate operation id "same-same"}, fn ->
-      ValidationBuilder.build_operations(normal)
+      ValidationBuilder.build_operations(normal, %{responses: false, jsv_opts: Moonwalk.default_jsv_opts()})
     end
   end
 
@@ -230,7 +236,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
       |> File.read!()
       |> JSV.Codec.decode!()
       |> Normalizer.normalize!()
-      |> ValidationBuilder.build_operations()
+      |> ValidationBuilder.build_operations(%{responses: false, jsv_opts: Moonwalk.default_jsv_opts()})
     end
   end
 end

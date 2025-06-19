@@ -55,20 +55,22 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     conn = ensure_query_params(conn, opts)
     {controller, action} = fetch_phoenix!(conn)
 
-    with {:ok, validations_with_root} <- fetch_validations(conn, controller, action),
-         {:ok, private, conn} <- run_validations(conn, validations_with_root) do
-      Conn.put_private(conn, :moonwalk, private)
+    with {:ok, operation_id} <- fetch_operation_id(conn, controller, action),
+         conn1 = merge_private(conn, :operation_id, operation_id),
+         {:ok, validations_with_root} <- fetch_validations(conn1, operation_id),
+         {:ok, private, conn1} <- run_validations(conn1, validations_with_root) do
+      merge_private(conn1, private)
     else
-      {:error, {:invalid_parameters, errors} = reason, conn} when is_list(errors) ->
-        call_error_handler(conn, reason, opts.error_handler)
+      {:error, {:invalid_parameters, errors} = reason, next_conn} when is_list(errors) ->
+        call_error_handler(next_conn, reason, opts.error_handler)
 
-      {:error, %InvalidBodyError{} = reason, conn} ->
-        call_error_handler(conn, reason, opts.error_handler)
+      {:error, %InvalidBodyError{} = reason, next_conn} ->
+        call_error_handler(next_conn, reason, opts.error_handler)
 
-      {:error, %UnsupportedMediaTypeError{} = reason, conn} ->
-        call_error_handler(conn, reason, opts.error_handler)
+      {:error, %UnsupportedMediaTypeError{} = reason, next_conn} ->
+        call_error_handler(next_conn, reason, opts.error_handler)
 
-      {:error, {:not_built, operation_id}, _conn} ->
+      {:error, {:not_built, operation_id}, _next_conn} ->
         raise "operation with id #{inspect(operation_id)} was not built"
 
       {:skip, _} ->
@@ -95,19 +97,13 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     end
   end
 
-  defp fetch_validations(conn, controller, action) do
-    case fetch_operation_id(conn, controller, action) do
-      {:ok, operation_id} ->
-        spec_module = fetch_spec_module!(conn)
-        {validations, jsv_root} = Moonwalk.build_spec!(spec_module)
+  defp fetch_validations(conn, operation_id) do
+    spec_module = fetch_spec_module!(conn)
+    {validations, jsv_root} = Moonwalk.build_spec!(spec_module)
 
-        case validations do
-          %{^operation_id => op_validations} -> {:ok, {op_validations, jsv_root}}
-          _ -> {:error, {:not_built, operation_id}, conn}
-        end
-
-      {:skip, _} = err ->
-        err
+    case validations do
+      %{^operation_id => op_validations} -> {:ok, {op_validations, jsv_root}}
+      _ -> {:error, {:not_built, operation_id}, conn}
     end
   end
 
@@ -248,7 +244,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
       {:error, %JSV.ValidationError{} = validation_error} ->
         {:error, %InvalidBodyError{validation_error: validation_error, value: body}, conn}
 
-      {:error, :unsupported_media_type} ->
+      {:error, :media_type_match} ->
         {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body}, conn}
     end
   end
@@ -268,24 +264,25 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     end
   end
 
-  defp match_media_type([{{primary, secondary}, _jsv_key} = matched | _], {primary, secondary}) do
+  @doc false
+  def match_media_type([{{primary, secondary}, _jsv_key} = matched | _], {primary, secondary}) do
     {:ok, matched}
   end
 
-  defp match_media_type([{{"*", _secondary}, _jsv_key} = matched | _], _) do
+  def match_media_type([{{"*", _secondary}, _jsv_key} = matched | _], _) do
     {:ok, matched}
   end
 
-  defp match_media_type([{{primary, "*"}, _jsv_key} = matched | _], {primary, _}) do
+  def match_media_type([{{primary, "*"}, _jsv_key} = matched | _], {primary, _}) do
     {:ok, matched}
   end
 
-  defp match_media_type([_ | matchspecs], content_type_tuple) do
+  def match_media_type([_ | matchspecs], content_type_tuple) do
     match_media_type(matchspecs, content_type_tuple)
   end
 
-  defp match_media_type([], _) do
-    {:error, :unsupported_media_type}
+  def match_media_type([], _) do
+    {:error, :media_type_match}
   end
 
   defp ensure_fetched_body!(body) do
@@ -348,21 +345,6 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     handler_mod.handle_error(conn, reason, handler_arg)
   end
 
-  @doc """
-  Helper for error handlers.
-
-  The conn given to this function must have been through the
-  #{inspect(__MODULE__)} plug with an error result.
-  """
-  def fetch_operation_id!(conn) do
-    {controller, action} = fetch_phoenix!(conn)
-
-    case hook(controller, :operation_id, action, conn.method) do
-      {:ok, operation_id} -> operation_id
-      _ -> raise ArgumentError, "could not fetch operation ID from Plug.Conn struct"
-    end
-  end
-
   defp warn_undef_action(controller, action) do
     IO.warn("""
     Controller #{inspect(controller)} has no operation defined for action #{inspect(action)}
@@ -384,4 +366,16 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   # defp hook(controller, kind) do
   #   _result = controller.__moonwalk__(kind)
   # end
+
+  defp merge_private(conn, key, value) do
+    merge_private(conn, %{key => value})
+  end
+
+  defp merge_private(%Plug.Conn{private: %{moonwalk: map} = private} = conn, new) do
+    conn = %{conn | private: %{private | moonwalk: Map.merge(map, new)}}
+  end
+
+  defp merge_private(conn, new) do
+    Plug.Conn.put_private(conn, :moonwalk, new)
+  end
 end

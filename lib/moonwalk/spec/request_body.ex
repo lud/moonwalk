@@ -85,6 +85,11 @@ defmodule Moonwalk.Spec.RequestBody do
     end)
   end
 
+  defp cast_content(content) do
+    raise ArgumentError,
+          "invalid :content given in request body definition, expected map or keyword list,got: #{inspect(content)}"
+  end
+
   @impl true
   def normalize!(data, ctx) do
     data

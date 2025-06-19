@@ -15,7 +15,7 @@ defmodule Moonwalk.ErrorHandler do
   # cURL by not having to put the Accept header all the time.
 
   def handle_error(conn, reason, opts) do
-    operation_id = Moonwalk.Plugs.ValidateRequest.fetch_operation_id!(conn)
+    operation_id = conn.private.moonwalk.operation_id
 
     # we will render HTML for any content
     format = response_formatter(conn, opts)

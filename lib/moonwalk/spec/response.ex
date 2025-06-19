@@ -100,4 +100,9 @@ defmodule Moonwalk.Spec.Response do
         end
     end)
   end
+
+  defp cast_content(content) do
+    raise ArgumentError,
+          "invalid :content given in response definition, expected map or keyword list,got: #{inspect(content)}"
+  end
 end

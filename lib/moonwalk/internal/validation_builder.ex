@@ -10,7 +10,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   alias Moonwalk.Spec.RequestBody
   alias Moonwalk.Spec.Response
 
-  def build_operations(normal_spec, opts \\ []) do
+  def build_operations(normal_spec, opts) when is_map(opts) do
     spec = SpecValidator.validate!(normal_spec)
 
     to_build =
@@ -26,7 +26,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
         end)
       end)
 
-    jsv_ctx = JSV.build_init!(Keyword.get_lazy(opts, :jsv_opts, &jsv_opts/0))
+    jsv_ctx = JSV.build_init!(opts.jsv_opts)
     {_root_ns, _, jsv_ctx} = JSV.build_add!(jsv_ctx, normal_spec)
 
     {validations_by_op_id, jsv_ctx} =
@@ -77,13 +77,6 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     end)
   end
 
-  defp jsv_opts do
-    [
-      default_meta: JSV.default_meta(),
-      formats: [Moonwalk.JsonSchema.Formats | JSV.default_format_validator_modules()]
-    ]
-  end
-
   defp build_op_validation(rev_path, op_id, op, spec, jsv_ctx, opts) do
     validations = []
 
@@ -106,13 +99,11 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     # Responses
 
     {validations, jsv_ctx} =
-      case Keyword.get(opts, :responses) do
-        true ->
-          {resp_validations, jsv_ctx} = build_responses_validations(op.responses, rev_path, spec, jsv_ctx)
-          {[{:responses, resp_validations} | validations], jsv_ctx}
-
-        _ ->
-          {validations, jsv_ctx}
+      if opts.responses do
+        {resp_validations, jsv_ctx} = build_responses_validations(op.responses, rev_path, spec, jsv_ctx)
+        {[{:responses, resp_validations} | validations], jsv_ctx}
+      else
+        {validations, jsv_ctx}
       end
 
     {{op_id, validations}, jsv_ctx}
@@ -123,7 +114,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   defp build_body_validation(%RequestBody{} = req_body, rev_path, _spec, jsv_ctx) when is_map(req_body) do
     {matchers, jsv_ctx} =
       req_body.content
-      |> media_type_clauses()
+      |> sorted_media_type_clauses()
       |> Enum.map_reduce(jsv_ctx, fn
         {original_media_type, media_matcher, media_spec}, jsv_ctx ->
           case media_spec do
@@ -159,7 +150,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     {:no_validation, jsv_ctx}
   end
 
-  defp media_type_clauses(content_map) do
+  defp sorted_media_type_clauses(content_map) do
     content_map
     |> Enum.map(fn {media_type, media_spec} ->
       matcher = media_type_to_matcher(media_type)
@@ -345,7 +336,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
       Enum.map_reduce(responses, jsv_ctx, fn {code_str, resp_or_ref}, jsv_ctx ->
         {response, rev_path} = deref(resp_or_ref, Response, [code_str, "responses" | rev_path], spec)
         code = String.to_integer(code_str)
-        resp_validation = build_response_validation(response, rev_path, jsv_ctx)
+        {resp_validation, jsv_ctx} = build_response_validation(response, rev_path, jsv_ctx)
         {{code, resp_validation}, jsv_ctx}
       end)
 
@@ -355,7 +346,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   defp build_response_validation(response, rev_path, jsv_ctx) do
     {matchers, jsv_ctx} =
       response.content
-      |> media_type_clauses()
+      |> sorted_media_type_clauses()
       |> Enum.map_reduce(jsv_ctx, fn
         {original_media_type, media_matcher, media_spec}, jsv_ctx ->
           case media_spec do
