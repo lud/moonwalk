@@ -1,9 +1,10 @@
 defmodule Moonwalk.Test do
   alias Moonwalk.Plugs.ValidateRequest
   alias Moonwalk.JsonSchema.Formats.HttpStructuredField
-  import ExUnit.Assertions
 
   def valid_response(spec_module, %Plug.Conn{} = conn, status) when is_integer(status) do
+    body = Phoenix.ConnTest.response(conn, status)
+
     operation_id =
       case get_in(conn.private, [:moonwalk, :operation_id]) do
         nil ->
@@ -19,12 +20,10 @@ defmodule Moonwalk.Test do
           opid
       end
 
-    body = Phoenix.ConnTest.response(conn, status)
-
-    {validations, jsv_root} = Moonwalk.build_spec!(spec_module, responses: true) |> dbg()
+    {validations, jsv_root} = Moonwalk.build_spec!(spec_module, responses: true)
 
     content_validation =
-      with {:ok, path_validations} <- Map.fetch(validations, operation_id) |> dbg(),
+      with {:ok, path_validations} <- Map.fetch(validations, operation_id),
            {:ok, responses} <- Keyword.fetch(path_validations, :responses),
            {:ok, status_validations} <- Map.fetch(responses, status) do
         status_validations
@@ -35,10 +34,10 @@ defmodule Moonwalk.Test do
       end
 
     case content_validation do
-      [] ->
+      :no_validation ->
         body
 
-      [_ | _] ->
+      list when is_list(list) ->
         content_type = content_type(conn)
 
         parse_validate_response(%{
@@ -46,7 +45,7 @@ defmodule Moonwalk.Test do
           conn: conn,
           content_type: content_type,
           type_subtype: parse_content_type(content_type),
-          content_validation: content_validation,
+          content_validation: list,
           jsv_root: jsv_root,
           operation_id: operation_id,
           status: status
@@ -56,7 +55,7 @@ defmodule Moonwalk.Test do
 
   defp parse_validate_response(ctx) do
     jsv_key = match_media_type(ctx)
-    body = maybe_parse_body(ctx) |> dbg()
+    body = maybe_parse_body(ctx)
 
     case JSV.validate(body, ctx.jsv_root, key: jsv_key) do
       {:ok, _} ->
@@ -94,7 +93,6 @@ defmodule Moonwalk.Test do
       String.ends_with?(subtype, "+json") -> json_decode!(body)
       :otherwise -> body
     end
-    |> dbg()
   end
 
   defp json_decode!(data) do

@@ -18,8 +18,6 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
   replace all `__format` by `format` in petstore-refs.json
   """)
 
-  @default_opts
-
   defmodule BodySchema do
     require(JSV).defschema(%{
       type: :object,

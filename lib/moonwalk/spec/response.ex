@@ -76,7 +76,7 @@ defmodule Moonwalk.Spec.Response do
     spec
     |> build(__MODULE__)
     |> take_required(:description)
-    |> take_required(:content, &cast_content/1)
+    |> take_default(:content, nil, &cast_content/1)
     |> take_default(:headers, nil)
     |> take_default(:links, nil)
     |> into()

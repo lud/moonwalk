@@ -360,19 +360,15 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   end
 
   defp hook(controller, kind, action, arg) do
-    _result = controller.__moonwalk__(kind, action, arg)
+    controller.__moonwalk__(kind, action, arg)
   end
-
-  # defp hook(controller, kind) do
-  #   _result = controller.__moonwalk__(kind)
-  # end
 
   defp merge_private(conn, key, value) do
     merge_private(conn, %{key => value})
   end
 
   defp merge_private(%Plug.Conn{private: %{moonwalk: map} = private} = conn, new) do
-    conn = %{conn | private: %{private | moonwalk: Map.merge(map, new)}}
+    %{conn | private: %{private | moonwalk: Map.merge(map, new)}}
   end
 
   defp merge_private(conn, new) do

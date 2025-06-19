@@ -7,7 +7,7 @@ defmodule Moonwalk.Web.ResponseTest do
   describe "with generated api" do
     test "responses can be validated", %{conn: conn} do
       conn = get(conn, ~p"/generated/resp/fortune-200-valid")
-      assert %{"message" => _, "category" => _} = valid_response(PathsApiSpec, conn, 200) |> dbg()
+      assert %{"message" => _, "category" => _} = valid_response(PathsApiSpec, conn, 200)
     end
 
     test "expecting another status", %{conn: conn} do
@@ -15,17 +15,47 @@ defmodule Moonwalk.Web.ResponseTest do
       conn = get(conn, ~p"/generated/resp/fortune-200-valid")
 
       assert_raise RuntimeError, ~r{expected response with status 201, got: 200}, fn ->
-        valid_response(PathsApiSpec, conn, 201) |> dbg()
+        valid_response(PathsApiSpec, conn, 201)
       end
     end
 
-    # New route that does not return data validated by the response schema
-    test "response can be invalidated"
+    test "response can be invalidated", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-invalid")
 
-    # new route that does not declare conent in the response.
-    test "response without defined response bodies"
+      assert_raise RuntimeError, ~r/invalid response returned by operation/, fn ->
+        valid_response(PathsApiSpec, conn, 200)
+      end
+    end
 
-    # New route with response returned as text/plain but the operation only application/json
-    test "response with other content type"
+    test "response without defined response bodies", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-no-content-def")
+      "anything" = valid_response(PathsApiSpec, conn, 200)
+
+      # despite the missing content validation, status is checked
+      assert_raise RuntimeError, ~r/expected response with status 999/, fn ->
+        valid_response(PathsApiSpec, conn, 999)
+      end
+    end
+
+    test "response with other content type", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-bad-content-type")
+
+      assert_raise RuntimeError, ~r/has no definition for content-type/, fn ->
+        valid_response(PathsApiSpec, conn, 200)
+      end
+    end
+
+    test "response without defined operation", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-no-operation")
+
+      assert_raise RuntimeError, ~r/the connection was not validated by Moonwalk.Plugs.ValidateRequest/, fn ->
+        valid_response(PathsApiSpec, conn, 200)
+      end
+
+      # status is checked
+      assert_raise RuntimeError, ~r/expected response with status 999/, fn ->
+        valid_response(PathsApiSpec, conn, 999)
+      end
+    end
   end
 end

@@ -343,6 +343,10 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     {Map.new(validations), jsv_ctx}
   end
 
+  defp build_response_validation(%{content: nil}, _rev_path, jsv_ctx) do
+    {:no_validation, jsv_ctx}
+  end
+
   defp build_response_validation(response, rev_path, jsv_ctx) do
     {matchers, jsv_ctx} =
       response.content

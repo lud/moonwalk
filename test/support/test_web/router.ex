@@ -47,6 +47,10 @@ defmodule Moonwalk.TestWeb.Router do
 
     scope "/resp", Moonwalk.TestWeb do
       get "/fortune-200-valid", ResponseController, :fortune_200_valid
+      get "/fortune-200-invalid", ResponseController, :fortune_200_invalid
+      get "/fortune-200-no-content-def", ResponseController, :fortune_200_no_content_def
+      get "/fortune-200-bad-content-type", ResponseController, :fortune_200_bad_content_type
+      get "/fortune-200-no-operation", ResponseController, :fortune_200_no_operation
     end
   end
 
