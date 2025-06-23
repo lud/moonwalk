@@ -207,7 +207,7 @@ defmodule Moonwalk.Controller do
   def __pop_verb(opts) do
     case Keyword.pop(opts, :method) do
       {nil, opts} -> {nil, opts}
-      {v, opts} when is_atom(v) -> {validate_verb(v), opts}
+      {v, opts} -> {validate_verb(v), opts}
     end
   end
 
