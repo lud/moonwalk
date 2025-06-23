@@ -1,4 +1,6 @@
-defmodule Moonwalk.Web.PotionTest do
+defmodule Moonwalk.Web.LabTest do
+  alias Moonwalk.TestWeb.DeclarativeApiSpec
+  import Moonwalk.Test
   use Moonwalk.ConnCase, async: true
 
   @valid_payload %{
@@ -212,6 +214,110 @@ defmodule Moonwalk.Web.PotionTest do
         |> put_req_header("content-type", "application/json")
         |> Phoenix.ConnTest.post(~p"/provided/potions", ~s({"name": "test", "malformed}))
       end
+    end
+  end
+
+  describe "path item parameters" do
+    # PathItem parameters are not supported with the operation macro:
+    #
+    # * At the controller level there is no guarantee that all routes belong to
+    #   the same path.
+    # * At the router level there is no practical mechanism to attach parameters
+    #   to a scope.
+    #
+    # But it is supported when the spec is provided by other means (JSON, raw
+    # Elixir data).
+
+    @alchemists_page %{
+      data: [
+        %{
+          name: "Merlin",
+          titles: [
+            "Enchanteur de Bretagne",
+            "Grand vainqueur de la belette de Winchester",
+            "Concepteur de la potion de guérison des ongles incarnés"
+          ]
+        },
+        %{
+          name: "Elias de Kelliwic'h",
+          titles: [
+            "Grand enchanteur du Nord",
+            "Meneur des loups de Calédonie",
+            "Pourfendeur du dragon des neiges"
+          ]
+        }
+      ]
+    }
+
+    test "path parameters are collected", %{conn: conn} do
+      conn =
+        get_reply(conn, ~p"/provided/some-lab/alchemists", [q: "some search", page: 2, per_page: 10], fn
+          conn, _params ->
+            assert %{lab: "some-lab"} == conn.private.moonwalk.path_params
+            assert %{q: "some search", page: 2, per_page: 10} == conn.private.moonwalk.query_params
+
+            json(conn, @alchemists_page)
+        end)
+
+      assert %{"data" => [_, _]} = valid_response(DeclarativeApiSpec, conn, 200)
+    end
+
+    test "errors in pathitemparams", %{conn: conn} do
+      conn = get(conn, ~p"/provided/some-lab/alchemists", q: "", page: 0, per_page: 0)
+
+      assert %{
+               "error" => %{
+                 "in" => "parameters",
+                 "kind" => "bad_request",
+                 "message" => "Bad Request",
+                 "operation_id" => "listAlchemists",
+                 "parameters_errors" => [
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter page in query",
+                     "parameter" => "page",
+                     "validation_error" => _
+                   },
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter per_page in query",
+                     "parameter" => "per_page",
+                     "validation_error" => _
+                   },
+                   %{
+                     "in" => "query",
+                     "kind" => "invalid_parameter",
+                     "message" => "invalid parameter q in query",
+                     "parameter" => "q",
+                     "validation_error" => _
+                   }
+                 ]
+               }
+             } = valid_response(DeclarativeApiSpec, conn, 400)
+    end
+
+    test "override of params", %{conn: conn} do
+      # This route overrides the 'q' query param by allowing a min length of 0.
+      # It also defines a query param 'lab' that does NOT override the 'lab'
+      # path param.
+
+      conn =
+        post_reply(
+          conn,
+          ~p"/provided/some-lab/alchemists?q=&lab=someprefix:xxx",
+          nil,
+          fn
+            conn, _params ->
+              assert %{lab: "some-lab"} == conn.private.moonwalk.path_params
+              assert %{q: "", lab: "someprefix:xxx"} == conn.private.moonwalk.query_params
+
+              json(conn, @alchemists_page)
+          end
+        )
+
+      assert %{"data" => [_, _]} = valid_response(DeclarativeApiSpec, conn, 200)
     end
   end
 end

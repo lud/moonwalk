@@ -108,7 +108,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   end
 
   defp fetch_operation_id(conn, controller, action) do
-    case hook(controller, :operation_id, action, conn.method) do
+    case hook(controller, :operation_id, action, method_to_verb(conn.method)) do
       {:ok, operation_id} ->
         {:ok, operation_id}
 
@@ -116,7 +116,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {:skip, :unhandled_action}
 
       :__undef__ ->
-        warn_undef_action(controller, action)
+        warn_undef_action(controller, action, conn.method)
         {:skip, :unhandled_action}
     end
   end
@@ -169,8 +169,6 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   defp validate_parameters(conn, by_location, jsv_root) do
     %{path_params: raw_path_params, query_params: raw_query_params} = conn
     %{path: path_specs, query: query_specs} = by_location
-
-    # parameters in path
 
     {cast_path_params, path_errors} =
       validate_parameters_group(path_specs, raw_path_params, jsv_root)
@@ -345,15 +343,15 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     handler_mod.handle_error(conn, reason, handler_arg)
   end
 
-  defp warn_undef_action(controller, action) do
+  defp warn_undef_action(controller, action, method) do
     IO.warn("""
-    Controller #{inspect(controller)} has no operation defined for action #{inspect(action)}
+    Controller #{inspect(controller)} has no operation defined for action #{inspect(action)} with method #{inspect(method_to_verb(method))}
 
-    Pass `false` to the `operation` macro to suppress this warning
+    Pass `false` to the `operation` macro to suppress this warning:
 
-        operation :my_action, false
+        operation #{inspect(action)}, false
 
-        def my_action(conn, params) do
+        def #{action}(conn, params) do
           # ...
         end
     """)
@@ -373,5 +371,17 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   defp merge_private(conn, new) do
     Plug.Conn.put_private(conn, :moonwalk, new)
+  end
+
+  Enum.each(Moonwalk.Spec.PathItem.verbs(), fn verb ->
+    method = verb |> Atom.to_string() |> String.upcase()
+
+    defp method_to_verb(unquote(method)) do
+      unquote(verb)
+    end
+  end)
+
+  defp method_to_verb(_) do
+    :unknown
   end
 end

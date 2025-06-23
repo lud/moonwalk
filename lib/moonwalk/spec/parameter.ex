@@ -96,21 +96,18 @@ defmodule Moonwalk.Spec.Parameter do
   end
 
   def from_controller!(spec, name) when is_atom(name) and is_list(spec) do
-    default_examples =
-      case Access.fetch(spec, :example) do
-        {:ok, example} -> [example]
-        :error -> nil
-      end
-
-    default_required? = Access.fetch(spec, :in) == {:ok, :path}
-
     spec
     |> build(__MODULE__)
     |> put(:name, name)
     |> take_required(:in, &validate_location/1)
     |> take_default(:schema, _boolean_schema = true)
-    |> take_default(:required, default_required?)
-    |> take_default(:examples, default_examples)
+    |> take_default_lazy(:required, fn -> Access.fetch(spec, :in) == {:ok, :path} end)
+    |> take_default_lazy(:examples, fn ->
+      case Access.fetch(spec, :example) do
+        {:ok, example} -> [example]
+        :error -> nil
+      end
+    end)
     |> into()
   end
 

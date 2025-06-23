@@ -36,16 +36,15 @@ defmodule Moonwalk.Spec.MediaType do
   end
 
   def from_controller!(spec) do
-    default_examples =
+    spec
+    |> build(__MODULE__)
+    |> take_required(:schema)
+    |> take_default_lazy(:examples, fn ->
       case Access.fetch(spec, :example) do
         {:ok, example} -> %{"default" => example}
         :error -> nil
       end
-
-    spec
-    |> build(__MODULE__)
-    |> take_required(:schema)
-    |> take_default(:examples, default_examples)
+    end)
     |> into()
   end
 end

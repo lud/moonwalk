@@ -2,6 +2,8 @@ defmodule Moonwalk.Spec.Server do
   require JSV
   use Moonwalk.Internal.SpecObject
 
+  IO.warn("todo server from config")
+
   # An object representing a server for the API.
   JSV.defschema(%{
     title: "Server",

@@ -52,11 +52,24 @@ defmodule Moonwalk.TestWeb.Router do
       get "/fortune-200-bad-content-type", ResponseController, :fortune_200_bad_content_type
       get "/fortune-200-no-operation", ResponseController, :fortune_200_no_operation
     end
+
+    scope "/method", Moonwalk.TestWeb do
+      get "/p", MethodController, :single_fun
+      post "/p", MethodController, :single_fun
+      put "/p", MethodController, :single_fun
+      patch "/p", MethodController, :single_fun
+      delete "/p", MethodController, :single_fun
+      options "/p", MethodController, :single_fun
+      trace("/p", MethodController, :single_fun)
+      head "/p", MethodController, :single_fun
+    end
   end
 
   scope "/provided" do
     pipe_through :api_from_doc
-    post "/potions", Moonwalk.TestWeb.PotionController, :create_potion
+    post "/potions", Moonwalk.TestWeb.LabController, :create_potion
+    get "/:lab/alchemists", Moonwalk.TestWeb.LabController, :list_alchemists
+    post "/:lab/alchemists", Moonwalk.TestWeb.LabController, :search_alchemists
   end
 
   match :*, "/*path", Moonwalk.TestWeb.Router.Catchall, :not_found, warn_on_verify: true

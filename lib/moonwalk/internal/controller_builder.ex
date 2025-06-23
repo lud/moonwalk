@@ -4,8 +4,14 @@ defmodule Moonwalk.Internal.ControllerBuilder do
   @moduledoc false
 
   @undef :__undefined__
-  def build(opts, target) do
+  def build(opts, target) when is_list(opts) when is_map(opts) do
     {target, opts, %{}}
+  end
+
+  def build(other, target) do
+    raise ArgumentError,
+          "invalid value for Open API model #{inspect(target)} in controller, " <>
+            "expected keyword list or map, got: #{inspect(other)}"
   end
 
   def nocast(value) do
@@ -92,6 +98,13 @@ defmodule Moonwalk.Internal.ControllerBuilder do
     case pop(input, key) do
       {:ok, value, input} -> with_cast(target, input, output, key, value, cast)
       :error -> {target, input, Map.put(output, key, default)}
+    end
+  end
+
+  def take_default_lazy({target, input, output}, key, generate, cast \\ &nocast/1) when is_function(generate, 0) do
+    case pop(input, key) do
+      {:ok, value, input} -> with_cast(target, input, output, key, value, cast)
+      :error -> {target, input, Map.put(output, key, generate.())}
     end
   end
 

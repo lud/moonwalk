@@ -2,6 +2,10 @@ defmodule Moonwalk.Spec.PathItem do
   require JSV
   use Moonwalk.Internal.SpecObject
 
+  def verbs do
+    [:get, :put, :post, :delete, :options, :head, :patch, :trace]
+  end
+
   # Describes operations available on a single path.
   JSV.defschema(%{
     title: "PathItem",
@@ -58,12 +62,12 @@ defmodule Moonwalk.Spec.PathItem do
   end
 
   defimpl Enumerable do
-    @op_keys [:get, :put, :post, :delete, :options, :head, :patch, :trace]
+    alias Moonwalk.Spec.PathItem
 
     def reduce(path_item, arg, fun) do
       # Take with ordering to avoid schema reference naming randomness
       by_verb =
-        Enum.flat_map([:get, :put, :post, :delete, :options, :head, :patch, :trace], fn k ->
+        Enum.flat_map(PathItem.verbs(), fn k ->
           case Map.fetch!(path_item, k) do
             nil -> []
             v -> [{k, v}]
@@ -81,7 +85,7 @@ defmodule Moonwalk.Spec.PathItem do
     end
 
     def count(path_item) do
-      {:ok, Enum.count(@op_keys, &(Map.fetch!(path_item, &1) != nil))}
+      {:ok, Enum.count(PathItem.verbs(), &(Map.fetch!(path_item, &1) != nil))}
     end
 
     def slice(_) do

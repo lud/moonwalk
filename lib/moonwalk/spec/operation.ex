@@ -6,6 +6,8 @@ defmodule Moonwalk.Spec.Operation do
   require JSV
   use Moonwalk.Internal.SpecObject
 
+  # TODO do not render :method in JSON as it is for internal use
+
   # Describes a single API operation on a path.
   JSV.defschema(%{
     title: "Operation",
@@ -50,6 +52,11 @@ defmodule Moonwalk.Spec.Operation do
         items: Moonwalk.Spec.Server,
         description: "Alternative servers array for this operation."
       }
+      # TODO do not use and remove
+      # method: %{
+      #   description: "HTTP method used for this operation. This field is for internal use.",
+      #   enum: [nil | PathItem.verbs()]
+      # }
     },
     required: [:responses, :operationId]
   })

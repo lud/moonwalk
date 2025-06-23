@@ -13,45 +13,48 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   def build_operations(normal_spec, opts) when is_map(opts) do
     spec = SpecValidator.validate!(normal_spec)
 
-    to_build =
-      spec.paths
-      # TODO handle reference
-      |> Enum.flat_map(fn {path, path_item} ->
-        path_item
-        |> deref(PathItem, _dummy_rev_path = [], spec)
-        |> elem(0)
-        |> Enum.map(fn {verb, operation} ->
-          %Operation{operationId: operation_id} = operation
-          {[verb, path, "paths"], operation_id, operation}
-        end)
-      end)
+    to_build = stream_operations(spec)
 
     jsv_ctx = JSV.build_init!(opts.jsv_opts)
     {_root_ns, _, jsv_ctx} = JSV.build_add!(jsv_ctx, normal_spec)
 
     {validations_by_op_id, jsv_ctx} =
-      Enum.map_reduce(to_build, jsv_ctx, fn {rev_path, op_id, op}, jsv_ctx ->
-        build_op_validation(rev_path, op_id, op, spec, jsv_ctx, opts)
+      Enum.map_reduce(to_build, jsv_ctx, fn {rev_path, op_id, op, pi_ps}, jsv_ctx ->
+        build_op_validation(rev_path, op_id, op, pi_ps, spec, jsv_ctx, opts)
       end)
 
     jsv_root = JSV.to_root!(jsv_ctx, :root)
 
-    # TODO here we must ensure no duplicates in the map
     {to_ops_map(validations_by_op_id), jsv_root}
   end
 
+  defp stream_operations(spec) do
+    Stream.flat_map(spec.paths, fn {path, path_item} ->
+      path_item
+      |> deref(PathItem, [path, "paths"], spec)
+      |> then(fn {path_item, rev_path} ->
+        pathitem_parameters = pathitem_parameters(path_item, rev_path, spec)
+        buildable_operations(path_item, rev_path, pathitem_parameters)
+      end)
+    end)
+  end
+
+  defp buildable_operations(path_item, rev_path, pathitem_parameters) do
+    Stream.map(path_item, fn {verb, operation} ->
+      %Operation{operationId: operation_id} = operation
+      {[verb | rev_path], operation_id, operation, pathitem_parameters}
+    end)
+  end
+
   defp deref(%Reference{"$ref": "#/" <> bin_path = full_path}, expected, _rev_path, spec) do
-    path = bin_path |> String.split("/") |> Enum.map(&maybe_to_existing_atom/1)
+    {object, rev_path} = resolve_ref(spec, String.split(bin_path, "/"), [])
 
-    case get_in(spec, path) do
+    case object do
       %^expected{} = found ->
-        {found, :lists.reverse(path)}
-
-      nil ->
-        {nil, :lists.reverse(path)}
+        {found, rev_path}
 
       other ->
-        raise "could not dereference #{inspect(full_path)} (using #{inspect(path)}), " <>
+        raise "could not dereference #{inspect(full_path)} (using #{inspect(:lists.reverse(rev_path))}), " <>
                 "expected struct #{inspect(expected)}, found #{inspect(other)}"
     end
   end
@@ -64,20 +67,49 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     {nil, rev_path}
   end
 
-  defp maybe_to_existing_atom(binary) when is_binary(binary) do
-    String.to_existing_atom(binary)
-  rescue
-    _ in ArgumentError -> binary
+  # When resolving a reference into the spec, if the spec is a struct then we
+  # cast the path segment to an atom. Otherwise we keep it as string.
+  defp resolve_ref(%_struct{} = object, [h | t], acc) do
+    h = String.to_existing_atom(h)
+    resolve_ref(Map.fetch!(object, h), t, [h | acc])
+  end
+
+  defp resolve_ref(%{} = object, [h | t], acc) do
+    resolve_ref(Map.fetch!(object, h), t, [h | acc])
+  end
+
+  defp resolve_ref(%{} = maybe_struct, [], acc) do
+    {maybe_struct, acc}
+  end
+
+  defp pathitem_parameters(path_item, rev_path, spec) do
+    case path_item.parameters do
+      nil ->
+        []
+
+      [] ->
+        []
+
+      ps ->
+        ps
+        |> Enum.with_index()
+        |> Enum.map(fn {p, index} ->
+          {_parameter, _rev_path} = deref(p, Parameter, [{:index, index} | rev_path], spec)
+        end)
+    end
   end
 
   defp to_ops_map(ops_list) do
     Enum.reduce(ops_list, %{}, fn
-      {op_id, _}, acc when is_map_key(acc, op_id) -> raise ArgumentError, "duplicate operation id #{inspect(op_id)}"
-      {op_id, op_spec}, acc -> Map.put(acc, op_id, op_spec)
+      {op_id, _}, acc when is_map_key(acc, op_id) ->
+        raise ArgumentError, "duplicate operation id #{inspect(op_id)} or operation missing the :method option"
+
+      {op_id, op_spec}, acc ->
+        Map.put(acc, op_id, op_spec)
     end)
   end
 
-  defp build_op_validation(rev_path, op_id, op, spec, jsv_ctx, opts) do
+  defp build_op_validation(rev_path, op_id, op, pathitem_parameters, spec, jsv_ctx, opts) do
     validations = []
 
     # Body
@@ -91,7 +123,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     # Parameters
 
     {validations, jsv_ctx} =
-      case build_parameters_validation(op.parameters, rev_path, spec, jsv_ctx) do
+      case build_parameters_validation(op.parameters, pathitem_parameters, rev_path, spec, jsv_ctx) do
         {[], jsv_ctx} -> {validations, jsv_ctx}
         {parameters_by_location, jsv_ctx} -> {[{:parameters, parameters_by_location} | validations], jsv_ctx}
       end
@@ -182,18 +214,33 @@ defmodule Moonwalk.Internal.ValidationBuilder do
 
   # -- Parameters Validation --------------------------------------------------
 
-  defp build_parameters_validation([], _rev_path, _spec, jsv_ctx) do
+  defp build_parameters_validation([], [], _rev_path, _spec, jsv_ctx) do
     {[], jsv_ctx}
   end
 
-  defp build_parameters_validation(parameters, rev_path, spec, jsv_ctx) do
-    {built_params, jsv_ctx} =
+  # _wrev means "with rev path"
+  defp build_parameters_validation(parameters, pathitem_parameters_wrev, rev_path, spec, jsv_ctx) do
+    parameters_wrev =
       parameters
       |> Enum.with_index()
       |> Enum.map(fn {p_or_ref, index} ->
         deref(p_or_ref, Parameter, [{:index, index}, "parameters" | rev_path], spec)
       end)
-      |> Enum.flat_map_reduce(
+
+    # We need to keep only pathitem parameters that are not overriden by the
+    # operation.
+    defined_by_op = Map.new(parameters_wrev, fn {%{name: name, in: loc}, _} -> {{name, loc}, true} end)
+
+    pathitem_parameters_wrev =
+      Enum.filter(pathitem_parameters_wrev, fn {%{name: name, in: loc}, _} ->
+        not Map.has_key?(defined_by_op, {name, loc})
+      end)
+
+    all_parameters_wrev = pathitem_parameters_wrev ++ parameters_wrev
+
+    {built_params, jsv_ctx} =
+      Enum.flat_map_reduce(
+        all_parameters_wrev,
         jsv_ctx,
         fn
           {%Parameter{in: p_in} = parameter, rev_path}, jsv_ctx when p_in in [:path, :query] ->

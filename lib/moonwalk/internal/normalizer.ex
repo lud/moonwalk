@@ -100,7 +100,8 @@ defmodule Moonwalk.Internal.Normalizer do
     raise NormalizeError,
       ctx: ctx,
       reason:
-        "invalid value for Open API model #{inspect(target)}, expected a map or %#{inspect(target)}{}, got: #{inspect(other)}"
+        "invalid value for Open API model #{inspect(target)}, " <>
+          "expected a map or %#{inspect(target)}{}, got: #{inspect(other)}"
   end
 
   def normalize_subs(bld, [{_, _} | _] = keymap) when is_list(keymap) do

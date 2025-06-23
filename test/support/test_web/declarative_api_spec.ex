@@ -49,8 +49,26 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
     })
   end
 
-  IO.warn("@todo test parameters at the path level")
-  IO.warn("@todo test responses schemas")
+  defmodule Alchemist do
+    JSV.defschema(%{
+      type: :object,
+      properties: %{
+        name: %{type: :string},
+        titles: %{type: :array, items: %{type: :string}}
+      },
+      required: [:name, :titles]
+    })
+  end
+
+  defmodule AlchemistsPage do
+    JSV.defschema(%{
+      type: :object,
+      properties: %{
+        data: %{type: :array, items: Alchemist}
+      },
+      required: [:data]
+    })
+  end
 
   @api_spec %{
     "openapi" => "3.1.0",
@@ -59,7 +77,8 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
       "version" => "1.0.0"
     },
     "paths" => %{
-      "/potions" => %{"$ref" => "#/components/pathItems/CreatePotionPath"}
+      "/potions" => %{"$ref" => "#/components/pathItems/CreatePotionPath"},
+      "/{lab}/alchemists" => %{"$ref" => "#/components/pathItems/AlchemistsPath"}
     },
     "components" => %{
       "pathItems" => %{
@@ -75,6 +94,36 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
               "200" => %{"$ref" => "#/components/responses/PotionCreated"}
             }
           }
+        },
+        "AlchemistsPath" => %{
+          "parameters" => [
+            %{"$ref" => "#/components/parameters/LaboratorySlug"},
+            %{"$ref" => "#/components/parameters/Q"}
+          ],
+          "get" => %{
+            "operationId" => "listAlchemists",
+            "parameters" => [
+              %{"$ref" => "#/components/parameters/PerPage"},
+              %{"$ref" => "#/components/parameters/Page"}
+            ],
+            "responses" => %{
+              "200" => %{"$ref" => "#/components/responses/AlchemistsPage"},
+              "400" => %{"$ref" => "#/components/responses/BadRequest"}
+            }
+          },
+          "post" => %{
+            "operationId" => "searchAlchemists",
+            "parameters" => [
+              # This one overrides pathitems parameters
+              %{"name" => "q", "in" => "query", "schema" => %{"type" => "string", "minLength" => 0}},
+              # This one does not override as it is defined in query but
+              # pathitem 'lab' parameter is defined in path.
+              %{"name" => "lab", "in" => "query", "schema" => %{"type" => "string", "pattern" => "^someprefix:[a-z]+"}}
+            ],
+            "responses" => %{
+              "200" => %{"$ref" => "#/components/responses/AlchemistsPage"}
+            }
+          }
         }
       },
       "parameters" => %{
@@ -87,6 +136,18 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
           "name" => "source",
           "in" => "query",
           "schema" => %{"type" => "string"}
+        },
+        "PerPage" => %{"name" => "per_page", "in" => "query", "schema" => %{"type" => "integer", minimum: 1}},
+        "Page" => %{"name" => "page", "in" => "query", "schema" => %{"type" => "integer", minimum: 1}},
+        "LaboratorySlug" => %{
+          "name" => "lab",
+          "in" => "path",
+          "schema" => %{"$ref" => "#/components/parameters/LaboratorySlug"}
+        },
+        "Q" => %{
+          "name" => "q",
+          "in" => "query",
+          "schema" => %{"type" => "string", "minLength" => 1}
         }
       },
       "requestBodies" => %{
@@ -100,6 +161,14 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
         }
       },
       "responses" => %{
+        "BadRequest" => %{
+          "description" => "Bad request",
+          "content" => %{
+            "application/json" => %{
+              "schema" => true
+            }
+          }
+        },
         "PotionCreated" => %{
           "description" => "Potion created successfully",
           "content" => %{
@@ -107,12 +176,22 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
               "schema" => %{"$ref" => "#/components/schemas/Potion"}
             }
           }
+        },
+        "AlchemistsPage" => %{
+          "description" => "Page of Alchemists listing",
+          "content" => %{
+            "application/json" => %{
+              "schema" => %{"$ref" => "#/components/schemas/AlchemistsPage"}
+            }
+          }
         }
       },
       "schemas" => %{
         "Ingredient" => Ingredient,
         "CreatePotionBody" => CreatePotionBody,
-        "Potion" => Potion
+        "Potion" => Potion,
+        "AlchemistsPage" => AlchemistsPage,
+        "LaboratorySlug" => %{"type" => "string", "pattern" => "[a-zA-Z0-9_-]"}
       }
     }
   }

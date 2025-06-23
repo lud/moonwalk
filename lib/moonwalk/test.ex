@@ -1,6 +1,6 @@
 defmodule Moonwalk.Test do
-  alias Moonwalk.Plugs.ValidateRequest
   alias Moonwalk.JsonSchema.Formats.HttpStructuredField
+  alias Moonwalk.Plugs.ValidateRequest
 
   def valid_response(spec_module, %Plug.Conn{} = conn, status) when is_integer(status) do
     body = Phoenix.ConnTest.response(conn, status)
@@ -54,9 +54,15 @@ defmodule Moonwalk.Test do
   end
 
   defp parse_validate_response(ctx) do
-    jsv_key = match_media_type(ctx)
     body = maybe_parse_body(ctx)
 
+    case match_media_type(ctx) do
+      :no_validation -> body
+      jsv_key -> validate_response(body, jsv_key, ctx)
+    end
+  end
+
+  defp validate_response(body, jsv_key, ctx) do
     case JSV.validate(body, ctx.jsv_root, key: jsv_key) do
       {:ok, _} ->
         body
@@ -67,7 +73,10 @@ defmodule Moonwalk.Test do
                 """
                 Schema validation errors:
 
-                #{inspect(JSV.normalize_error(jsv_error), pretty: true, limit: 1000)}
+                #{inspect(JSV.normalize_error(jsv_error), pretty: true)}
+
+                Response data:
+                #{inspect(body, pretty: true)}
                 """
     end
   end
