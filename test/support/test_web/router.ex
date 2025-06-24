@@ -9,12 +9,14 @@ defmodule Moonwalk.TestWeb.Router do
     plug Moonwalk.Plugs.SpecProvider, spec: Moonwalk.TestWeb.DeclarativeApiSpec
   end
 
-  scope "/meta", Moonwalk.TestWeb do
-    get "/hello", MetaController, :hello
-  end
-
   scope "/generated" do
     pipe_through :api_from_paths
+
+    scope "/meta", Moonwalk.TestWeb do
+      get "/before-metas", MetaController, :before_metas
+      get "/after-metas", MetaController, :after_metas
+      get "/overrides-param", MetaController, :overrides_param
+    end
 
     scope "/body", Moonwalk.TestWeb do
       post "/inline-single", BodyController, :inline_single
@@ -31,18 +33,18 @@ defmodule Moonwalk.TestWeb.Router do
       get "/manual-form-show", BodyController, :manual_form_show
     end
 
-    scope "/params", Moonwalk.TestWeb do
+    scope "/params/:slug", Moonwalk.TestWeb do
       get "/t/:theme", ParamController, :single_path_param
       get "/t/:theme/c/:color", ParamController, :two_path_params
       get "/generic", ParamController, :generic_param_types
       get "/arrays", ParamController, :array_types
       get "/boolean-schema-false", ParamController, :boolean_schema_false
-    end
 
-    scope "/params/s/:shape", Moonwalk.TestWeb do
-      get "/", ParamController, :scope_only
-      get "/t/:theme", ParamController, :scope_and_single
-      get "/t/:theme/c/:color", ParamController, :scope_and_two_path_params
+      scope "/s/:shape" do
+        get "/", ParamController, :scope_only
+        get "/t/:theme", ParamController, :scope_and_single
+        get "/t/:theme/c/:color", ParamController, :scope_and_two_path_params
+      end
     end
 
     scope "/resp", Moonwalk.TestWeb do

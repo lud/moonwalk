@@ -95,7 +95,7 @@ defmodule Moonwalk.Spec.Parameter do
     |> collect()
   end
 
-  def from_controller!(spec, name) when is_atom(name) and is_list(spec) do
+  def from_controller!(name, spec) when is_atom(name) and is_list(spec) do
     spec
     |> build(__MODULE__)
     |> put(:name, name)

@@ -3,11 +3,11 @@ defmodule Moonwalk.Web.ParamTest do
 
   # Testing using the following routes.
   #
-  # /params/t/:theme
-  # /params/t/:theme/c/:color
-  # /params/s/:shape
-  # /params/s/:shape/t/:theme
-  # /params/s/:shape/t/:theme/c/:color
+  # /params/some-slug/t/:theme
+  # /params/some-slug/t/:theme/c/:color
+  # /params/some-slug/s/:shape
+  # /params/some-slug/s/:shape/t/:theme
+  # /params/some-slug/s/:shape/t/:theme/c/:color
   #
   # - /s/:shape accepts only "square" or "circle"
   # - /t/:theme accepts only "dark" or "light"
@@ -16,7 +16,7 @@ defmodule Moonwalk.Web.ParamTest do
   describe "single path param" do
     test "valid param", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/generated/params/t/dark", fn conn, _params ->
+        get_reply(conn, ~p"/generated/params/some-slug/t/dark", fn conn, _params ->
           assert %{theme: :dark} = conn.private.moonwalk.path_params
           json(conn, %{data: "ok"})
         end)
@@ -25,7 +25,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "invalid param", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/t/UNKNOWN_THEME")
+      conn = get(conn, ~p"/generated/params/some-slug/t/UNKNOWN_THEME")
 
       assert %{
                "error" => %{
@@ -48,7 +48,7 @@ defmodule Moonwalk.Web.ParamTest do
 
   describe "two path params (no scope)" do
     test "two invalid path params", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/t/UNKNOWN_THEME/c/UNKNOWN_COLOR")
+      conn = get(conn, ~p"/generated/params/BAD_SLUG/t/UNKNOWN_THEME/c/UNKNOWN_COLOR")
 
       assert %{
                "error" => %{
@@ -66,6 +66,13 @@ defmodule Moonwalk.Web.ParamTest do
                    %{
                      "in" => "path",
                      "kind" => "invalid_parameter",
+                     "message" => "invalid parameter slug in path",
+                     "parameter" => "slug",
+                     "validation_error" => %{"valid" => false}
+                   },
+                   %{
+                     "in" => "path",
+                     "kind" => "invalid_parameter",
                      "message" => "invalid parameter theme in path",
                      "parameter" => "theme",
                      "validation_error" => %{"valid" => false}
@@ -76,7 +83,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "one valid, one invalid path param", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/t/dark/c/UNKNOWN_COLOR")
+      conn = get(conn, ~p"/generated/params/some-slug/t/dark/c/UNKNOWN_COLOR")
 
       assert %{
                "error" => %{
@@ -98,7 +105,7 @@ defmodule Moonwalk.Web.ParamTest do
 
     test "both valid path params", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/generated/params/t/dark/c/red", fn conn, _params ->
+        get_reply(conn, ~p"/generated/params/some-slug/t/dark/c/red", fn conn, _params ->
           assert %{theme: :dark, color: :red} = conn.private.moonwalk.path_params
           json(conn, %{data: "ok"})
         end)
@@ -109,7 +116,7 @@ defmodule Moonwalk.Web.ParamTest do
 
   describe "scope and path params" do
     test "valid scope param, invalid path param", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/s/circle/t/UNKNOWN_THEME")
+      conn = get(conn, ~p"/generated/params/some-slug/s/circle/t/UNKNOWN_THEME")
 
       assert %{
                "error" => %{
@@ -130,7 +137,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "invalid scope param, valid path param", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/s/UNKNOWN_SHAPE/t/dark")
+      conn = get(conn, ~p"/generated/params/some-slug/s/UNKNOWN_SHAPE/t/dark")
 
       assert %{
                "error" => %{
@@ -151,7 +158,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "both scope and path params invalid", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/s/UNKNOWN_SHAPE/t/UNKNOWN_THEME")
+      conn = get(conn, ~p"/generated/params/some-slug/s/UNKNOWN_SHAPE/t/UNKNOWN_THEME")
 
       assert %{
                "error" => %{
@@ -180,7 +187,7 @@ defmodule Moonwalk.Web.ParamTest do
 
     test "both scope and path params valid", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/generated/params/s/square/t/light", fn conn, _params ->
+        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light", fn conn, _params ->
           assert %{shape: :square, theme: :light} = conn.private.moonwalk.path_params
           json(conn, %{data: "ok"})
         end)
@@ -193,14 +200,14 @@ defmodule Moonwalk.Web.ParamTest do
   describe "query params" do
     test "valid query params with integers", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/generated/params/s/square/t/light/c/red?shape=10&theme=20&color=30", fn
+        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10&theme=20&color=30", fn
           conn, params ->
             # standard phoenix behaviour should not be changed, the path params have priority
-            assert %{"shape" => "square", "theme" => "light", "color" => "red"} == params
+            assert %{"slug" => "some-slug", "shape" => "square", "theme" => "light", "color" => "red"} == params
             assert %{"shape" => "10", "theme" => "20", "color" => "30"} == conn.query_params
 
             # moonwalk data is properly cast
-            assert %{shape: :square, theme: :light, color: :red} ==
+            assert %{slug: "some-slug", shape: :square, theme: :light, color: :red} ==
                      conn.private.moonwalk.path_params
 
             assert %{shape: 10, theme: 20, color: 30} == conn.private.moonwalk.query_params
@@ -215,7 +222,7 @@ defmodule Moonwalk.Web.ParamTest do
       # Ensures that our schemas for the query params are not overriden by the
       # schemas of the path params
 
-      conn = get(conn, ~p"/generated/params/s/square/t/light/c/red?shape=1010&theme=1020&color=1030")
+      conn = get(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=1010&theme=1020&color=1030")
 
       assert %{
                "error" => %{
@@ -253,7 +260,7 @@ defmodule Moonwalk.Web.ParamTest do
       # Ensures that our schemas for the query params are not overriden by the
       # schemas of the path params
 
-      conn = get(conn, ~p"/generated/params/s/square/t/light/c/red?shape=square&theme=light&color=red")
+      conn = get(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=square&theme=light&color=red")
 
       assert %{
                "error" => %{
@@ -289,7 +296,7 @@ defmodule Moonwalk.Web.ParamTest do
 
     test "required query param is missing", %{conn: conn} do
       # The shape query param is required
-      conn = get(conn, ~p"/generated/params/s/square/t/light/c/red?theme=20&color=30")
+      conn = get(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?theme=20&color=30")
 
       assert %{
                "error" => %{
@@ -313,9 +320,9 @@ defmodule Moonwalk.Web.ParamTest do
       # give them.
 
       conn =
-        get_reply(conn, ~p"/generated/params/s/square/t/light/c/red?shape=10", fn conn, params ->
+        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10", fn conn, params ->
           # standard phoenix behaviour should not be changed, the path params have priority
-          assert %{"shape" => "square", "theme" => "light", "color" => "red"} == params
+          assert %{"slug" => "some-slug", "shape" => "square", "theme" => "light", "color" => "red"} == params
           assert %{"shape" => "10"} == conn.query_params
 
           # moonwalk data is properly cast
@@ -333,10 +340,11 @@ defmodule Moonwalk.Web.ParamTest do
       conn =
         get_reply(
           conn,
-          ~p"/generated/params/generic?string_param=hello&boolean_param=true&integer_param=42&number_param=99",
+          ~p"/generated/params/some-slug/generic?string_param=hello&boolean_param=true&integer_param=42&number_param=99",
           fn conn, params ->
             # Assert that Phoenix doesn't cast the parameters
             assert %{
+                     "slug" => "some-slug",
                      "string_param" => "hello",
                      "boolean_param" => "true",
                      "integer_param" => "42",
@@ -369,7 +377,7 @@ defmodule Moonwalk.Web.ParamTest do
       conn =
         get(
           conn,
-          ~p"/generated/params/generic?string_param=hello&boolean_param=not-a-boolean&integer_param=not-a-number&number_param=not-a-number"
+          ~p"/generated/params/some-slug/generic?string_param=hello&boolean_param=not-a-boolean&integer_param=not-a-number&number_param=not-a-number"
         )
 
       assert %{
@@ -411,10 +419,11 @@ defmodule Moonwalk.Web.ParamTest do
       conn =
         get_reply(
           conn,
-          ~p"/generated/params/arrays?numbers[]=123&numbers[]=456&names[]=Alice&names[]=Bob",
+          ~p"/generated/params/some-slug/arrays?numbers[]=123&numbers[]=456&names[]=Alice&names[]=Bob",
           fn conn, params ->
             # Assert that Phoenix doesn't cast the parameters
             assert %{
+                     "slug" => "some-slug",
                      "numbers" => ["123", "456"],
                      "names" => ["Alice", "Bob"]
                    } == params
@@ -430,6 +439,10 @@ defmodule Moonwalk.Web.ParamTest do
                      names: ["Alice", "Bob"]
                    } == conn.private.moonwalk.query_params
 
+            # This operation is defined above the slug common parameter, so
+            # it's not there
+            assert %{} == conn.private.moonwalk.path_params
+
             json(conn, %{data: "ok"})
           end
         )
@@ -441,7 +454,7 @@ defmodule Moonwalk.Web.ParamTest do
       conn =
         get(
           conn,
-          ~p"/generated/params/arrays?numbers[]=not-a-number&numbers[]=456&names[]=Alice&names[]=123"
+          ~p"/generated/params/some-slug/arrays?numbers[]=not-a-number&numbers[]=456&names[]=Alice&names[]=123"
         )
 
       assert %{
@@ -463,7 +476,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "non-array parameter when array expected", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/arrays?numbers=123&names=Alice")
+      conn = get(conn, ~p"/generated/params/some-slug/arrays?numbers=123&names=Alice")
 
       assert %{
                "error" => %{
@@ -492,7 +505,7 @@ defmodule Moonwalk.Web.ParamTest do
 
     test "array parameters sent to non-array route", %{conn: conn} do
       # Sending array parameters to the generic param route which expects scalar types
-      conn = get(conn, ~p"/generated/params/generic?string_param[]=hello&integer_param[]=42")
+      conn = get(conn, ~p"/generated/params/some-slug/generic?string_param[]=hello&integer_param[]=42")
 
       assert %{
                "error" => %{
@@ -522,7 +535,7 @@ defmodule Moonwalk.Web.ParamTest do
 
   describe "boolean schema false in query params" do
     test "any query param value should be rejected with boolean schema false", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/boolean-schema-false?reject_me=any_value")
+      conn = get(conn, ~p"/generated/params/some-slug/boolean-schema-false?reject_me=any_value")
 
       assert %{
                "error" => %{
@@ -543,7 +556,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "empty string query param should be rejected with boolean schema false", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/boolean-schema-false?reject_me=")
+      conn = get(conn, ~p"/generated/params/some-slug/boolean-schema-false?reject_me=")
 
       assert %{
                "error" => %{
@@ -564,7 +577,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "multiple query params should all be rejected with boolean schema false", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/boolean-schema-false?reject_me=value1&also_reject=value2")
+      conn = get(conn, ~p"/generated/params/some-slug/boolean-schema-false?reject_me=value1&also_reject=value2")
 
       assert %{
                "error" => %{
@@ -593,7 +606,7 @@ defmodule Moonwalk.Web.ParamTest do
 
     test "no query params should be accepted with boolean schema false", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/generated/params/boolean-schema-false", fn conn, _params ->
+        get_reply(conn, ~p"/generated/params/some-slug/boolean-schema-false", fn conn, _params ->
           # No query params should be set or an empty map
           assert conn.private.moonwalk.query_params == %{}
 
@@ -609,7 +622,7 @@ defmodule Moonwalk.Web.ParamTest do
 
     test "required query param is missing HTML", %{conn: conn} do
       # The shape query param is required
-      conn = get(conn, ~p"/generated/params/s/square/t/light/c/red?theme=20&color=30")
+      conn = get(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?theme=20&color=30")
 
       body = response(conn, 400)
       assert body =~ ~r{<!doctype html>.+Bad Request}s
@@ -619,7 +632,7 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "invalid param text errors", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/t/UNKNOWN_THEME")
+      conn = get(conn, ~p"/generated/params/some-slug/t/UNKNOWN_THEME")
 
       body = response(conn, 400)
       assert body =~ ~r{<!doctype html>.+Bad Request}s

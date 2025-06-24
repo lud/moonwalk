@@ -1,10 +1,13 @@
 defmodule Moonwalk.Controller do
   alias Moonwalk.Spec.Operation
+  alias Moonwalk.Spec.Parameter
 
   defmacro __using__(opts) do
     quote bind_quoted: binding() do
       import Moonwalk.Controller
 
+      Module.register_attribute(__MODULE__, :moonwalk_parameters, accumulate: true)
+      Module.register_attribute(__MODULE__, :moonwalk_tags, accumulate: true)
       Module.register_attribute(__MODULE__, :moonwalk_operations, accumulate: true)
 
       @before_compile Moonwalk.Controller
@@ -29,7 +32,11 @@ defmodule Moonwalk.Controller do
 
     quote bind_quoted: binding() do
       {verb, spec} = Moonwalk.Controller.__pop_verb(spec)
-      operation = Moonwalk.Spec.Operation.from_controller!(spec)
+      shared_parameters = :lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_parameters, []))
+      shared_tags = :lists.flatten(:lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_tags, [])))
+
+      operation =
+        Moonwalk.Spec.Operation.from_controller!(spec, shared_parameters: shared_parameters, shared_tags: shared_tags)
 
       @moonwalk_operations {action, operation, verb}
     end
@@ -39,8 +46,23 @@ defmodule Moonwalk.Controller do
   defmacro use_operation(action, operation_id, opts \\ []) do
     quote bind_quoted: binding() do
       {verb, opts} = Moonwalk.Controller.__pop_verb(opts)
-
       @moonwalk_operations {action, {:use_operation, to_string(operation_id)}, verb}
+    end
+  end
+
+  # TODO(doc) document that parameters only apply to operations defined below
+  # them in the module.
+  defmacro parameter(key, opts) when is_atom(key) do
+    quote bind_quoted: binding() do
+      @moonwalk_parameters Parameter.from_controller!(key, opts)
+    end
+  end
+
+  # TODO(doc) document that tags only apply to operations defined below them in
+  # the module.
+  defmacro tags(tags) when is_list(tags) do
+    quote bind_quoted: binding() do
+      @moonwalk_tags tags
     end
   end
 
@@ -82,6 +104,7 @@ defmodule Moonwalk.Controller do
 
   defmacro __before_compile__(env) do
     moonwalk_operations = Module.delete_attribute(env.module, :moonwalk_operations) || []
+    _ = Module.delete_attribute(env.module, :moonwalk_parameters)
     validate_duplicate_actions!(moonwalk_operations, env)
 
     clauses =

@@ -1,4 +1,11 @@
-locals_without_parens = [operation: 2, operation: 1, use_operation: 3, use_operation: 2, with_decimal: 1]
+locals_without_parens = [
+  operation: 1,
+  operation: 2,
+  parameter: 2,
+  tags: 1,
+  use_operation: 2,
+  with_decimal: 1
+]
 
 [
   import_deps: [:phoenix, :jsv],

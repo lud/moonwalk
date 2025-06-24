@@ -8,6 +8,23 @@ defmodule Moonwalk.TestWeb.ParamController do
   @color Schema.string_to_atom_enum([:red, :blue])
   @query_int Schema.integer(minimum: 10, maximum: 100)
 
+  # TODO(doc) import formatter
+
+  operation :array_types,
+    parameters: [
+      numbers: [in: :query, schema: Schema.array_of(Schema.integer())],
+      names: [in: :query, schema: Schema.array_of(Schema.string())]
+    ],
+    responses: dummy_responses()
+
+  def array_types(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  # Parameter is defined after some operations. Operation above does not have
+  # this parameter.
+  parameter :slug, in: :path, schema: %{type: :string, pattern: "[a-z-]+"}
+
   operation :generic_param_types,
     parameters: [
       string_param: [in: :query, schema: Schema.string()],
@@ -18,17 +35,6 @@ defmodule Moonwalk.TestWeb.ParamController do
     responses: dummy_responses()
 
   def generic_param_types(conn, params) do
-    Responder.reply(conn, params)
-  end
-
-  operation :array_types,
-    parameters: [
-      numbers: [in: :query, schema: Schema.array_of(Schema.integer())],
-      names: [in: :query, schema: Schema.array_of(Schema.string())]
-    ],
-    responses: dummy_responses()
-
-  def array_types(conn, params) do
     Responder.reply(conn, params)
   end
 

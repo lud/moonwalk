@@ -420,21 +420,32 @@ defmodule Moonwalk.SpecTest do
 
   describe "phoenix routes" do
     test "extracting operations from phoenix routes" do
-      assert %Moonwalk.Spec.OpenAPI{
-               paths: %{
-                 "/generated/body/form" => %Moonwalk.Spec.PathItem{},
-                 "/generated/body/inline-single" => %Moonwalk.Spec.PathItem{},
-                 "/generated/body/module-single" => %Moonwalk.Spec.PathItem{},
-                 "/generated/body/wildcard" => %Moonwalk.Spec.PathItem{},
-                 "/generated/params/arrays" => %Moonwalk.Spec.PathItem{},
-                 "/generated/params/generic" => %Moonwalk.Spec.PathItem{},
-                 "/generated/params/s/{shape}" => %Moonwalk.Spec.PathItem{},
-                 "/generated/params/s/{shape}/t/{theme}" => %Moonwalk.Spec.PathItem{},
-                 "/generated/params/s/{shape}/t/{theme}/c/{color}" => %Moonwalk.Spec.PathItem{},
-                 "/generated/params/t/{theme}" => %Moonwalk.Spec.PathItem{},
-                 "/generated/params/t/{theme}/c/{color}" => %Moonwalk.Spec.PathItem{}
-               }
-             } =
+      assert [
+               "/generated/body/boolean-schema-false",
+               "/generated/body/form",
+               "/generated/body/inline-single",
+               "/generated/body/manual-form-handle",
+               "/generated/body/manual-form-show",
+               "/generated/body/module-single",
+               "/generated/body/module-single-no-required",
+               "/generated/body/wildcard",
+               "/generated/meta/after-metas",
+               "/generated/meta/before-metas",
+               "/generated/meta/overrides-param",
+               "/generated/method/p",
+               "/generated/params/{slug}/arrays",
+               "/generated/params/{slug}/boolean-schema-false",
+               "/generated/params/{slug}/generic",
+               "/generated/params/{slug}/s/{shape}",
+               "/generated/params/{slug}/s/{shape}/t/{theme}",
+               "/generated/params/{slug}/s/{shape}/t/{theme}/c/{color}",
+               "/generated/params/{slug}/t/{theme}",
+               "/generated/params/{slug}/t/{theme}/c/{color}",
+               "/generated/resp/fortune-200-bad-content-type",
+               "/generated/resp/fortune-200-invalid",
+               "/generated/resp/fortune-200-no-content-def",
+               "/generated/resp/fortune-200-valid"
+             ] =
                %{
                  :openapi => "3.1.1",
                  :info => %{"title" => "Moonwalk Test API", :version => "0.0.0"},
@@ -442,6 +453,51 @@ defmodule Moonwalk.SpecTest do
                }
                |> Moonwalk.normalize_spec!()
                |> cast_to_structs()
+               |> Map.fetch!(:paths)
+               |> Map.keys()
+               |> Enum.sort()
+    end
+  end
+
+  describe "meta macros" do
+    test "parameter and tags macro merge into the operations" do
+      spec =
+        %{
+          :openapi => "3.1.1",
+          :info => %{"title" => "Moonwalk Test API", :version => "0.0.0"},
+          :paths => Paths.from_router(TestWeb.Router)
+        }
+        |> Moonwalk.normalize_spec!()
+        |> cast_to_structs()
+
+      # operation before shared items has no tags and no parameters
+      assert %{operationId: "meta_before", parameters: [], tags: []} =
+               spec.paths["/generated/meta/before-metas"].get
+
+      # operation after has its own tags and parameters, and the shared ones
+      assert %{
+               operationId: "meta_after",
+               parameters: [
+                 %{in: :query, name: "self1"},
+                 %{in: :query, name: "self2"},
+                 %{in: :query, name: "shared1"},
+                 %{in: :query, name: "shared2"}
+               ],
+               tags: ["zzz", "aaa", "shared1", "shared2"]
+             } =
+               spec.paths["/generated/meta/after-metas"].get
+
+      # operation overriding a param in query, and defining an homonym but in path
+      assert %{
+               operationId: "meta_override",
+               parameters: [
+                 %{in: :query, name: "shared2", schema: %{"overriden" => true}},
+                 %{in: :path, name: "shared1"},
+                 %{in: :query, name: "shared1"}
+               ],
+               tags: ["shared1", "zzz", "shared2"]
+             } =
+               spec.paths["/generated/meta/overrides-param"].get
     end
   end
 

@@ -79,14 +79,19 @@ defmodule Moonwalk.Spec.Operation do
     |> collect()
   end
 
-  def from_controller!(spec) do
+  def from_controller!(spec, opts \\ [])
+
+  def from_controller!(spec, opts) do
+    shared_parameters = Keyword.get(opts, :shared_parameters, [])
+    shared_tags = Keyword.get(opts, :shared_tags, [])
+
     spec
     |> build(__MODULE__)
     |> rename_input(:operation_id, :operationId)
     |> rename_input(:request_body, :requestBody)
     |> take_required(:operationId)
-    |> take_default(:tags, [])
-    |> take_default(:parameters, [], &cast_params/1)
+    |> take_default(:tags, [], &merge_tags(&1, shared_tags))
+    |> take_default(:parameters, [], &cast_params(&1, shared_parameters))
     |> take_default(:description, nil)
     |> take_required(:responses, &cast_responses/1)
     |> take_default(:summary, nil)
@@ -98,22 +103,27 @@ defmodule Moonwalk.Spec.Operation do
     |> into()
   end
 
-  defp cast_params(parameters) when is_map(parameters) do
-    cast_params(Map.to_list(parameters))
+  defp cast_params(parameters, shared_parameters) when is_map(parameters) do
+    cast_params(Map.to_list(parameters), shared_parameters)
   end
 
-  defp cast_params(parameters) when is_list(parameters) do
-    parameters =
-      if Keyword.keyword?(parameters) do
-        Enum.map(parameters, fn {k, p} -> Parameter.from_controller!(p, k) end)
-      else
-        Enum.map(parameters, fn p -> Parameter.from_controller!(p, nil) end)
-      end
+  defp cast_params(parameters, shared_parameters) when is_list(parameters) do
+    if not Keyword.keyword?(parameters) do
+      raise ArgumentError, "expected parameters to be a keyword list or map"
+    end
 
-    {:ok, parameters}
+    parameters = Enum.map(parameters, fn {k, p} -> Parameter.from_controller!(k, p) end)
+
+    # We need to merge shared parameters
+    defined_by_op = Map.new(parameters, fn %{name: name, in: loc} -> {{name, loc}, true} end)
+
+    add_parameters =
+      Enum.filter(shared_parameters, fn %{name: name, in: loc} -> not Map.has_key?(defined_by_op, {name, loc}) end)
+
+    {:ok, parameters ++ add_parameters}
   end
 
-  defp cast_params(other) do
+  defp cast_params(other, _) do
     raise ArgumentError,
           "invalid parameters, expected a map, list or keyword list, got: #{inspect(other)}"
   end
@@ -155,5 +165,9 @@ defmodule Moonwalk.Spec.Operation do
     Plug.Conn.Status.code(status)
   rescue
     _ -> reraise ArgumentError, "invalid status given to :responses, got: #{inspect(status)}", __STACKTRACE__
+  end
+
+  defp merge_tags(self_tags, shared_tags) do
+    {:ok, Enum.uniq(self_tags ++ shared_tags)}
   end
 end

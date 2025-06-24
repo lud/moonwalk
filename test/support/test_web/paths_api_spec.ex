@@ -11,8 +11,8 @@ defmodule Moonwalk.TestWeb.PathsApiSpec do
         Paths.from_router(Moonwalk.TestWeb.Router,
           filter: fn route ->
             case route.path do
-              "/provided" <> _ -> false
-              _ -> true
+              "/generated" <> _ -> true
+              _ -> false
             end
           end
         )
