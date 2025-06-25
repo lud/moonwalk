@@ -475,15 +475,33 @@ defmodule Moonwalk.SpecTest do
                "/generated/resp/fortune-500-default-resp"
              ] =
                %{
-                 :openapi => "3.1.1",
-                 :info => %{"title" => "Moonwalk Test API", :version => "0.0.0"},
-                 :paths => Paths.from_router(TestWeb.Router)
+                 openapi: "3.1.1",
+                 info: %{"title" => "Moonwalk Test API", :version => "0.0.0"},
+                 paths: Paths.from_router(TestWeb.Router)
                }
                |> Moonwalk.normalize_spec!()
                |> cast_to_structs()
                |> Map.fetch!(:paths)
                |> Map.keys()
                |> Enum.sort()
+    end
+  end
+
+  describe "server from phoenix" do
+    test "extracting server info from phoenix config" do
+      assert %OpenAPI{
+               servers: [
+                 %Moonwalk.Spec.Server{url: "http://localhost:5001/"}
+               ]
+             } =
+               %{
+                 :openapi => "3.1.1",
+                 :info => %{"title" => "Moonwalk Test API", :version => "0.0.0"},
+                 servers: [Moonwalk.Spec.Server.from_config(:moonwalk, Moonwalk.TestWeb.Endpoint)],
+                 paths: %{}
+               }
+               |> Moonwalk.normalize_spec!()
+               |> cast_to_structs()
     end
   end
 
