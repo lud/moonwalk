@@ -25,7 +25,6 @@ defmodule Moonwalk.Spec.Contact do
   def normalize!(data, ctx) do
     data
     |> from(__MODULE__, ctx)
-    |> normalize_subs(openapi: :default, info: Moonwalk.Spec.Info, paths: Moonwalk.Spec.Paths)
     |> normalize_default(:all)
     |> collect()
   end

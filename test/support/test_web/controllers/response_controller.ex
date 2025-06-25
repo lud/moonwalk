@@ -67,7 +67,7 @@ defmodule Moonwalk.TestWeb.ResponseController do
 
   operation :default_resp,
     operation_id: "fortune_default_resp",
-    responses: [ok: FortuneCookie, default: GenericError]
+    responses: %{200 => FortuneCookie, :default => GenericError}
 
   def default_resp(conn, _) do
     conn

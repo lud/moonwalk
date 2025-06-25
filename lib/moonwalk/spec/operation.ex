@@ -68,12 +68,13 @@ defmodule Moonwalk.Spec.Operation do
     |> from(__MODULE__, ctx)
     |> normalize_default([:tags, :summary, :description, :operationId, :deprecated])
     |> normalize_subs(
-      requestBody: {:or_ref, Moonwalk.Spec.RequestBody},
+      callbacks: {:list, {:or_ref, Moonwalk.Spec.Callback}},
       externalDocs: Moonwalk.Spec.ExternalDocumentation,
       parameters: {:list, {:or_ref, Moonwalk.Spec.Parameter}},
-      servers: {:list, Moonwalk.Spec.Server},
+      requestBody: {:or_ref, Moonwalk.Spec.RequestBody},
       responses: Moonwalk.Spec.Responses,
-      security: {:list, Moonwalk.Spec.SecurityRequirement}
+      security: {:list, Moonwalk.Spec.SecurityRequirement},
+      servers: {:list, Moonwalk.Spec.Server}
     )
     |> collect()
   end
@@ -142,10 +143,11 @@ defmodule Moonwalk.Spec.Operation do
   defp cast_responses(responses) when is_list(responses) do
     normal =
       Map.new(responses, fn
-        # TODO(doc) responses can be given as status codes. They will be validated.
+        # TODO(doc) responses can be given as status codes atoms. They will be
+        # validated.
 
-        # We do not validate unknown integer status codes, this could be
-        # blocking for users with special needs.
+        # We do not reject unknown integer status codes, this could be blocking
+        # for users with special needs.
         {code, resp} when is_integer(code) ->
           {code, Response.from_controller!(resp)}
 

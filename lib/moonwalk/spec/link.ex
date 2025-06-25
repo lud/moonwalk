@@ -20,4 +20,13 @@ defmodule Moonwalk.Spec.Link do
     },
     required: []
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> from(__MODULE__, ctx)
+    |> normalize_subs(server: Moonwalk.Spec.Server)
+    |> normalize_default(:all)
+    |> collect()
+  end
 end

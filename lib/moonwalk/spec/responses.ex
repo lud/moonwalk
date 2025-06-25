@@ -2,8 +2,6 @@ defmodule Moonwalk.Spec.Responses do
   require JSV
   use Moonwalk.Internal.SpecObject
 
-  IO.warn("@todo what about the default response")
-
   # Container for expected responses of an operation.
   def schema do
     %JSV.Schema{

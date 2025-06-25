@@ -19,4 +19,13 @@ defmodule Moonwalk.Spec.Encoding do
     },
     required: []
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> from(__MODULE__, ctx)
+    |> normalize_subs(headers: {:map, {:or_ref, Moonwalk.Spec.Header}})
+    |> normalize_default(:all)
+    |> collect()
+  end
 end

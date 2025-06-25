@@ -17,10 +17,36 @@ defmodule Moonwalk.SpecTest do
              |> cast_to_structs()
   end
 
+  defp cast_to_structs(normal) do
+    Moonwalk.Internal.SpecValidator.validate!(normal)
+  end
+
   test "petstore with references" do
     # the used document does not contain schemas as modules (it's a raw json)
     json =
       "test/support/data/petstore-refs.json"
+      |> File.read!()
+      |> JSV.Codec.decode!()
+
+    assert %OpenAPI{} =
+             Moonwalk.normalize_spec!(json)
+             |> cast_to_structs()
+  end
+
+  test "train travel API" do
+    json =
+      "test/support/data/train-travel-api.json"
+      |> File.read!()
+      |> JSV.Codec.decode!()
+
+    assert %OpenAPI{} =
+             Moonwalk.normalize_spec!(json)
+             |> cast_to_structs()
+  end
+
+  test "museum API" do
+    json =
+      "test/support/data/redocly-museum-api.json"
       |> File.read!()
       |> JSV.Codec.decode!()
 
@@ -501,13 +527,5 @@ defmodule Moonwalk.SpecTest do
              } =
                spec.paths["/generated/meta/overrides-param"].get
     end
-  end
-
-  IO.warn("""
-  todo test that we can just pass an %Operation{} struct to the operation macro
-  """)
-
-  defp cast_to_structs(normal) do
-    Moonwalk.Internal.SpecValidator.validate!(normal)
   end
 end

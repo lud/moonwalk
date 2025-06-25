@@ -4,11 +4,10 @@ defmodule Moonwalk.Internal.SpecObject do
   # Setup for various protocols implemented by the Objects definition of the 3.1
   # specification.
 
-  IO.warn("remove fallback impl of normalize in quoted")
-
   defmacro __using__(_) do
     quote do
       import Moonwalk.Internal.Normalizer
+      import unquote(__MODULE__)
       @behaviour Moonwalk.Internal.Normalizer
       @behaviour Access
       snake_object_name =
@@ -33,21 +32,6 @@ defmodule Moonwalk.Internal.SpecObject do
 
       @moduledoc "Representation of the [#{object_name} Object](#{obect_link}) in OpenAPI Specification."
 
-      @impl Moonwalk.Internal.Normalizer
-      @spec normalize!(term, term) :: no_return
-      def normalize!(_, _) do
-        raise """
-        unimplemented callback in #{inspect(__MODULE__)}
-
-            @impl true
-            def normalize!(data, ctx) do
-              data
-              |> from(__MODULE__, ctx)
-              |> collect()
-            end
-        """
-      end
-
       @impl Access
       def fetch(t, key) do
         Map.fetch(t, key)
@@ -65,7 +49,8 @@ defmodule Moonwalk.Internal.SpecObject do
         raise "should not be used"
       end
 
-      defoverridable normalize!: 2
+      defoverridable Access
+      defoverridable Moonwalk.Internal.Normalizer
     end
   end
 end

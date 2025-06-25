@@ -12,4 +12,15 @@ defmodule Moonwalk.Spec.Callback do
       additionalProperties: Moonwalk.Spec.PathItem
     }
   end
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> from(__MODULE__, ctx)
+    |> normalize_subs(default: {:or_ref, Moonwalk.Spec.Response})
+    |> normalize_subs(fn
+      value, ctx -> {_, _} = normalize!(value, Moonwalk.Spec.PathItem, ctx)
+    end)
+    |> collect()
+  end
 end

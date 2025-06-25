@@ -24,4 +24,12 @@ defmodule Moonwalk.Spec.ServerVariable do
     },
     required: [:default]
   })
+
+  @impl true
+  def normalize!(data, ctx) do
+    data
+    |> from(__MODULE__, ctx)
+    |> normalize_default(:all)
+    |> collect()
+  end
 end

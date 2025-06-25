@@ -24,12 +24,13 @@ defmodule Moonwalk.Spec.MediaType do
     required: []
   })
 
+  @impl true
   def normalize!(data, ctx) do
     data
     |> from(__MODULE__, ctx)
     |> normalize_default([:tags, :summary, :description, :operationId, :deprecated])
     |> normalize_subs(
-      examples: {:map, {:or_ref, :defaultxxx}},
+      examples: {:map, {:or_ref, :default}},
       encoding: {:map, Moonwalk.Spec.Encoding}
     )
     |> normalize_schema(:schema)

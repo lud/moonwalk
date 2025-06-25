@@ -49,13 +49,15 @@ defmodule Moonwalk.Spec.OpenAPI do
     data
     |> from(__MODULE__, ctx)
     |> normalize_subs(
-      openapi: :default,
-      info: Moonwalk.Spec.Info,
-      paths: Moonwalk.Spec.Paths,
+      components: Moonwalk.Spec.Components,
       externalDocs: Moonwalk.Spec.ExternalDocumentation,
+      info: Moonwalk.Spec.Info,
+      openapi: :default,
+      paths: Moonwalk.Spec.Paths,
+      security: {:list, Moonwalk.Spec.SecurityRequirement},
       servers: {:list, Moonwalk.Spec.Server},
       tags: {:list, Moonwalk.Spec.Tag},
-      components: Moonwalk.Spec.Components
+      webhooks: {:map, Moonwalk.Spec.PathItem}
     )
     |> collect()
   end

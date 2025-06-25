@@ -10,7 +10,7 @@ defmodule Moonwalk.Internal.Normalizer do
   defstruct @enforce_keys
   @type t :: %__MODULE__{}
 
-  @callback normalize!(term, NormalizationContext.t()) :: {struct, NormalizationContext.t()}
+  @callback normalize!(data :: term, ctx :: NormalizationContext.t()) :: {struct, NormalizationContext.t()}
 
   def normalize!(openapi_spec) when is_map(openapi_spec) do
     # Boostrap normalization by creating a context with all schemas from
@@ -177,22 +177,52 @@ defmodule Moonwalk.Internal.Normalizer do
 
   if Mix.env() == :prod do
     def collect(%__MODULE__{data: data, sourcemod: sourcemod, ctx: ctx, out: outlist}) do
-      {Map.new(outlist), ctx}
+      {extensions, _leftovers} = collect_remaining(data)
+      collected = Map.merge(Map.new(extensions), Map.new(outlist))
+      {collected, ctx}
     end
   else
+    # In test when developing this library we want to be sure that we handle all
+    # keys from the various examples and JSON documents, so we raise if a key
+    # was skipped during normalization. The `skip_leftovers` function prevent
+    # from raising for keys we do not care about.
+
     def collect(%__MODULE__{data: data, sourcemod: sourcemod, ctx: ctx, out: outlist}) do
-      case map_size(data) do
-        0 ->
+      {extensions, leftovers} = collect_remaining(data)
+      collected = Map.merge(Map.new(extensions), Map.new(outlist))
+      {collected, ctx}
+
+      case skip_leftovers(leftovers) do
+        [] ->
           :ok
 
-        _ ->
+        keys ->
           raise NormalizeError,
             ctx: ctx,
-            reason: "some keys were not normalized from #{inspect(sourcemod)}: #{inspect(Map.keys(data))}"
+            reason: "some keys were not normalized from #{inspect(sourcemod)}: #{inspect(keys)}"
       end
 
       {Map.new(outlist), ctx}
     end
+
+    defp skip_leftovers(leftovers) do
+      Enum.flat_map(leftovers, fn
+        {"example", _} -> []
+        {key, _} -> [key]
+      end)
+    end
+  end
+
+  defp collect_remaining(data) do
+    {extensions, leftovers} =
+      data
+      |> Enum.map(fn {k, v} -> {to_string(k), v} end)
+      |> Enum.reduce({_extensions = [], _leftovers = []}, fn
+        {"x-" <> _ = key, value}, {exts, left} -> {[{key, to_json_decoded(value)} | exts], left}
+        {key, value}, {exts, left} -> {exts, [{key, to_json_decoded(value)} | left]}
+      end)
+
+    {extensions, leftovers}
   end
 
   defp downpath(ctx, key, fun) do
@@ -277,6 +307,8 @@ defmodule Moonwalk.Internal.Normalizer do
   defp apply_caster(data, {:map, caster}, ctx) when is_map(data) do
     {pairs, ctx} =
       data
+      # The sort here is for deterministic collection of schemas with generated
+      # "refname".
       |> sort_by_key()
       |> Enum.map_reduce(ctx, fn {key, value}, ctx ->
         bin_key = ensure_binary_key(key)

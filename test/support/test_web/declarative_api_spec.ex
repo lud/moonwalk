@@ -2,8 +2,6 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
   use Moonwalk
   require JSV
 
-  IO.warn("todo add another route that uses strucs all the way down, including %Reference{}")
-
   defmodule Ingredient do
     JSV.defschema(%{
       "type" => "object",
