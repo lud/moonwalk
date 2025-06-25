@@ -68,9 +68,6 @@ defmodule Moonwalk.ControllerTest do
   end
 
   describe "responses format" do
-    IO.warn("passing a %Reference{} as a response")
-    IO.warn("passing a %{$ref => #/...} as a response")
-
     test "giving a map is giving a schema for the application/json content type" do
       spec = [
         operation_id: :some_operation,

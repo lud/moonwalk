@@ -25,7 +25,7 @@ defmodule Moonwalk.Test do
     content_validation =
       with {:ok, path_validations} <- Map.fetch(validations, operation_id),
            {:ok, responses} <- Keyword.fetch(path_validations, :responses),
-           {:ok, status_validations} <- Map.fetch(responses, status) do
+           {:ok, status_validations} <- fetch_response(responses, status) do
         status_validations
       else
         _ ->
@@ -53,6 +53,14 @@ defmodule Moonwalk.Test do
     end
   end
 
+  defp fetch_response(responses, status) do
+    case responses do
+      %{^status => resp} -> {:ok, resp}
+      %{:default => resp} -> {:ok, resp}
+      _ -> :error
+    end
+  end
+
   defp parse_validate_response(ctx) do
     body = maybe_parse_body(ctx)
 
@@ -71,6 +79,8 @@ defmodule Moonwalk.Test do
         raise "invalid response returned by operation #{inspect(ctx.operation_id)} " <>
                 "with status #{inspect(ctx.status)} and content-type #{inspect(ctx.content_type)}" <>
                 """
+
+
                 Schema validation errors:
 
                 #{inspect(JSV.normalize_error(jsv_error), pretty: true)}

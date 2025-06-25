@@ -5,6 +5,19 @@ defmodule Moonwalk.Web.ResponseTest do
   import Moonwalk.Test
 
   describe "with generated api" do
+    test "response without defined operation", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-200-no-operation")
+
+      assert_raise RuntimeError, ~r/the connection was not validated by Moonwalk.Plugs.ValidateRequest/, fn ->
+        valid_response(PathsApiSpec, conn, 200)
+      end
+
+      # status is checked
+      assert_raise RuntimeError, ~r/expected response with status 999/, fn ->
+        valid_response(PathsApiSpec, conn, 999)
+      end
+    end
+
     test "responses can be validated", %{conn: conn} do
       conn = get(conn, ~p"/generated/resp/fortune-200-valid")
       assert %{"message" => _, "category" => _} = valid_response(PathsApiSpec, conn, 200)
@@ -45,16 +58,16 @@ defmodule Moonwalk.Web.ResponseTest do
       end
     end
 
-    test "response without defined operation", %{conn: conn} do
-      conn = get(conn, ~p"/generated/resp/fortune-200-no-operation")
+    test "using default response for unspecified status", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-500-default-resp")
+      valid_response(PathsApiSpec, conn, 500)
+    end
 
-      assert_raise RuntimeError, ~r/the connection was not validated by Moonwalk.Plugs.ValidateRequest/, fn ->
-        valid_response(PathsApiSpec, conn, 200)
-      end
+    test "default response with invalid content", %{conn: conn} do
+      conn = get(conn, ~p"/generated/resp/fortune-500-bad-default-resp")
 
-      # status is checked
-      assert_raise RuntimeError, ~r/expected response with status 999/, fn ->
-        valid_response(PathsApiSpec, conn, 999)
+      assert_raise RuntimeError, ~r{invalid response}, fn ->
+        valid_response(PathsApiSpec, conn, 500)
       end
     end
   end

@@ -382,12 +382,20 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     {validations, jsv_ctx} =
       Enum.map_reduce(responses, jsv_ctx, fn {code_str, resp_or_ref}, jsv_ctx ->
         {response, rev_path} = deref(resp_or_ref, Response, [code_str, "responses" | rev_path], spec)
-        code = String.to_integer(code_str)
+        code = cast_response_code(code_str)
         {resp_validation, jsv_ctx} = build_response_validation(response, rev_path, jsv_ctx)
         {{code, resp_validation}, jsv_ctx}
       end)
 
     {Map.new(validations), jsv_ctx}
+  end
+
+  defp cast_response_code("default") do
+    :default
+  end
+
+  defp cast_response_code(code) do
+    String.to_integer(code)
   end
 
   defp build_response_validation(%{content: nil}, _rev_path, jsv_ctx) do

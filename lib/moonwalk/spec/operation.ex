@@ -62,8 +62,6 @@ defmodule Moonwalk.Spec.Operation do
     required: [:responses, :operationId]
   })
 
-  IO.warn("TODO responses should always have at least one item")
-
   @impl true
   def normalize!(data, ctx) do
     data
@@ -164,6 +162,10 @@ defmodule Moonwalk.Spec.Operation do
 
   defp cast_responses(other) do
     raise ArgumentError, "operation macro expects a map or list of responses, got: #{inspect(other)}"
+  end
+
+  defp response_code!(:default) do
+    :default
   end
 
   defp response_code!(status) do
