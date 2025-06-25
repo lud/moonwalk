@@ -642,7 +642,4 @@ defmodule Moonwalk.Web.ParamTest do
       assert body =~ ~S(value must be one of the enum values: "dark" or "light")
     end
   end
-
-  IO.warn("todo test parameters at the pathItem level, and how to declare them?")
-  IO.warn("todo test parameters that do not have a schema")
 end

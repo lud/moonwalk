@@ -42,7 +42,7 @@ defmodule Moonwalk.Internal.SpecObject do
             @impl true
             def normalize!(data, ctx) do
               data
-              |> make(__MODULE__, ctx)
+              |> from(__MODULE__, ctx)
               |> collect()
             end
         """

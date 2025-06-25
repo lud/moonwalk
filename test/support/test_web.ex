@@ -31,6 +31,6 @@ end
 
 defmodule Moonwalk.TestWeb.Helpers do
   def dummy_responses do
-    [ok: %{_dummy_schema: true}]
+    [ok: {%{_dummy_schema: true}, []}]
   end
 end

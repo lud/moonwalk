@@ -2,8 +2,6 @@ defmodule Moonwalk.Spec.Components do
   require JSV
   use Moonwalk.Internal.SpecObject
 
-  IO.warn("We need to be able to build operations from any referenced component, missing responses for tests")
-
   # Holds reusable objects for different aspects of the OpenAPI Specification.
   JSV.defschema(%{
     title: "Components",
@@ -68,7 +66,7 @@ defmodule Moonwalk.Spec.Components do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     # Schemas are handled at the top level when initializing the context
     |> skip(:schemas)
     |> normalize_subs(

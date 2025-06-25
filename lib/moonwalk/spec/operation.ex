@@ -1,5 +1,6 @@
 defmodule Moonwalk.Spec.Operation do
   alias Moonwalk.Spec.Parameter
+  alias Moonwalk.Spec.Reference
   alias Moonwalk.Spec.RequestBody
   alias Moonwalk.Spec.Response
   import Moonwalk.Internal.ControllerBuilder
@@ -66,7 +67,7 @@ defmodule Moonwalk.Spec.Operation do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_default([:tags, :summary, :description, :operationId, :deprecated])
     |> normalize_subs(
       requestBody: {:or_ref, Moonwalk.Spec.RequestBody},
@@ -80,6 +81,10 @@ defmodule Moonwalk.Spec.Operation do
   end
 
   def from_controller!(spec, opts \\ [])
+
+  def from_controller!(%Reference{} = ref, _) do
+    ref
+  end
 
   def from_controller!(spec, opts) do
     shared_parameters = Keyword.get(opts, :shared_parameters, [])

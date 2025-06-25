@@ -45,7 +45,7 @@ defmodule Moonwalk.Spec.PathItem do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_subs(
       get: Moonwalk.Spec.Operation,
       put: Moonwalk.Spec.Operation,

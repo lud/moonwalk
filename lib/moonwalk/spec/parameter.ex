@@ -1,4 +1,5 @@
 defmodule Moonwalk.Spec.Parameter do
+  alias Moonwalk.Spec.Reference
   import Moonwalk.Internal.ControllerBuilder
   require JSV
   use Moonwalk.Internal.SpecObject
@@ -79,7 +80,7 @@ defmodule Moonwalk.Spec.Parameter do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_default([
       :name,
       :in,
@@ -93,6 +94,10 @@ defmodule Moonwalk.Spec.Parameter do
     |> normalize_schema(:schema)
     |> skip(:content)
     |> collect()
+  end
+
+  def from_controller!(_name, %Reference{} = ref) do
+    ref
   end
 
   def from_controller!(name, spec) when is_atom(name) and is_list(spec) do

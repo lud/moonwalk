@@ -1,4 +1,5 @@
 defmodule Moonwalk.Spec.MediaType do
+  alias Moonwalk.Spec.Reference
   import Moonwalk.Internal.ControllerBuilder
   require JSV
   use Moonwalk.Internal.SpecObject
@@ -25,7 +26,7 @@ defmodule Moonwalk.Spec.MediaType do
 
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_default([:tags, :summary, :description, :operationId, :deprecated])
     |> normalize_subs(
       examples: {:map, {:or_ref, :defaultxxx}},
@@ -33,6 +34,10 @@ defmodule Moonwalk.Spec.MediaType do
     )
     |> normalize_schema(:schema)
     |> collect()
+  end
+
+  def from_controller!(%Reference{} = ref) do
+    ref
   end
 
   def from_controller!(spec) do

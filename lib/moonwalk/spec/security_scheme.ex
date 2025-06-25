@@ -58,7 +58,7 @@ defmodule Moonwalk.Spec.SecurityScheme do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_default([:type, :description, :name, :in, :scheme, :bearerFormat, :openIdConnectUrl])
     |> normalize_subs(flows: Moonwalk.Spec.OAuthFlows)
     |> collect()

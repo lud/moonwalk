@@ -1,5 +1,6 @@
 defmodule Moonwalk.Spec.RequestBody do
   alias Moonwalk.Spec.MediaType
+  alias Moonwalk.Spec.Reference
   import Moonwalk.Internal.ControllerBuilder
   require JSV
   use Moonwalk.Internal.SpecObject
@@ -25,13 +26,19 @@ defmodule Moonwalk.Spec.RequestBody do
     required: [:content]
   })
 
+  @doc false
   def from_controller(spec) do
+    # The debang version is made to work with the cast system, there is no need
+    # to return {:error, _}
     {:ok, from_controller!(spec)}
-
-    # The debang version is made to work with the cast system, there is no need to return {:error, _}
   end
 
   # TODO(doc) document that maps are always used as schemas
+
+  def from_controller!(%Reference{} = ref) do
+    ref
+  end
+
   def from_controller!(schema)
       when is_map(schema) or is_atom(schema)
       when is_boolean(schema) do
@@ -93,7 +100,7 @@ defmodule Moonwalk.Spec.RequestBody do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_default([:description, :required])
     |> normalize_subs(content: {:map, Moonwalk.Spec.MediaType})
     |> collect()

@@ -1,5 +1,6 @@
 defmodule Moonwalk.Spec.Response do
   alias Moonwalk.Spec.MediaType
+  alias Moonwalk.Spec.Reference
   import Moonwalk.Internal.ControllerBuilder
   require JSV
   use Moonwalk.Internal.SpecObject
@@ -33,7 +34,7 @@ defmodule Moonwalk.Spec.Response do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_default([:description])
     |> normalize_subs(
       headers: {:map, {:or_ref, Moonwalk.Spec.Header}},
@@ -43,15 +44,18 @@ defmodule Moonwalk.Spec.Response do
     |> collect()
   end
 
-  # TODO(doc) document that maps are always used as schemas
-  # TODO(doc) a default description is provided
-  def from_controller!(schema)
-      when is_map(schema) or is_atom(schema)
-      when is_boolean(schema) do
+  # TODO(doc) document that atoms are used as schemas, but not maps anymore.
+  # Maps are still used as schemas when given with a tuple. TODO(doc) a default
+  # description is provided
+  def from_controller!(%Reference{} = ref) do
+    ref
+  end
+
+  def from_controller!(schema) when is_atom(schema) when is_boolean(schema) do
     from_controller!({schema, []})
   end
 
-  def from_controller!({schema, spec}) do
+  def from_controller!({schema, spec}) when is_map(schema) when is_atom(schema) when is_boolean(schema) do
     spec =
       Keyword.put_new_lazy(spec, :description, fn ->
         case schema do
@@ -72,7 +76,7 @@ defmodule Moonwalk.Spec.Response do
     end
   end
 
-  def from_controller!(spec) when is_list(spec) do
+  def from_controller!(spec) when is_list(spec) when is_map(spec) do
     spec
     |> build(__MODULE__)
     |> take_required(:description)

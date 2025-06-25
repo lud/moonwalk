@@ -6,7 +6,7 @@ defmodule Moonwalk.Internal.Normalizer do
 
   @moduledoc false
 
-  @enforce_keys [:data, :target, :out, :ctx]
+  @enforce_keys [:data, :sourcemod, :out, :ctx]
   defstruct @enforce_keys
   @type t :: %__MODULE__{}
 
@@ -84,28 +84,28 @@ defmodule Moonwalk.Internal.Normalizer do
     ctx
   end
 
-  def normalize!(data, target, ctx) do
-    target.normalize!(data, ctx)
+  def normalize!(data, sourcemod, ctx) do
+    sourcemod.normalize!(data, ctx)
   end
 
-  def make(%target{} = data, target, ctx) do
-    make(JSV.Helpers.MapExt.from_struct_no_nils(data), target, ctx)
+  def from(%sourcemod{} = data, sourcemod, ctx) do
+    from(JSV.Helpers.MapExt.from_struct_no_nils(data), sourcemod, ctx)
   end
 
-  def make(data, target, ctx) when is_map(data) and not is_struct(data) do
-    %__MODULE__{data: data, target: target, ctx: ctx, out: []}
+  def from(data, sourcemod, ctx) when is_map(data) and not is_struct(data) do
+    %__MODULE__{data: data, sourcemod: sourcemod, ctx: ctx, out: []}
   end
 
-  def make(other, target, ctx) do
+  def from(other, sourcemod, ctx) do
     raise NormalizeError,
       ctx: ctx,
       reason:
-        "invalid value for Open API model #{inspect(target)}, " <>
-          "expected a map or %#{inspect(target)}{}, got: #{inspect(other)}"
+        "invalid value when normalizing Open API model #{inspect(sourcemod)}, " <>
+          "expected a map or %#{inspect(sourcemod)}{}, got: #{inspect(other)}"
   end
 
   def normalize_subs(bld, [{_, _} | _] = keymap) when is_list(keymap) do
-    %__MODULE__{data: data, target: target, ctx: ctx, out: outlist} = bld
+    %__MODULE__{data: data, ctx: ctx, out: outlist} = bld
 
     {data, outlist, ctx} =
       Enum.reduce(keymap, {data, outlist, ctx}, fn {key, caster}, {data, outlist, ctx} = acc ->
@@ -119,7 +119,7 @@ defmodule Moonwalk.Internal.Normalizer do
         end
       end)
 
-    %__MODULE__{data: data, target: target, ctx: ctx, out: outlist}
+    %{bld | data: data, ctx: ctx, out: outlist}
   end
 
   # accepting a function to handle additional properties
@@ -176,11 +176,11 @@ defmodule Moonwalk.Internal.Normalizer do
   end
 
   if Mix.env() == :prod do
-    def collect(%__MODULE__{data: data, target: target, ctx: ctx, out: outlist}) do
+    def collect(%__MODULE__{data: data, sourcemod: sourcemod, ctx: ctx, out: outlist}) do
       {Map.new(outlist), ctx}
     end
   else
-    def collect(%__MODULE__{data: data, target: target, ctx: ctx, out: outlist}) do
+    def collect(%__MODULE__{data: data, sourcemod: sourcemod, ctx: ctx, out: outlist}) do
       case map_size(data) do
         0 ->
           :ok
@@ -188,7 +188,7 @@ defmodule Moonwalk.Internal.Normalizer do
         _ ->
           raise NormalizeError,
             ctx: ctx,
-            reason: "some keys were not normalized from #{inspect(target)}: #{inspect(Map.keys(data))}"
+            reason: "some keys were not normalized from #{inspect(sourcemod)}: #{inspect(Map.keys(data))}"
       end
 
       {Map.new(outlist), ctx}

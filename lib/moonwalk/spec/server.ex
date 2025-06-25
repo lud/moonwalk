@@ -30,7 +30,7 @@ defmodule Moonwalk.Spec.Server do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_default([:url, :description])
     |> normalize_subs(variables: {:map, Moonwalk.Spec.ServerVariable})
     |> collect()

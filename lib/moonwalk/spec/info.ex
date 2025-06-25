@@ -22,7 +22,7 @@ defmodule Moonwalk.Spec.Info do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_subs(
       contact: Moonwalk.Spec.Contact,
       license: Moonwalk.Spec.License

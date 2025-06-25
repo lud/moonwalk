@@ -19,7 +19,7 @@ defmodule Moonwalk.Spec.OAuthFlows do
   @impl true
   def normalize!(data, ctx) do
     data
-    |> make(__MODULE__, ctx)
+    |> from(__MODULE__, ctx)
     |> normalize_subs(
       implicit: Moonwalk.Spec.OAuthFlow,
       password: Moonwalk.Spec.OAuthFlow,
