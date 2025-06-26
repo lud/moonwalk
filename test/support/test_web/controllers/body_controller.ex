@@ -1,6 +1,7 @@
 defmodule Moonwalk.TestWeb.BodyController do
   alias JSV.Schema
   alias Moonwalk.TestWeb.Responder
+  alias Moonwalk.TestWeb.Schemas.PlantSchema
   use Moonwalk.TestWeb, :controller
 
   @plant_schema %{
@@ -20,29 +21,6 @@ defmodule Moonwalk.TestWeb.BodyController do
 
   def inline_single(conn, params) do
     Responder.reply(conn, params)
-  end
-
-  defmodule SoilSchema do
-    require(JSV).defschema(%{
-      type: :object,
-      properties: %{
-        acid: Schema.boolean(),
-        density: Schema.number()
-      },
-      required: [:acid, :density]
-    })
-  end
-
-  defmodule PlantSchema do
-    require(JSV).defschema(%{
-      type: :object,
-      properties: %{
-        name: Schema.non_empty_string(),
-        sunlight: Schema.string_to_atom_enum([:full_sun, :partial_sun, :bright_indirect, :darnkness]),
-        soil: SoilSchema
-      },
-      required: [:name, :sunlight]
-    })
   end
 
   operation :module_single,

@@ -1,5 +1,7 @@
 defmodule Moonwalk.Web.LabTest do
   alias Moonwalk.TestWeb.DeclarativeApiSpec
+  alias Moonwalk.TestWeb.Schemas.CreatePotionBody
+  alias Moonwalk.TestWeb.Schemas.Ingredient
   import Moonwalk.Test
   use Moonwalk.ConnCase, async: true
 
@@ -54,19 +56,19 @@ defmodule Moonwalk.Web.LabTest do
           @valid_payload,
           fn conn, _params ->
             # Check that the body is cast to the correct struct
-            assert %Moonwalk.TestWeb.DeclarativeApiSpec.CreatePotionBody{
+            assert %CreatePotionBody{
                      name: "Elixir of Vitality",
                      ingredients: ingredients
                    } = conn.private.moonwalk.body_params
 
             # Check that ingredients are properly cast to structs
             assert [
-                     %Moonwalk.TestWeb.DeclarativeApiSpec.Ingredient{
+                     %Ingredient{
                        name: "Phoenix Feather",
                        quantity: 1,
                        unit: "pinch"
                      },
-                     %Moonwalk.TestWeb.DeclarativeApiSpec.Ingredient{
+                     %Ingredient{
                        name: "Dragon Scale",
                        quantity: 2,
                        unit: "dash"

@@ -97,7 +97,7 @@ defmodule Moonwalk.Spec.Operation do
     |> take_default(:tags, [], &merge_tags(&1, shared_tags))
     |> take_default(:parameters, [], &cast_params(&1, shared_parameters))
     |> take_default(:description, nil)
-    |> take_required(:responses, &cast_responses/1)
+    |> take_default(:responses, [], &cast_responses/1)
     |> take_default(:summary, nil)
     |> take_default(
       :requestBody,

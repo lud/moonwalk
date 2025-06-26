@@ -1,72 +1,10 @@
 defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
-  use Moonwalk
+  alias Moonwalk.TestWeb.Schemas.AlchemistsPage
+  alias Moonwalk.TestWeb.Schemas.CreatePotionBody
+  alias Moonwalk.TestWeb.Schemas.Ingredient
+  alias Moonwalk.TestWeb.Schemas.Potion
   require JSV
-
-  defmodule Ingredient do
-    JSV.defschema(%{
-      "type" => "object",
-      "properties" => %{
-        name: %{"type" => "string"},
-        quantity: %{"type" => "integer"},
-        unit: %{
-          "type" => "string",
-          "enum" => ["pinch", "dash", "scoop", "whiff", "nub"]
-        }
-      },
-      "required" => [:name, :quantity, :unit]
-    })
-  end
-
-  defmodule CreatePotionBody do
-    JSV.defschema(%{
-      "type" => "object",
-      "properties" => %{
-        name: %{"type" => "string"},
-        ingredients: %{
-          "type" => "array",
-          "items" => %{"$ref" => "#/components/schemas/Ingredient"}
-        }
-      },
-      "required" => [:name, :ingredients]
-    })
-  end
-
-  defmodule Potion do
-    JSV.defschema(%{
-      "type" => "object",
-      "properties" => %{
-        id: %{"type" => "string"},
-        name: %{"type" => "string"},
-        ingredients: %{
-          "type" => "array",
-          "items" => %{"$ref" => "#/components/schemas/Ingredient"}
-        },
-        brewingTime: %{"type" => "integer"}
-      },
-      "required" => [:id, :name, :ingredients]
-    })
-  end
-
-  defmodule Alchemist do
-    JSV.defschema(%{
-      type: :object,
-      properties: %{
-        name: %{type: :string},
-        titles: %{type: :array, items: %{type: :string}}
-      },
-      required: [:name, :titles]
-    })
-  end
-
-  defmodule AlchemistsPage do
-    JSV.defschema(%{
-      type: :object,
-      properties: %{
-        data: %{type: :array, items: Alchemist}
-      },
-      required: [:data]
-    })
-  end
+  use Moonwalk
 
   @api_spec %{
     "openapi" => "3.1.0",

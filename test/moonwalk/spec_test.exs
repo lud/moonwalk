@@ -123,7 +123,7 @@ defmodule Moonwalk.SpecTest do
                },
                schemas: %{
                  "CreatePotionBody" => %{
-                   "jsv-cast" => ["Elixir.Moonwalk.TestWeb.DeclarativeApiSpec.CreatePotionBody", 0],
+                   "jsv-cast" => ["Elixir.Moonwalk.TestWeb.Schemas.CreatePotionBody", 0],
                    "properties" => %{
                      "ingredients" => %{
                        "items" => %{
@@ -137,7 +137,7 @@ defmodule Moonwalk.SpecTest do
                    "type" => "object"
                  },
                  "Ingredient" => %{
-                   "jsv-cast" => ["Elixir.Moonwalk.TestWeb.DeclarativeApiSpec.Ingredient", 0],
+                   "jsv-cast" => ["Elixir.Moonwalk.TestWeb.Schemas.Ingredient", 0],
                    "properties" => %{
                      "name" => %{"type" => "string"},
                      "quantity" => %{"type" => "integer"},
@@ -150,7 +150,7 @@ defmodule Moonwalk.SpecTest do
                    "type" => "object"
                  },
                  "Potion" => %{
-                   "jsv-cast" => ["Elixir.Moonwalk.TestWeb.DeclarativeApiSpec.Potion", 0],
+                   "jsv-cast" => ["Elixir.Moonwalk.TestWeb.Schemas.Potion", 0],
                    "properties" => %{
                      "brewingTime" => %{"type" => "integer"},
                      "id" => %{"type" => "string"},

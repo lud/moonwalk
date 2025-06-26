@@ -1,4 +1,5 @@
 defmodule Moonwalk.Web.BodyTest do
+  alias Moonwalk.TestWeb.Schemas.PlantSchema
   use Moonwalk.ConnCase, async: true
 
   @valid_payload %{
@@ -87,8 +88,7 @@ defmodule Moonwalk.Web.BodyTest do
     test "valid body", %{conn: conn} do
       conn =
         post_reply(conn, ~p"/generated/body/module-single", @valid_payload, fn conn, _params ->
-          # the controller using a defschema module, so we should have a struct here
-          assert %Moonwalk.TestWeb.BodyController.PlantSchema{
+          assert %PlantSchema{
                    name: "Monstera Deliciosa",
                    sunlight: :bright_indirect
                  } = conn.private.moonwalk.body_params
@@ -230,8 +230,7 @@ defmodule Moonwalk.Web.BodyTest do
       # schema with wildcard content type is just `false`
       conn =
         post_reply(conn, ~p"/generated/body/module-single-no-required", @valid_payload, fn conn, _params ->
-          # the controller using a defschema module, so we should have a struct here
-          assert %Moonwalk.TestWeb.BodyController.PlantSchema{
+          assert %PlantSchema{
                    name: "Monstera Deliciosa",
                    sunlight: :bright_indirect
                  } = conn.private.moonwalk.body_params

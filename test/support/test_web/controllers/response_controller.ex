@@ -1,27 +1,7 @@
 defmodule Moonwalk.TestWeb.ResponseController do
+  alias Moonwalk.TestWeb.Schemas.FortuneCookie
+  alias Moonwalk.TestWeb.Schemas.GenericError
   use Moonwalk.TestWeb, :controller
-
-  defmodule FortuneCookie do
-    require(JSV).defschema(%{
-      type: :object,
-      properties: %{
-        category: %{enum: ~w(wisdom humor warning advice)},
-        message: %{type: :string}
-      },
-      required: [:category, :message]
-    })
-  end
-
-  defmodule GenericError do
-    require(JSV).defschema(%{
-      type: :object,
-      properties: %{
-        errcode: %{type: :integer},
-        message: %{type: :string}
-      },
-      required: [:errcode, :message]
-    })
-  end
 
   @fortunes [
     %{category: "wisdom", message: "Patience is the greatest potion ingredient."},

@@ -1,14 +1,7 @@
 defmodule Moonwalk.TestWeb.MethodController do
   alias Moonwalk.TestWeb.Responder
+  alias Moonwalk.TestWeb.Schemas.RespSchema
   use Moonwalk.TestWeb, :controller
-
-  defmodule RespSchema do
-    require(JSV).defschema(%{
-      type: :object,
-      properties: %{op_id: %{type: :string}},
-      required: [:op_id]
-    })
-  end
 
   response = RespSchema
 

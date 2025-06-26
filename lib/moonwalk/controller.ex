@@ -5,6 +5,7 @@ defmodule Moonwalk.Controller do
   defmacro __using__(opts) do
     quote bind_quoted: binding() do
       import Moonwalk.Controller
+      Moonwalk.TestWeb.Helpers
 
       Module.register_attribute(__MODULE__, :moonwalk_parameters, accumulate: true)
       Module.register_attribute(__MODULE__, :moonwalk_tags, accumulate: true)
@@ -28,6 +29,8 @@ defmodule Moonwalk.Controller do
   end
 
   defmacro operation(action, spec) when is_atom(action) and is_list(spec) do
+    spec = expand_aliases(spec, __CALLER__)
+
     spec = ensure_operation_id(spec, action, __CALLER__)
 
     quote bind_quoted: binding() do
@@ -44,6 +47,8 @@ defmodule Moonwalk.Controller do
 
   # TODO(doc) used to reference operations given by an external spec
   defmacro use_operation(action, operation_id, opts \\ []) do
+    opts = expand_aliases(opts, __CALLER__)
+
     quote bind_quoted: binding() do
       {verb, opts} = Moonwalk.Controller.__pop_verb(opts)
       @moonwalk_operations {action, {:use_operation, to_string(operation_id)}, verb}
@@ -53,6 +58,8 @@ defmodule Moonwalk.Controller do
   # TODO(doc) document that parameters only apply to operations defined below
   # them in the module.
   defmacro parameter(key, opts) when is_atom(key) do
+    opts = expand_aliases(opts, __CALLER__)
+
     quote bind_quoted: binding() do
       @moonwalk_parameters Parameter.from_controller!(key, opts)
     end
@@ -66,10 +73,27 @@ defmodule Moonwalk.Controller do
     end
   end
 
+  defp expand_aliases(ast, caller) do
+    if Macro.quoted_literal?(ast) do
+      Macro.prewalk(ast, &expand_alias(&1, caller))
+    else
+      ast
+    end
+  end
+
+  defp expand_alias({:__aliases__, _, _} = alias, env) do
+    Macro.expand(alias, %{env | function: {:init, 2}})
+  end
+
+  defp expand_alias(other, _env) do
+    other
+  end
+
   defp ensure_operation_id(spec, action, env) do
     case Keyword.fetch(spec, :operation_id) do
       {:ok, atom} when is_atom(atom) -> Keyword.put(spec, :operation_id, Atom.to_string(atom))
       {:ok, str} when is_binary(str) -> spec
+      {:ok, _} -> spec
       :error -> Keyword.put(spec, :operation_id, operation_id_from_env(action, env))
     end
   end
