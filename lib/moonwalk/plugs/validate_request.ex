@@ -8,12 +8,6 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   @behaviour Plug
 
-  IO.warn("""
-  TODO if phoenix is in compile mode, we shall try to build the operations,
-  without caching it, to ensure that it is valid. Otherwise error would only
-  pop up at runtime. This will prevent to build an invalid release.
-  """)
-
   # TODO(doc) the option :query_reader option is passed to
   # Conn.fetch_query_params/2
   #

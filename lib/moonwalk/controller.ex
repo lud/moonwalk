@@ -29,8 +29,7 @@ defmodule Moonwalk.Controller do
   end
 
   defmacro operation(action, spec) when is_atom(action) and is_list(spec) do
-    spec = expand_aliases(spec, __CALLER__)
-
+    spec = maybe_expand_aliases(spec, __CALLER__)
     spec = ensure_operation_id(spec, action, __CALLER__)
 
     quote bind_quoted: binding() do
@@ -47,7 +46,7 @@ defmodule Moonwalk.Controller do
 
   # TODO(doc) used to reference operations given by an external spec
   defmacro use_operation(action, operation_id, opts \\ []) do
-    opts = expand_aliases(opts, __CALLER__)
+    opts = maybe_expand_aliases(opts, __CALLER__)
 
     quote bind_quoted: binding() do
       {verb, opts} = Moonwalk.Controller.__pop_verb(opts)
@@ -58,7 +57,7 @@ defmodule Moonwalk.Controller do
   # TODO(doc) document that parameters only apply to operations defined below
   # them in the module.
   defmacro parameter(key, opts) when is_atom(key) do
-    opts = expand_aliases(opts, __CALLER__)
+    opts = maybe_expand_aliases(opts, __CALLER__)
 
     quote bind_quoted: binding() do
       @moonwalk_parameters Parameter.from_controller!(key, opts)
@@ -73,8 +72,10 @@ defmodule Moonwalk.Controller do
     end
   end
 
-  defp expand_aliases(ast, caller) do
-    if Macro.quoted_literal?(ast) do
+  defp maybe_expand_aliases(ast, caller) do
+    runtime? = Phoenix.plug_init_mode() == :runtime
+
+    if runtime? && Macro.quoted_literal?(ast) do
       Macro.prewalk(ast, &expand_alias(&1, caller))
     else
       ast
