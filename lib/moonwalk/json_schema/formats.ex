@@ -27,7 +27,17 @@ defmodule Moonwalk.JsonSchema.Formats do
     "sf-string",
     "sf-token"
   ]
-  @number_formats ["double-int", "double", "float", "int16", "int32", "int8", "uint8", "uint16", "uint32"]
+  @number_formats [
+    "double-int",
+    "double",
+    "float",
+    "int16",
+    "int32",
+    "int8",
+    "uint8",
+    "uint16",
+    "uint32"
+  ]
 
   # numbers as-is or as string
   @numeric_formats ["decimal", "decimal128", "int64", "uint64"]

@@ -39,7 +39,9 @@ defmodule Moonwalk.TestWeb.ResponseController do
   end
 
   # Returns a response with the wrong content-type (text/plain instead of application/json)
-  operation :bad_content_type, operation_id: "fortune_bad_content_type", responses: [ok: FortuneCookie]
+  operation :bad_content_type,
+    operation_id: "fortune_bad_content_type",
+    responses: [ok: FortuneCookie]
 
   def bad_content_type(conn, _) do
     text(conn, "not json")

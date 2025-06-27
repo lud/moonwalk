@@ -200,20 +200,30 @@ defmodule Moonwalk.Web.ParamTest do
   describe "query params" do
     test "valid query params with integers", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10&theme=20&color=30", fn
-          conn, params ->
-            # standard phoenix behaviour should not be changed, the path params have priority
-            assert %{"slug" => "some-slug", "shape" => "square", "theme" => "light", "color" => "red"} == params
-            assert %{"shape" => "10", "theme" => "20", "color" => "30"} == conn.query_params
+        get_reply(
+          conn,
+          ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10&theme=20&color=30",
+          fn
+            conn, params ->
+              # standard phoenix behaviour should not be changed, the path params have priority
+              assert %{
+                       "slug" => "some-slug",
+                       "shape" => "square",
+                       "theme" => "light",
+                       "color" => "red"
+                     } == params
 
-            # moonwalk data is properly cast
-            assert %{slug: "some-slug", shape: :square, theme: :light, color: :red} ==
-                     conn.private.moonwalk.path_params
+              assert %{"shape" => "10", "theme" => "20", "color" => "30"} == conn.query_params
 
-            assert %{shape: 10, theme: 20, color: 30} == conn.private.moonwalk.query_params
+              # moonwalk data is properly cast
+              assert %{slug: "some-slug", shape: :square, theme: :light, color: :red} ==
+                       conn.private.moonwalk.path_params
 
-            json(conn, %{data: "okay"})
-        end)
+              assert %{shape: 10, theme: 20, color: 30} == conn.private.moonwalk.query_params
+
+              json(conn, %{data: "okay"})
+          end
+        )
 
       assert %{"data" => "okay"} = json_response(conn, 200)
     end
@@ -222,7 +232,11 @@ defmodule Moonwalk.Web.ParamTest do
       # Ensures that our schemas for the query params are not overriden by the
       # schemas of the path params
 
-      conn = get(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=1010&theme=1020&color=1030")
+      conn =
+        get(
+          conn,
+          ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=1010&theme=1020&color=1030"
+        )
 
       assert %{
                "error" => %{
@@ -260,7 +274,11 @@ defmodule Moonwalk.Web.ParamTest do
       # Ensures that our schemas for the query params are not overriden by the
       # schemas of the path params
 
-      conn = get(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=square&theme=light&color=red")
+      conn =
+        get(
+          conn,
+          ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=square&theme=light&color=red"
+        )
 
       assert %{
                "error" => %{
@@ -320,9 +338,16 @@ defmodule Moonwalk.Web.ParamTest do
       # give them.
 
       conn =
-        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10", fn conn, params ->
+        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10", fn conn,
+                                                                                            params ->
           # standard phoenix behaviour should not be changed, the path params have priority
-          assert %{"slug" => "some-slug", "shape" => "square", "theme" => "light", "color" => "red"} == params
+          assert %{
+                   "slug" => "some-slug",
+                   "shape" => "square",
+                   "theme" => "light",
+                   "color" => "red"
+                 } == params
+
           assert %{"shape" => "10"} == conn.query_params
 
           # moonwalk data is properly cast
@@ -505,7 +530,8 @@ defmodule Moonwalk.Web.ParamTest do
 
     test "array parameters sent to non-array route", %{conn: conn} do
       # Sending array parameters to the generic param route which expects scalar types
-      conn = get(conn, ~p"/generated/params/some-slug/generic?string_param[]=hello&integer_param[]=42")
+      conn =
+        get(conn, ~p"/generated/params/some-slug/generic?string_param[]=hello&integer_param[]=42")
 
       assert %{
                "error" => %{
@@ -577,7 +603,11 @@ defmodule Moonwalk.Web.ParamTest do
     end
 
     test "multiple query params should all be rejected with boolean schema false", %{conn: conn} do
-      conn = get(conn, ~p"/generated/params/some-slug/boolean-schema-false?reject_me=value1&also_reject=value2")
+      conn =
+        get(
+          conn,
+          ~p"/generated/params/some-slug/boolean-schema-false?reject_me=value1&also_reject=value2"
+        )
 
       assert %{
                "error" => %{
@@ -626,9 +656,15 @@ defmodule Moonwalk.Web.ParamTest do
 
       body = response(conn, 400)
       assert body =~ ~r{<!doctype html>.+Bad Request}s
-      assert body =~ ~r{<p>Invalid request for operation <code>param_scope_and_two_path_params_.+</code>.</p>}s
-      assert body =~ ~r{<h2>Missing required parameter <code>shape</code> in <code>query</code>\.</h2>}s
-      assert body =~ "<h2>Missing required parameter <code>shape</code> in <code>query</code>.</h2>"
+
+      assert body =~
+               ~r{<p>Invalid request for operation <code>param_scope_and_two_path_params_.+</code>.</p>}s
+
+      assert body =~
+               ~r{<h2>Missing required parameter <code>shape</code> in <code>query</code>\.</h2>}s
+
+      assert body =~
+               "<h2>Missing required parameter <code>shape</code> in <code>query</code>.</h2>"
     end
 
     test "invalid param text errors", %{conn: conn} do
@@ -636,7 +672,10 @@ defmodule Moonwalk.Web.ParamTest do
 
       body = response(conn, 400)
       assert body =~ ~r{<!doctype html>.+Bad Request}s
-      assert body =~ ~r{<p>Invalid request for operation <code>param_single_path_param_.+</code>.</p>}s
+
+      assert body =~
+               ~r{<p>Invalid request for operation <code>param_single_path_param_.+</code>.</p>}s
+
       assert body =~ ~r{<h2>Invalid parameter <code>theme</code> in <code>path</code>\.</h2>}s
       assert body =~ "<h2>Invalid parameter <code>theme</code> in <code>path</code>.</h2>"
       assert body =~ ~S(value must be one of the enum values: "dark" or "light")

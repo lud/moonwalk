@@ -12,6 +12,5 @@ locals_without_parens = [
   inputs: ["*.exs", "{config,lib,test,tmp}/**/*.{ex,exs}"],
   force_do_end_blocks: true,
   locals_without_parens: locals_without_parens,
-  export: [locals_without_parens: locals_without_parens],
-  line_length: 120
+  export: [locals_without_parens: locals_without_parens]
 ]

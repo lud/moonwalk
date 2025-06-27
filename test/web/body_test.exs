@@ -38,7 +38,8 @@ defmodule Moonwalk.Web.BodyTest do
     test "non required body should be ok when body is empty", %{conn: conn} do
       # This works only because the route accepts content type */*
       conn =
-        post_reply(conn, ~p"/generated/body/boolean-schema-false", @no_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/boolean-schema-false", @no_payload, fn conn,
+                                                                                   _params ->
           json(conn, %{data: "ok"})
         end)
 
@@ -216,7 +217,8 @@ defmodule Moonwalk.Web.BodyTest do
     test "empty body is accepted", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn =
-        post_reply(conn, ~p"/generated/body/module-single-no-required", @no_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/module-single-no-required", @no_payload, fn conn,
+                                                                                        _params ->
           # No content is set
           refute is_map_key(conn.private.moonwalk, :body_params)
 
@@ -229,7 +231,8 @@ defmodule Moonwalk.Web.BodyTest do
     test "valid body is parsed as usual", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn =
-        post_reply(conn, ~p"/generated/body/module-single-no-required", @valid_payload, fn conn, _params ->
+        post_reply(conn, ~p"/generated/body/module-single-no-required", @valid_payload, fn conn,
+                                                                                           _params ->
           assert %PlantSchema{
                    name: "Monstera Deliciosa",
                    sunlight: :bright_indirect

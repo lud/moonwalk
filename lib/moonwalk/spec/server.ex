@@ -19,7 +19,8 @@ defmodule Moonwalk.Spec.Server do
       variables: %{
         type: :object,
         additionalProperties: Moonwalk.Spec.ServerVariable,
-        description: "A map between variable names and their values for substitution in the server's URL template."
+        description:
+          "A map between variable names and their values for substitution in the server's URL template."
       }
     },
     required: [:url]

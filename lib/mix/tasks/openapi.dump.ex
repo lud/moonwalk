@@ -87,9 +87,14 @@ defmodule Mix.Tasks.Openapi.Dump do
 
   defp encode(spec, %{pretty: true}) do
     cond do
-      typefix(Codec.supports_ordered_formatting?()) -> Codec.format_ordered_to_iodata!(spec, &key_sorter/2)
-      typefix(Codec.supports_formatting?()) -> Codec.format_to_iodata!(spec)
-      :other -> raise ArgumentError, "Pretty printing is not supported by #{Codec.codec()}."
+      typefix(Codec.supports_ordered_formatting?()) ->
+        Codec.format_ordered_to_iodata!(spec, &key_sorter/2)
+
+      typefix(Codec.supports_formatting?()) ->
+        Codec.format_to_iodata!(spec)
+
+      :other ->
+        raise ArgumentError, "Pretty printing is not supported by #{Codec.codec()}."
     end
   end
 

@@ -11,7 +11,8 @@ defmodule Moonwalk.Spec.Responses do
       properties: %{
         default: %{
           anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Response],
-          description: "Documentation of responses other than ones declared for specific HTTP response codes."
+          description:
+            "Documentation of responses other than ones declared for specific HTTP response codes."
         }
       },
       minProperties: 1,

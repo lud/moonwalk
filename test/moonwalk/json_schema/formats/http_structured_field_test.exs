@@ -19,7 +19,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     end
 
     test "parses integer with parameters" do
-      assert {:integer, 5, [{"foo", {:token, "bar"}}]} == unwrap!(HttpStructuredField.parse_sf_item("5; foo=bar"))
+      assert {:integer, 5, [{"foo", {:token, "bar"}}]} ==
+               unwrap!(HttpStructuredField.parse_sf_item("5; foo=bar"))
     end
 
     test "parses integer with boolean parameter" do
@@ -37,9 +38,11 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "parses large integers" do
       # Those are the min/max values that must be supported
-      assert {:integer, 999_999_999_999_999, []} == unwrap!(HttpStructuredField.parse_sf_item("999999999999999"))
+      assert {:integer, 999_999_999_999_999, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("999999999999999"))
 
-      assert {:integer, -999_999_999_999_999, []} == unwrap!(HttpStructuredField.parse_sf_item("-999999999999999"))
+      assert {:integer, -999_999_999_999_999, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("-999999999999999"))
 
       # We do not fail if values are larger as Elixir supports them
     end
@@ -85,7 +88,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
   describe "strings" do
     test "parses simple string" do
-      assert {:string, "hello world", []} == unwrap!(HttpStructuredField.parse_sf_item(~S{"hello world"}))
+      assert {:string, "hello world", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(~S{"hello world"}))
     end
 
     test "parses empty string" do
@@ -93,15 +97,18 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     end
 
     test "parses string with escaped quotes" do
-      assert {:string, "say \"hello\"", []} == unwrap!(HttpStructuredField.parse_sf_item(~S{"say \"hello\""}))
+      assert {:string, "say \"hello\"", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(~S{"say \"hello\""}))
     end
 
     test "parses string with escaped backslash" do
-      assert {:string, "path\\to\\file", []} == unwrap!(HttpStructuredField.parse_sf_item(~S{"path\\to\\file"}))
+      assert {:string, "path\\to\\file", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(~S{"path\\to\\file"}))
     end
 
     test "parses string Applepie" do
-      assert {:string, "Applepie", []} == unwrap!(HttpStructuredField.parse_sf_item(~S{"Applepie"}))
+      assert {:string, "Applepie", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(~S{"Applepie"}))
     end
 
     test "parses string with URI" do
@@ -128,7 +135,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     end
 
     test "parses token with numbers and special chars" do
-      assert {:token, "foo123/456", []} == unwrap!(HttpStructuredField.parse_sf_item("foo123/456"))
+      assert {:token, "foo123/456", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("foo123/456"))
     end
 
     test "parses token abc" do
@@ -171,14 +179,19 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
   describe "byte sequences" do
     test "parses simple byte sequence" do
       assert {:byte_sequence, "pretend this is binary content.", []} ==
-               unwrap!(HttpStructuredField.parse_sf_item(":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:"))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(
+                   ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:"
+                 )
+               )
     end
 
     test "parses byte sequence w4ZibGV0w6ZydGU=" do
       # This decodes to something like "Ælet¦rte" in some encoding
       expected_bytes = Base.decode64!("w4ZibGV0w6ZydGU=")
 
-      assert {:byte_sequence, expected_bytes, []} == unwrap!(HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:"))
+      assert {:byte_sequence, expected_bytes, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:"))
     end
 
     test "parses empty byte sequence" do
@@ -207,7 +220,9 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
   describe "items with parameters" do
     test "parses integer with string parameter" do
       assert {:integer, 2, [{"foourl", {:string, "https://foo.example.com/"}}]} ==
-               unwrap!(HttpStructuredField.parse_sf_item("2; foourl=\"https://foo.example.com/\""))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item("2; foourl=\"https://foo.example.com/\"")
+               )
     end
 
     test "parses token with multiple parameters" do
@@ -221,7 +236,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     end
 
     test "parses item with decimal parameter" do
-      assert {:token, "ghi", [{"jk", {:integer, 4}}]} == unwrap!(HttpStructuredField.parse_sf_item("ghi;jk=4"))
+      assert {:token, "ghi", [{"jk", {:integer, 4}}]} ==
+               unwrap!(HttpStructuredField.parse_sf_item("ghi;jk=4"))
     end
 
     test "parses item with string paramete" do
@@ -231,7 +247,11 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "complex URL as parameter" do
       assert {:integer, 2, [{"foourl", {:string, "https://foo.example.com?a=1;b=2/"}}]} ==
-               unwrap!(HttpStructuredField.parse_sf_item("2; foourl=\"https://foo.example.com?a=1;b=2/\""))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(
+                   "2; foourl=\"https://foo.example.com?a=1;b=2/\""
+                 )
+               )
     end
   end
 
@@ -246,19 +266,26 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "parses list with parameters" do
       assert [
-               {:token, "abc", [{"a", {:integer, 1}}, {"b", {:integer, 2}}, {"cde_456", {:boolean, true}}]}
+               {:token, "abc",
+                [{"a", {:integer, 1}}, {"b", {:integer, 2}}, {"cde_456", {:boolean, true}}]}
              ] == unwrap!(HttpStructuredField.parse_sf_list("abc;a=1;b=2; cde_456"))
     end
 
     test "multiple items list with parameters" do
       assert [
-               {:token, "abc", [{"a", {:integer, 1}}, {"b", {:integer, 2}}, {"cde_456", {:boolean, true}}]},
+               {:token, "abc",
+                [{"a", {:integer, 1}}, {"b", {:integer, 2}}, {"cde_456", {:boolean, true}}]},
                {:inner_list,
                 [
                   {:token, "ghi", [{"jk", {:integer, 4}}]},
                   {:token, "l", []}
                 ], [{"q", {:string, "9"}}, {"r", {:token, "w"}}]}
-             ] == unwrap!(HttpStructuredField.parse_sf_list(~S{abc;a=1;b=2; cde_456, (ghi;jk=4 l);q="9";r=w}))
+             ] ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_list(
+                   ~S{abc;a=1;b=2; cde_456, (ghi;jk=4 l);q="9";r=w}
+                 )
+               )
     end
 
     test "parses empty list" do
@@ -268,7 +295,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       #     implies that fields defined as Lists have a default empty value.
       #
       # So we expect an error for the empty string
-      assert {:error, {:empty, "     \t        "}} = HttpStructuredField.parse_sf_list("     \t        ")
+      assert {:error, {:empty, "     \t        "}} =
+               HttpStructuredField.parse_sf_list("     \t        ")
     end
   end
 
@@ -370,7 +398,10 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
                   {:string, "one", []}
                 ], []},
                {:inner_list, [], []}
-             ] == unwrap!(HttpStructuredField.parse_sf_list(~S{("foo" "bar"), ("baz"), ("bat" "one"), ()}))
+             ] ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_list(~S{("foo" "bar"), ("baz"), ("bat" "one"), ()})
+               )
     end
 
     test "parses list of inner lists with parameters" do
@@ -384,7 +415,12 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
                   {:string, "bar", []},
                   {:string, "baz", []}
                 ], [{"lvl", {:integer, 1}}]}
-             ] == unwrap!(HttpStructuredField.parse_sf_list(~S{("foo"; a=1;b=2);lvl=5, ("bar" "baz");lvl=1}))
+             ] ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_list(
+                   ~S{("foo"; a=1;b=2);lvl=5, ("bar" "baz");lvl=1}
+                 )
+               )
     end
 
     test "parses mixed list with tokens and inner lists" do
@@ -404,7 +440,12 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       assert [
                {"en", {:string, "Applepie", []}},
                {"da", {:byte_sequence, "hello", []}}
-             ] == unwrap!(HttpStructuredField.parse_sf_dictionary("en=\"Applepie\", da=:#{Base.encode64("hello")}:"))
+             ] ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_dictionary(
+                   "en=\"Applepie\", da=:#{Base.encode64("hello")}:"
+                 )
+               )
     end
 
     test "parses dictionary with boolean values" do
@@ -424,7 +465,10 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
                    {:token, "joy", []},
                    {:token, "sadness", []}
                  ], []}}
-             ] == unwrap!(HttpStructuredField.parse_sf_dictionary("rating=1.5, feelings=(joy sadness)"))
+             ] ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_dictionary("rating=1.5, feelings=(joy sadness)")
+               )
     end
 
     test "parses dictionary with mix of items and inner lists" do
@@ -443,7 +487,10 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
                    {:integer, 5, []},
                    {:integer, 6, []}
                  ], [{"valid", {:boolean, true}}]}}
-             ] == unwrap!(HttpStructuredField.parse_sf_dictionary("a=(1 2), b=3, c=4;aa=bb, d=(5 6);valid"))
+             ] ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_dictionary("a=(1 2), b=3, c=4;aa=bb, d=(5 6);valid")
+               )
     end
 
     test "parses simple key-value dictionary" do
@@ -517,7 +564,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       assert [
                {"a", {:integer, 1, [{"x", {:boolean, true}}, {"y", {:string, "test"}}]}},
                {"b", {:inner_list, [{:integer, 2, []}], [{"z", {:decimal, 3.14}}]}}
-             ] == unwrap!(HttpStructuredField.parse_sf_dictionary("a=1;x;y=\"test\", b=(2);z=3.14"))
+             ] ==
+               unwrap!(HttpStructuredField.parse_sf_dictionary("a=1;x;y=\"test\", b=(2);z=3.14"))
     end
   end
 
@@ -539,9 +587,11 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       # RFC 8941: integer component has at most 12 digits, fractional at most 3
 
       # We must ensure those values are supported
-      assert {:decimal, 999_999_999_999.999, []} == unwrap!(HttpStructuredField.parse_sf_item("999999999999.999"))
+      assert {:decimal, 999_999_999_999.999, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("999999999999.999"))
 
-      assert {:decimal, -999_999_999_999.999, []} == unwrap!(HttpStructuredField.parse_sf_item("-999999999999.999"))
+      assert {:decimal, -999_999_999_999.999, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("-999999999999.999"))
 
       # Elixir supports larger values so we do not fail in that case
     end
@@ -565,7 +615,9 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       # RFC 8941: Parsers MUST support Strings with at least 1024 characters
       long_string = String.duplicate("a", 1024)
       quoted_string = "\"#{long_string}\""
-      assert {:string, long_string, []} == unwrap!(HttpStructuredField.parse_sf_item(quoted_string))
+
+      assert {:string, long_string, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(quoted_string))
     end
 
     test "string with all allowed escape sequences" do
@@ -603,7 +655,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "token with all allowed characters" do
       # Test various tchar characters and ":" "/"
-      assert {:token, "abc123_-.*:/%", []} == unwrap!(HttpStructuredField.parse_sf_item("abc123_-.*:/%"))
+      assert {:token, "abc123_-.*:/%", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("abc123_-.*:/%"))
     end
 
     test "token starting with invalid characters" do
@@ -614,7 +667,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "token with uppercase letters (invalid in some contexts)" do
       # While uppercase ALPHA is allowed in first position, test edge case
-      assert {:token, "ValidToken", []} == unwrap!(HttpStructuredField.parse_sf_item("ValidToken"))
+      assert {:token, "ValidToken", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("ValidToken"))
     end
   end
 
@@ -625,13 +679,15 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       large_data = String.duplicate("a", 1000)
       encoded = Base.encode64(large_data)
 
-      assert {:byte_sequence, large_data, []} == unwrap!(HttpStructuredField.parse_sf_item(":#{encoded}:"))
+      assert {:byte_sequence, large_data, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(":#{encoded}:"))
     end
 
     test "byte sequence with padding variations" do
       # Test different padding scenarios
       # With padding
-      assert {:byte_sequence, "sure.", []} == unwrap!(HttpStructuredField.parse_sf_item(":c3VyZS4=:"))
+      assert {:byte_sequence, "sure.", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(":c3VyZS4=:"))
     end
 
     test "byte sequence with invalid base64 characters" do
@@ -694,7 +750,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     end
 
     test "parameter without value (boolean true)" do
-      assert {:integer, 1, [{"flag", {:boolean, true}}]} == unwrap!(HttpStructuredField.parse_sf_item("1;flag"))
+      assert {:integer, 1, [{"flag", {:boolean, true}}]} ==
+               unwrap!(HttpStructuredField.parse_sf_item("1;flag"))
     end
 
     test "parameter with empty key" do
@@ -821,9 +878,11 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     test "unwrapped integers" do
       assert {42, []} == unwrap!(HttpStructuredField.parse_sf_item("42", unwrap: true))
 
-      assert {-999_999_999_999_999, []} == unwrap!(HttpStructuredField.parse_sf_item("-999999999999999", unwrap: true))
+      assert {-999_999_999_999_999, []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("-999999999999999", unwrap: true))
 
-      assert {5, [{"foo", "bar"}]} == unwrap!(HttpStructuredField.parse_sf_item("5; foo=bar", unwrap: true))
+      assert {5, [{"foo", "bar"}]} ==
+               unwrap!(HttpStructuredField.parse_sf_item("5; foo=bar", unwrap: true))
     end
 
     test "unwrapped decimals" do
@@ -835,7 +894,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     end
 
     test "unwrapped strings" do
-      assert {"hello world", []} == unwrap!(HttpStructuredField.parse_sf_item(~S{"hello world"}, unwrap: true))
+      assert {"hello world", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item(~S{"hello world"}, unwrap: true))
 
       assert {"", []} == unwrap!(HttpStructuredField.parse_sf_item(~S{""}, unwrap: true))
 
@@ -845,29 +905,40 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "unwrapped tokens" do
       assert {"sugar", []} == unwrap!(HttpStructuredField.parse_sf_item("sugar", unwrap: true))
-      assert {"foo123/456", []} == unwrap!(HttpStructuredField.parse_sf_item("foo123/456", unwrap: true))
 
-      assert {"abc", [{"a", 1}, {"b", 2}]} == unwrap!(HttpStructuredField.parse_sf_item("abc;a=1;b=2", unwrap: true))
+      assert {"foo123/456", []} ==
+               unwrap!(HttpStructuredField.parse_sf_item("foo123/456", unwrap: true))
+
+      assert {"abc", [{"a", 1}, {"b", 2}]} ==
+               unwrap!(HttpStructuredField.parse_sf_item("abc;a=1;b=2", unwrap: true))
     end
 
     test "unwrapped byte sequences" do
       assert {"pretend this is binary content.", []} ==
                unwrap!(
-                 HttpStructuredField.parse_sf_item(":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:", unwrap: true)
+                 HttpStructuredField.parse_sf_item(
+                   ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:",
+                   unwrap: true
+                 )
                )
 
       assert {"", []} == unwrap!(HttpStructuredField.parse_sf_item("::", unwrap: true))
       expected_bytes = Base.decode64!("w4ZibGV0w6ZydGU=")
 
       assert {expected_bytes, [{"encoding", "utf8"}]} ==
-               unwrap!(HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:; encoding=utf8", unwrap: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:; encoding=utf8",
+                   unwrap: true
+                 )
+               )
     end
 
     test "unwrapped booleans" do
       assert {true, []} == unwrap!(HttpStructuredField.parse_sf_item("?1", unwrap: true))
       assert {false, []} == unwrap!(HttpStructuredField.parse_sf_item("?0", unwrap: true))
 
-      assert {true, [{"flag", "active"}]} == unwrap!(HttpStructuredField.parse_sf_item("?1; flag=active", unwrap: true))
+      assert {true, [{"flag", "active"}]} ==
+               unwrap!(HttpStructuredField.parse_sf_item("?1; flag=active", unwrap: true))
     end
 
     test "unwrapped inner lists" do
@@ -884,10 +955,13 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       assert [{"sugar", []}, {"tea", []}, {"rum", []}] ==
                unwrap!(HttpStructuredField.parse_sf_list("sugar, tea, rum", unwrap: true))
 
-      assert [{"abc", [{"a", 1}]}] == unwrap!(HttpStructuredField.parse_sf_list("abc;a=1", unwrap: true))
+      assert [{"abc", [{"a", 1}]}] ==
+               unwrap!(HttpStructuredField.parse_sf_list("abc;a=1", unwrap: true))
 
       assert [{"abc", [{"flag", true}]}, {[{"ghi", []}, {"l", []}], [{"q", "9"}]}] ==
-               unwrap!(HttpStructuredField.parse_sf_list(~S{abc;flag, (ghi l);q="9"}, unwrap: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_list(~S{abc;flag, (ghi l);q="9"}, unwrap: true)
+               )
     end
 
     test "unwrapped dictionaries" do
@@ -898,7 +972,11 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
                unwrap!(HttpStructuredField.parse_sf_dictionary("a=?0, b", unwrap: true))
 
       assert [{"rating", {1.5, []}}, {"feelings", {[{"joy", []}, {"sadness", []}], []}}] ==
-               unwrap!(HttpStructuredField.parse_sf_dictionary("rating=1.5, feelings=(joy sadness)", unwrap: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_dictionary("rating=1.5, feelings=(joy sadness)",
+                   unwrap: true
+                 )
+               )
     end
   end
 
@@ -915,14 +993,18 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "decimals with maps for parameters and dictionaries" do
       assert {:decimal, 4.5, %{}} == unwrap!(HttpStructuredField.parse_sf_item("4.5", maps: true))
-      assert {:decimal, -1.5, %{}} == unwrap!(HttpStructuredField.parse_sf_item("-1.5", maps: true))
+
+      assert {:decimal, -1.5, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("-1.5", maps: true))
 
       assert {:decimal, 123.456, %{"precision" => {:integer, 3}}} ==
                unwrap!(HttpStructuredField.parse_sf_item("123.456; precision=3", maps: true))
     end
 
     test "strings with maps for parameters and dictionaries" do
-      assert {:string, "hello world", %{}} == unwrap!(HttpStructuredField.parse_sf_item(~S{"hello world"}, maps: true))
+      assert {:string, "hello world", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item(~S{"hello world"}, maps: true))
+
       assert {:string, "", %{}} == unwrap!(HttpStructuredField.parse_sf_item(~S{""}, maps: true))
 
       assert {:string, "Applepie", %{"lang" => {:token, "en"}}} ==
@@ -930,8 +1012,11 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     end
 
     test "tokens with maps for parameters and dictionaries" do
-      assert {:token, "sugar", %{}} == unwrap!(HttpStructuredField.parse_sf_item("sugar", maps: true))
-      assert {:token, "foo123/456", %{}} == unwrap!(HttpStructuredField.parse_sf_item("foo123/456", maps: true))
+      assert {:token, "sugar", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("sugar", maps: true))
+
+      assert {:token, "foo123/456", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("foo123/456", maps: true))
 
       assert {:token, "abc", %{"a" => {:integer, 1}, "b" => {:integer, 2}}} ==
                unwrap!(HttpStructuredField.parse_sf_item("abc;a=1;b=2", maps: true))
@@ -939,18 +1024,31 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
 
     test "byte sequences with maps for parameters and dictionaries" do
       assert {:byte_sequence, "pretend this is binary content.", %{}} ==
-               unwrap!(HttpStructuredField.parse_sf_item(":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:", maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(
+                   ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:",
+                   maps: true
+                 )
+               )
 
-      assert {:byte_sequence, "", %{}} == unwrap!(HttpStructuredField.parse_sf_item("::", maps: true))
+      assert {:byte_sequence, "", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("::", maps: true))
+
       expected_bytes = Base.decode64!("w4ZibGV0w6ZydGU=")
 
       assert {:byte_sequence, expected_bytes, %{"encoding" => {:token, "utf8"}}} ==
-               unwrap!(HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:; encoding=utf8", maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:; encoding=utf8",
+                   maps: true
+                 )
+               )
     end
 
     test "booleans with maps for parameters and dictionaries" do
       assert {:boolean, true, %{}} == unwrap!(HttpStructuredField.parse_sf_item("?1", maps: true))
-      assert {:boolean, false, %{}} == unwrap!(HttpStructuredField.parse_sf_item("?0", maps: true))
+
+      assert {:boolean, false, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("?0", maps: true))
 
       assert {:boolean, true, %{"flag" => {:token, "active"}}} ==
                unwrap!(HttpStructuredField.parse_sf_item("?1; flag=active", maps: true))
@@ -960,9 +1058,13 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       assert [{:inner_list, [{:string, "foo", %{}}, {:string, "bar", %{}}], %{}}] ==
                unwrap!(HttpStructuredField.parse_sf_list(~S{("foo" "bar")}, maps: true))
 
-      assert [{:inner_list, [], %{}}] == unwrap!(HttpStructuredField.parse_sf_list("()", maps: true))
+      assert [{:inner_list, [], %{}}] ==
+               unwrap!(HttpStructuredField.parse_sf_list("()", maps: true))
 
-      assert [{:inner_list, [{:integer, 1, %{"a" => {:integer, 2}}}, {:integer, 3, %{}}], %{"lvl" => {:integer, 5}}}] ==
+      assert [
+               {:inner_list, [{:integer, 1, %{"a" => {:integer, 2}}}, {:integer, 3, %{}}],
+                %{"lvl" => {:integer, 5}}}
+             ] ==
                unwrap!(HttpStructuredField.parse_sf_list("(1;a=2 3);lvl=5", maps: true))
     end
 
@@ -980,7 +1082,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       assert [
                {:token, "abc", %{"flag" => {:boolean, true}}},
                {:inner_list, [{:token, "ghi", %{}}, {:token, "l", %{}}], %{"q" => {:string, "9"}}}
-             ] == unwrap!(HttpStructuredField.parse_sf_list(~S{abc;flag, (ghi l);q="9"}, maps: true))
+             ] ==
+               unwrap!(HttpStructuredField.parse_sf_list(~S{abc;flag, (ghi l);q="9"}, maps: true))
     end
 
     test "dictionaries with maps for parameters and dictionaries" do
@@ -997,42 +1100,67 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       assert %{
                "rating" => {:decimal, 1.5, %{}},
                "feelings" => {:inner_list, [{:token, "joy", %{}}, {:token, "sadness", %{}}], %{}}
-             } == unwrap!(HttpStructuredField.parse_sf_dictionary("rating=1.5, feelings=(joy sadness)", maps: true))
+             } ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_dictionary("rating=1.5, feelings=(joy sadness)",
+                   maps: true
+                 )
+               )
     end
   end
 
   describe "with both unwrap: true and maps: true options" do
     test "integers without type tags and with maps" do
-      assert {42, %{}} == unwrap!(HttpStructuredField.parse_sf_item("42", unwrap: true, maps: true))
+      assert {42, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("42", unwrap: true, maps: true))
 
-      assert {-42, %{}} == unwrap!(HttpStructuredField.parse_sf_item("-42", unwrap: true, maps: true))
+      assert {-42, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("-42", unwrap: true, maps: true))
 
       assert {5, %{"foo" => "bar"}} ==
                unwrap!(HttpStructuredField.parse_sf_item("5; foo=bar", unwrap: true, maps: true))
     end
 
     test "decimals without type tags and with maps" do
-      assert {4.5, %{}} == unwrap!(HttpStructuredField.parse_sf_item("4.5", unwrap: true, maps: true))
-      assert {-1.5, %{}} == unwrap!(HttpStructuredField.parse_sf_item("-1.5", unwrap: true, maps: true))
+      assert {4.5, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("4.5", unwrap: true, maps: true))
+
+      assert {-1.5, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("-1.5", unwrap: true, maps: true))
 
       assert {123.456, %{"precision" => 3}} ==
-               unwrap!(HttpStructuredField.parse_sf_item("123.456; precision=3", unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item("123.456; precision=3",
+                   unwrap: true,
+                   maps: true
+                 )
+               )
     end
 
     test "strings without type tags and with maps" do
       assert {"hello world", %{}} ==
-               unwrap!(HttpStructuredField.parse_sf_item(~S{"hello world"}, unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(~S{"hello world"}, unwrap: true, maps: true)
+               )
 
-      assert {"", %{}} == unwrap!(HttpStructuredField.parse_sf_item(~S{""}, unwrap: true, maps: true))
+      assert {"", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item(~S{""}, unwrap: true, maps: true))
 
       assert {"Applepie", %{"lang" => "en"}} ==
-               unwrap!(HttpStructuredField.parse_sf_item(~S{"Applepie"; lang=en}, unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(~S{"Applepie"; lang=en},
+                   unwrap: true,
+                   maps: true
+                 )
+               )
     end
 
     test "tokens without type tags and with maps" do
-      assert {"sugar", %{}} == unwrap!(HttpStructuredField.parse_sf_item("sugar", unwrap: true, maps: true))
+      assert {"sugar", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("sugar", unwrap: true, maps: true))
 
-      assert {"foo123/456", %{}} == unwrap!(HttpStructuredField.parse_sf_item("foo123/456", unwrap: true, maps: true))
+      assert {"foo123/456", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("foo123/456", unwrap: true, maps: true))
 
       assert {"abc", %{"a" => 1, "b" => 2}} ==
                unwrap!(HttpStructuredField.parse_sf_item("abc;a=1;b=2", unwrap: true, maps: true))
@@ -1041,50 +1169,76 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
     test "byte sequences without type tags and with maps" do
       assert {"pretend this is binary content.", %{}} ==
                unwrap!(
-                 HttpStructuredField.parse_sf_item(":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:",
+                 HttpStructuredField.parse_sf_item(
+                   ":cHJldGVuZCB0aGlzIGlzIGJpbmFyeSBjb250ZW50Lg==:",
                    unwrap: true,
                    maps: true
                  )
                )
 
-      assert {"", %{}} == unwrap!(HttpStructuredField.parse_sf_item("::", unwrap: true, maps: true))
+      assert {"", %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("::", unwrap: true, maps: true))
+
       expected_bytes = Base.decode64!("w4ZibGV0w6ZydGU=")
 
       assert {expected_bytes, %{"encoding" => "utf8"}} ==
-               unwrap!(HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:; encoding=utf8", unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item(":w4ZibGV0w6ZydGU=:; encoding=utf8",
+                   unwrap: true,
+                   maps: true
+                 )
+               )
     end
 
     test "booleans without type tags and with maps" do
-      assert {true, %{}} == unwrap!(HttpStructuredField.parse_sf_item("?1", unwrap: true, maps: true))
-      assert {false, %{}} == unwrap!(HttpStructuredField.parse_sf_item("?0", unwrap: true, maps: true))
+      assert {true, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("?1", unwrap: true, maps: true))
+
+      assert {false, %{}} ==
+               unwrap!(HttpStructuredField.parse_sf_item("?0", unwrap: true, maps: true))
 
       assert {true, %{"flag" => "active"}} ==
-               unwrap!(HttpStructuredField.parse_sf_item("?1; flag=active", unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_item("?1; flag=active", unwrap: true, maps: true)
+               )
     end
 
     test "inner lists without type tags and with maps" do
       assert [{[{"foo", %{}}, {"bar", %{}}], %{}}] ==
-               unwrap!(HttpStructuredField.parse_sf_list(~S{("foo" "bar")}, unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_list(~S{("foo" "bar")}, unwrap: true, maps: true)
+               )
 
-      assert [{[], %{}}] == unwrap!(HttpStructuredField.parse_sf_list("()", unwrap: true, maps: true))
+      assert [{[], %{}}] ==
+               unwrap!(HttpStructuredField.parse_sf_list("()", unwrap: true, maps: true))
 
       assert [{[{1, %{"a" => 2}}, {3, %{}}], %{"lvl" => 5}}] ==
-               unwrap!(HttpStructuredField.parse_sf_list("(1;a=2 3);lvl=5", unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_list("(1;a=2 3);lvl=5", unwrap: true, maps: true)
+               )
     end
 
     test "lists without type tags and with maps" do
       assert [{"sugar", %{}}, {"tea", %{}}, {"rum", %{}}] ==
-               unwrap!(HttpStructuredField.parse_sf_list("sugar, tea, rum", unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_list("sugar, tea, rum", unwrap: true, maps: true)
+               )
 
       assert [{"abc", %{"a" => 1, "b" => 2, "cde_456" => true}}] ==
-               unwrap!(HttpStructuredField.parse_sf_list("abc;a=1;b=2; cde_456", unwrap: true, maps: true))
+               unwrap!(
+                 HttpStructuredField.parse_sf_list("abc;a=1;b=2; cde_456",
+                   unwrap: true,
+                   maps: true
+                 )
+               )
 
       assert [
                {"abc", %{"a" => 1, "b" => 2, "cde_456" => true}},
                {[{"ghi", %{"jk" => 4}}, {"l", %{}}], %{"q" => "9", "r" => "w"}}
              ] ==
                unwrap!(
-                 HttpStructuredField.parse_sf_list(~S{abc;a=1;b=2; cde_456, (ghi;jk=4 l);q="9";r=w},
+                 HttpStructuredField.parse_sf_list(
+                   ~S{abc;a=1;b=2; cde_456, (ghi;jk=4 l);q="9";r=w},
                    unwrap: true,
                    maps: true
                  )
@@ -1095,12 +1249,18 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
       assert %{
                "foo" => {1, %{}},
                "bar" => {2, %{}}
-             } == unwrap!(HttpStructuredField.parse_sf_dictionary("foo=1, bar=2", unwrap: true, maps: true))
+             } ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_dictionary("foo=1, bar=2", unwrap: true, maps: true)
+               )
 
       assert %{
                "a" => {false, %{}},
                "b" => {true, %{}}
-             } == unwrap!(HttpStructuredField.parse_sf_dictionary("a=?0, b", unwrap: true, maps: true))
+             } ==
+               unwrap!(
+                 HttpStructuredField.parse_sf_dictionary("a=?0, b", unwrap: true, maps: true)
+               )
 
       assert %{
                "rating" => {1.5, %{}},
@@ -1108,7 +1268,8 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
                "feelings" => {[{"joy", %{}}, {"sadness", %{}}], %{}}
              } ==
                unwrap!(
-                 HttpStructuredField.parse_sf_dictionary("rating=1.5,dup=1,dup=2;a=2,dup=3;b=3, feelings=(joy sadness)",
+                 HttpStructuredField.parse_sf_dictionary(
+                   "rating=1.5,dup=1,dup=2;a=2,dup=3;b=3, feelings=(joy sadness)",
                    unwrap: true,
                    maps: true
                  )

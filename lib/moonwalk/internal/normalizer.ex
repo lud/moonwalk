@@ -11,14 +11,20 @@ defmodule Moonwalk.Internal.Normalizer do
   defstruct @enforce_keys
   @type t :: %__MODULE__{}
 
-  @callback normalize!(data :: term, ctx :: NormalizationContext.t()) :: {struct, NormalizationContext.t()}
+  @callback normalize!(data :: term, ctx :: NormalizationContext.t()) ::
+              {struct, NormalizationContext.t()}
 
   def normalize!(openapi_spec) when is_map(openapi_spec) do
     # Boostrap normalization by creating a context with all schemas from
     # #/components/schemas normalized.
     {openapi_spec, ctx} = normalize_predef_schemas(openapi_spec)
     {normal, ctx} = normalize!(openapi_spec, OpenAPI, ctx)
-    put_in(normal, [Access.key("components", %{}), Access.key("schemas", %{})], ctx.components_schemas)
+
+    put_in(
+      normal,
+      [Access.key("components", %{}), Access.key("schemas", %{})],
+      ctx.components_schemas
+    )
   end
 
   defp empty_context do
@@ -27,7 +33,8 @@ defmodule Moonwalk.Internal.Normalizer do
 
   defp normalize_predef_schemas(openapi_spec) do
     with {:ok, "components", {components, rest_spec}} <- pop_normal(openapi_spec, :components),
-         {:ok, "schemas", {components_schemas, rest_components}} <- pop_normal(components, :schemas) do
+         {:ok, "schemas", {components_schemas, rest_components}} <-
+           pop_normal(components, :schemas) do
       ctx = initialize_context_with_predefs(components_schemas)
       ctx = %{ctx | rev_path: []}
 
@@ -39,7 +46,9 @@ defmodule Moonwalk.Internal.Normalizer do
 
   defp initialize_context_with_predefs(schemas_map) do
     {predefs, others} =
-      Enum.split_with(schemas_map, fn {_refname, schema} -> is_atom(schema) and Schema.schema_module?(schema) end)
+      Enum.split_with(schemas_map, fn {_refname, schema} ->
+        is_atom(schema) and Schema.schema_module?(schema)
+      end)
 
     # Other schemas can be maps, and those maps can contain schema modules that
     # we will normalize. So we need to reserve the refname and mark the schemas
@@ -67,7 +76,10 @@ defmodule Moonwalk.Internal.Normalizer do
 
         %{
           ctx
-          | components_schemas: Map.update!(ctx.components_schemas, refname, fn :__placeholder__ -> normal_schema end)
+          | components_schemas:
+              Map.update!(ctx.components_schemas, refname, fn :__placeholder__ ->
+                normal_schema
+              end)
         }
       end)
 
@@ -78,7 +90,10 @@ defmodule Moonwalk.Internal.Normalizer do
 
         %{
           ctx
-          | components_schemas: Map.update!(ctx.components_schemas, refname, fn :__placeholder__ -> normal_schema end)
+          | components_schemas:
+              Map.update!(ctx.components_schemas, refname, fn :__placeholder__ ->
+                normal_schema
+              end)
         }
       end)
 

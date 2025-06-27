@@ -26,12 +26,14 @@ defmodule Moonwalk.Spec.SecurityScheme do
       description: %{type: :string, description: "A description for the security scheme."},
       name: %{
         type: :string,
-        description: "The name of the header, query, or cookie parameter (for apiKey). Required for apiKey."
+        description:
+          "The name of the header, query, or cookie parameter (for apiKey). Required for apiKey."
       },
       in:
         Schema.string_to_atom_enum(
           %{
-            description: "The location of the API key. Allowed values: query, header, cookie. Required for apiKey."
+            description:
+              "The location of the API key. Allowed values: query, header, cookie. Required for apiKey."
           },
           [
             :query,
@@ -50,7 +52,8 @@ defmodule Moonwalk.Spec.SecurityScheme do
       flows: Moonwalk.Spec.OAuthFlows,
       openIdConnectUrl: %{
         type: :string,
-        description: "The URL to discover OpenID Connect configuration. Required for openIdConnect."
+        description:
+          "The URL to discover OpenID Connect configuration. Required for openIdConnect."
       }
     },
     required: [:type]
@@ -60,7 +63,15 @@ defmodule Moonwalk.Spec.SecurityScheme do
   def normalize!(data, ctx) do
     data
     |> from(__MODULE__, ctx)
-    |> normalize_default([:type, :description, :name, :in, :scheme, :bearerFormat, :openIdConnectUrl])
+    |> normalize_default([
+      :type,
+      :description,
+      :name,
+      :in,
+      :scheme,
+      :bearerFormat,
+      :openIdConnectUrl
+    ])
     |> normalize_subs(flows: Moonwalk.Spec.OAuthFlows)
     |> collect()
   end

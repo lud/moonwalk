@@ -70,7 +70,8 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
                       required: true,
                       schema_key:
                         {:precast, precast_fun,
-                         {:pointer, :root, ["paths", "/json-endpoint", "get", "parameters", 0, "schema"]}},
+                         {:pointer, :root,
+                          ["paths", "/json-endpoint", "get", "parameters", 0, "schema"]}},
                       bin_key: "param_p1"
                     }
                   ],
@@ -79,7 +80,9 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
                       in: :query,
                       key: :param_q1_orderby,
                       required: false,
-                      schema_key: {:pointer, :root, ["paths", "/json-endpoint", "get", "parameters", 1, "schema"]},
+                      schema_key:
+                        {:pointer, :root,
+                         ["paths", "/json-endpoint", "get", "parameters", 1, "schema"]},
                       bin_key: "param_q1_orderby"
                     }
                   ]
@@ -139,7 +142,10 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
       })
 
     assert_raise ArgumentError, ~r{duplicate operation id "same-same"}, fn ->
-      ValidationBuilder.build_operations(normal, %{responses: false, jsv_opts: Moonwalk.default_jsv_opts()})
+      ValidationBuilder.build_operations(normal, %{
+        responses: false,
+        jsv_opts: Moonwalk.default_jsv_opts()
+      })
     end
   end
 
@@ -187,14 +193,16 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
                         key: :dry_run,
                         required: false,
                         schema_key:
-                          {:precast, caster, {:pointer, :root, ["components", "parameters", "DryRun", "schema"]}},
+                          {:precast, caster,
+                           {:pointer, :root, ["components", "parameters", "DryRun", "schema"]}},
                         bin_key: "dry_run"
                       },
                       %{
                         in: :query,
                         key: :source,
                         required: false,
-                        schema_key: {:pointer, :root, ["components", "parameters", "Source", "schema"]},
+                        schema_key:
+                          {:pointer, :root, ["components", "parameters", "Source", "schema"]},
                         bin_key: "source"
                       }
                     ]
@@ -203,13 +211,21 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
                   [
                     {{"application", "json"},
                      {:pointer, :root,
-                      ["components", "requestBodies", "CreatePotionRequest", "content", "application/json", "schema"]}}
+                      [
+                        "components",
+                        "requestBodies",
+                        "CreatePotionRequest",
+                        "content",
+                        "application/json",
+                        "schema"
+                      ]}}
                   ]}
                ]
              } =
                built
 
-      assert %{module: JSV.Cast, name: :string_to_boolean, arity: 1} = Map.new(Function.info(caster))
+      assert %{module: JSV.Cast, name: :string_to_boolean, arity: 1} =
+               Map.new(Function.info(caster))
     end
 
     test "with responses" do
@@ -229,7 +245,10 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
       |> File.read!()
       |> JSV.Codec.decode!()
       |> Normalizer.normalize!()
-      |> ValidationBuilder.build_operations(%{responses: false, jsv_opts: Moonwalk.default_jsv_opts()})
+      |> ValidationBuilder.build_operations(%{
+        responses: false,
+        jsv_opts: Moonwalk.default_jsv_opts()
+      })
     end
   end
 end

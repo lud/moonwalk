@@ -412,7 +412,10 @@ defmodule Moonwalk.JsonSchema.Formats.HttpStructuredField.Parser do
     error(:invalid_key, buf)
   end
 
-  defp take_key(<<c, buf::binary>>, acc) when is_lcalpha(c) when is_DIGIT(c) when c in [?_, ?-, ?., ?*] do
+  defp take_key(<<c, buf::binary>>, acc)
+       when is_lcalpha(c)
+       when is_DIGIT(c)
+       when c in [?_, ?-, ?., ?*] do
     take_key(buf, [c | acc])
   end
 

@@ -51,10 +51,18 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
             "operationId" => "searchAlchemists",
             "parameters" => [
               # This one overrides pathitems parameters
-              %{"name" => "q", "in" => "query", "schema" => %{"type" => "string", "minLength" => 0}},
+              %{
+                "name" => "q",
+                "in" => "query",
+                "schema" => %{"type" => "string", "minLength" => 0}
+              },
               # This one does not override as it is defined in query but
               # pathitem 'lab' parameter is defined in path.
-              %{"name" => "lab", "in" => "query", "schema" => %{"type" => "string", "pattern" => "^someprefix:[a-z]+"}}
+              %{
+                "name" => "lab",
+                "in" => "query",
+                "schema" => %{"type" => "string", "pattern" => "^someprefix:[a-z]+"}
+              }
             ],
             "responses" => %{
               "200" => %{"$ref" => "#/components/responses/AlchemistsPage"}
@@ -73,8 +81,16 @@ defmodule Moonwalk.TestWeb.DeclarativeApiSpec do
           "in" => "query",
           "schema" => %{"type" => "string"}
         },
-        "PerPage" => %{"name" => "per_page", "in" => "query", "schema" => %{"type" => "integer", minimum: 1}},
-        "Page" => %{"name" => "page", "in" => "query", "schema" => %{"type" => "integer", minimum: 1}},
+        "PerPage" => %{
+          "name" => "per_page",
+          "in" => "query",
+          "schema" => %{"type" => "integer", minimum: 1}
+        },
+        "Page" => %{
+          "name" => "page",
+          "in" => "query",
+          "schema" => %{"type" => "integer", minimum: 1}
+        },
         "LaboratorySlug" => %{
           "name" => "lab",
           "in" => "path",

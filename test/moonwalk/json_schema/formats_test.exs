@@ -59,7 +59,11 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # date-time - Date and time (RFC3339)
     %{
       format: "date-time",
-      valid_inputs: ["2023-01-01T12:00:00Z", "2023-01-01T12:00:00+02:00", "2023-01-01T12:00:00.123Z"],
+      valid_inputs: [
+        "2023-01-01T12:00:00Z",
+        "2023-01-01T12:00:00+02:00",
+        "2023-01-01T12:00:00.123Z"
+      ],
       invalid_inputs: ["2023-01-01", "12:00:00", "invalid-date", "2023-13-01T12:00:00Z"],
       ignored_inputs: [123, 12.34, true]
     },
@@ -68,14 +72,30 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     %{
       format: "date",
       valid_inputs: ["2023-01-01", "2023-12-31", "1970-01-01"],
-      invalid_inputs: ["2023-13-01", "2023-01-32", "01-01-2023", "2023-1-1", "2023-01-01T12:00:00Z"],
+      invalid_inputs: [
+        "2023-13-01",
+        "2023-01-32",
+        "01-01-2023",
+        "2023-1-1",
+        "2023-01-01T12:00:00Z"
+      ],
       ignored_inputs: [123, 12.34, true]
     },
 
     # decimal - Fixed point decimal (string or number)
     %{
       format: "decimal",
-      valid_inputs: ["123.45", "0", "-123.45", "1000000", 123.45, 0, -123.45, decimal_bigint, decimal_huge],
+      valid_inputs: [
+        "123.45",
+        "0",
+        "-123.45",
+        "1000000",
+        123.45,
+        0,
+        -123.45,
+        decimal_bigint,
+        decimal_huge
+      ],
       invalid_inputs: ["abc", "123.45.67", ""],
       ignored_inputs: []
     },
@@ -115,7 +135,14 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # double - Double precision floating point
     %{
       format: "double",
-      valid_inputs: [123.45, 0, -123.45, 1.797_693_134_862_315_7e+308, decimal_bigint, decimal_huge],
+      valid_inputs: [
+        123.45,
+        0,
+        -123.45,
+        1.797_693_134_862_315_7e+308,
+        decimal_bigint,
+        decimal_huge
+      ],
       invalid_inputs: [],
       ignored_inputs: ["123.45", "invalid"]
     },
@@ -132,7 +159,13 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     %{
       format: "email",
       valid_inputs: ["test@example.com", "user+tag@domain.co.uk", "simple@test.org"],
-      invalid_inputs: ["invalid", "@example.com", "test@", "test.example.com", "test @example.com"],
+      invalid_inputs: [
+        "invalid",
+        "@example.com",
+        "test@",
+        "test.example.com",
+        "test @example.com"
+      ],
       ignored_inputs: [123, 12.34, true]
     },
 
@@ -272,7 +305,14 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # media-range - Media range (RFC9110)
     %{
       format: "media-range",
-      valid_inputs: ["text/plain", "application/json", "text/", "text/*", "*/*", "text/plain; charset=utf-8"],
+      valid_inputs: [
+        "text/plain",
+        "application/json",
+        "text/",
+        "text/*",
+        "*/*",
+        "text/plain; charset=utf-8"
+      ],
       invalid_inputs: ["invalid", "/json"],
       ignored_inputs: [123, 12.34, true]
     },
@@ -376,7 +416,14 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # uint64 - Unsigned 64-bit integer (string or number)
     %{
       format: "uint64",
-      valid_inputs: [0, 18_446_744_073_709_551_615, "18446744073709551615", "0", "1000", decimal_one],
+      valid_inputs: [
+        0,
+        18_446_744_073_709_551_615,
+        "18446744073709551615",
+        "0",
+        "1000",
+        decimal_one
+      ],
       invalid_inputs: [-1, 12.34, "abc", "-1", decimal_minus_one],
       ignored_inputs: []
     },
@@ -392,7 +439,13 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # uri-reference - URI reference (RFC3986)
     %{
       format: "uri-reference",
-      valid_inputs: ["https://example.com", "/path", "?query", "#fragment", "mailto:test@example.com"],
+      valid_inputs: [
+        "https://example.com",
+        "/path",
+        "?query",
+        "#fragment",
+        "mailto:test@example.com"
+      ],
       invalid_inputs: [],
       ignored_inputs: [123, 12.34, true]
     },
@@ -400,7 +453,11 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # uri-template - URI Template (RFC6570)
     %{
       format: "uri-template",
-      valid_inputs: ["/users/{id}", "https://api.example.com{/version}/users{?page,limit}", "{+path}"],
+      valid_inputs: [
+        "/users/{id}",
+        "https://api.example.com{/version}/users{?page,limit}",
+        "{+path}"
+      ],
       invalid_inputs: ["/users/{unclosed", "/users/{invalid}}"],
       ignored_inputs: [123, 12.34, true]
     },
@@ -408,7 +465,12 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # uri - URI (RFC3986)
     %{
       format: "uri",
-      valid_inputs: ["https://example.com", "ftp://test.org", "mailto:test@example.com", "file:///path/to/file"],
+      valid_inputs: [
+        "https://example.com",
+        "ftp://test.org",
+        "mailto:test@example.com",
+        "file:///path/to/file"
+      ],
       invalid_inputs: ["/relative", "?query", "#fragment", "invalid"],
       ignored_inputs: [123, 12.34, true]
     },
@@ -416,14 +478,23 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
     # uuid - UUID (RFC4122)
     %{
       format: "uuid",
-      valid_inputs: ["123e4567-e89b-12d3-a456-426614174000", "00000000-0000-0000-0000-000000000000"],
-      invalid_inputs: ["123e4567-e89b-12d3-a456", "invalid-uuid", "123e4567-e89b-12d3-a456-42661417400g"],
+      valid_inputs: [
+        "123e4567-e89b-12d3-a456-426614174000",
+        "00000000-0000-0000-0000-000000000000"
+      ],
+      invalid_inputs: [
+        "123e4567-e89b-12d3-a456",
+        "invalid-uuid",
+        "123e4567-e89b-12d3-a456-42661417400g"
+      ],
       ignored_inputs: [123, 12.34, true]
     }
   ]
 
   defp schema_for_format(format) do
-    JSV.build!(%{format: format}, formats: [Moonwalk.JsonSchema.Formats | JSV.default_format_validator_modules()])
+    JSV.build!(%{format: format},
+      formats: [Moonwalk.JsonSchema.Formats | JSV.default_format_validator_modules()]
+    )
   end
 
   defp assert_valid(data, schema) do
@@ -484,7 +555,12 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
   end
 
   Enum.each(test_data, fn tcase ->
-    %{format: format, valid_inputs: valid_inputs, invalid_inputs: invalid_inputs, ignored_inputs: ignored_inputs} =
+    %{
+      format: format,
+      valid_inputs: valid_inputs,
+      invalid_inputs: invalid_inputs,
+      ignored_inputs: ignored_inputs
+    } =
       tcase
 
     describe "schema format #{format} -" do
@@ -500,7 +576,10 @@ defmodule Moonwalk.JsonSchema.FormatsTest do
 
       if invalid_inputs != [] do
         test "invalid inputs", %{schema: schema} do
-          Enum.each(unquote(Macro.escape(invalid_inputs)), &assert_invalid(&1, schema, unquote(format)))
+          Enum.each(
+            unquote(Macro.escape(invalid_inputs)),
+            &assert_invalid(&1, schema, unquote(format))
+          )
         end
       end
 

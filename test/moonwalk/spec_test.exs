@@ -198,7 +198,10 @@ defmodule Moonwalk.SpecTest do
           "post" => %{
             "operationId" => opid,
             "responses" => %{
-              "200" => %{"description" => "resp #{i}", "content" => %{"application/json" => %{"schema" => schema}}}
+              "200" => %{
+                "description" => "resp #{i}",
+                "content" => %{"application/json" => %{"schema" => schema}}
+              }
             },
             "requestBody" => %{
               "content" => %{"application/json" => %{"schema" => schema}}
@@ -211,7 +214,10 @@ defmodule Moonwalk.SpecTest do
     end
 
     defp base(overrides) do
-      Map.merge(%{"openapi" => "3.1.1", "info" => %{"title" => "spec_with_schemas", "version" => "0"}}, overrides)
+      Map.merge(
+        %{"openapi" => "3.1.1", "info" => %{"title" => "spec_with_schemas", "version" => "0"}},
+        overrides
+      )
     end
 
     defmodule Standalone do
@@ -259,7 +265,9 @@ defmodule Moonwalk.SpecTest do
                    # registered with its module name
                    "RecA" => %{
                      "properties" => %{
-                       "b" => %{"$ref" => "#/components/schemas/Moonwalk.SpecTest.MutualRecursiveB"}
+                       "b" => %{
+                         "$ref" => "#/components/schemas/Moonwalk.SpecTest.MutualRecursiveB"
+                       }
                      }
                    },
                    "Moonwalk.SpecTest.MutualRecursiveB" => %{
@@ -287,7 +295,9 @@ defmodule Moonwalk.SpecTest do
                      requestBody: %Moonwalk.Spec.RequestBody{
                        content: %{
                          "application/json" => %Moonwalk.Spec.MediaType{
-                           schema: %{"$ref" => "#/components/schemas/Moonwalk.SpecTest.MutualRecursiveB"}
+                           schema: %{
+                             "$ref" => "#/components/schemas/Moonwalk.SpecTest.MutualRecursiveB"
+                           }
                          }
                        }
                      },
@@ -419,7 +429,10 @@ defmodule Moonwalk.SpecTest do
           # Here we use false as an atom schema, should not be replaced by a
           # ref.
           "paths" =>
-            schemas_to_paths([PetSchema, %{type: :object, properties: %{pet: PetSchema}, additionalProperties: false}])
+            schemas_to_paths([
+              PetSchema,
+              %{type: :object, properties: %{pet: PetSchema}, additionalProperties: false}
+            ])
         }
         |> base()
         |> Moonwalk.normalize_spec!()

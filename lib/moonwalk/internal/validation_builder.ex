@@ -103,7 +103,8 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   defp to_ops_map(ops_list) do
     Enum.reduce(ops_list, %{}, fn
       {op_id, _}, acc when is_map_key(acc, op_id) ->
-        raise ArgumentError, "duplicate operation id #{inspect(op_id)} or operation missing the :method option"
+        raise ArgumentError,
+              "duplicate operation id #{inspect(op_id)} or operation missing the :method option"
 
       {op_id, op_spec}, acc ->
         Map.put(acc, op_id, op_spec)
@@ -117,23 +118,37 @@ defmodule Moonwalk.Internal.ValidationBuilder do
 
     {validations, jsv_ctx} =
       case build_body_validation(op.requestBody, ["requestBody" | rev_path], spec, jsv_ctx) do
-        {:no_validation, jsv_ctx} -> {validations, jsv_ctx}
-        {required?, body_validations, jsv_ctx} -> {[{:body, required?, body_validations} | validations], jsv_ctx}
+        {:no_validation, jsv_ctx} ->
+          {validations, jsv_ctx}
+
+        {required?, body_validations, jsv_ctx} ->
+          {[{:body, required?, body_validations} | validations], jsv_ctx}
       end
 
     # Parameters
 
     {validations, jsv_ctx} =
-      case build_parameters_validation(op.parameters, pathitem_parameters, rev_path, spec, jsv_ctx) do
-        {[], jsv_ctx} -> {validations, jsv_ctx}
-        {parameters_by_location, jsv_ctx} -> {[{:parameters, parameters_by_location} | validations], jsv_ctx}
+      case build_parameters_validation(
+             op.parameters,
+             pathitem_parameters,
+             rev_path,
+             spec,
+             jsv_ctx
+           ) do
+        {[], jsv_ctx} ->
+          {validations, jsv_ctx}
+
+        {parameters_by_location, jsv_ctx} ->
+          {[{:parameters, parameters_by_location} | validations], jsv_ctx}
       end
 
     # Responses
 
     {validations, jsv_ctx} =
       if opts.responses do
-        {resp_validations, jsv_ctx} = build_responses_validations(op.responses, rev_path, spec, jsv_ctx)
+        {resp_validations, jsv_ctx} =
+          build_responses_validations(op.responses, rev_path, spec, jsv_ctx)
+
         {[{:responses, resp_validations} | validations], jsv_ctx}
       else
         {validations, jsv_ctx}
@@ -144,7 +159,8 @@ defmodule Moonwalk.Internal.ValidationBuilder do
 
   # -- Body Validation --------------------------------------------------------
 
-  defp build_body_validation(%RequestBody{} = req_body, rev_path, _spec, jsv_ctx) when is_map(req_body) do
+  defp build_body_validation(%RequestBody{} = req_body, rev_path, _spec, jsv_ctx)
+       when is_map(req_body) do
     {matchers, jsv_ctx} =
       req_body.content
       |> sorted_media_type_clauses()
@@ -230,7 +246,8 @@ defmodule Moonwalk.Internal.ValidationBuilder do
 
     # We need to keep only pathitem parameters that are not overriden by the
     # operation.
-    defined_by_op = Map.new(parameters_wrev, fn {%{name: name, in: loc}, _} -> {{name, loc}, true} end)
+    defined_by_op =
+      Map.new(parameters_wrev, fn {%{name: name, in: loc}, _} -> {{name, loc}, true} end)
 
     pathitem_parameters_wrev =
       Enum.filter(pathitem_parameters_wrev, fn {%{name: name, in: loc}, _} ->
@@ -382,7 +399,9 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   defp build_responses_validations(responses, rev_path, spec, jsv_ctx) do
     {validations, jsv_ctx} =
       Enum.map_reduce(responses, jsv_ctx, fn {code_str, resp_or_ref}, jsv_ctx ->
-        {response, rev_path} = deref(resp_or_ref, Response, [code_str, "responses" | rev_path], spec)
+        {response, rev_path} =
+          deref(resp_or_ref, Response, [code_str, "responses" | rev_path], spec)
+
         code = cast_response_code(code_str)
         {resp_validation, jsv_ctx} = build_response_validation(response, rev_path, jsv_ctx)
         {{code, resp_validation}, jsv_ctx}

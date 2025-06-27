@@ -55,7 +55,10 @@ defmodule Moonwalk.Spec.Response do
     from_controller!({schema, []})
   end
 
-  def from_controller!({schema, spec}) when is_map(schema) when is_atom(schema) when is_boolean(schema) do
+  def from_controller!({schema, spec})
+      when is_map(schema)
+      when is_atom(schema)
+      when is_boolean(schema) do
     spec =
       Keyword.put_new_lazy(spec, :description, fn ->
         case schema do

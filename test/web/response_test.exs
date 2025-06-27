@@ -7,9 +7,11 @@ defmodule Moonwalk.Web.ResponseTest do
     test "response without defined operation", %{conn: conn} do
       conn = get(conn, ~p"/generated/resp/fortune-200-no-operation")
 
-      assert_raise RuntimeError, ~r/the connection was not validated by Moonwalk.Plugs.ValidateRequest/, fn ->
-        valid_response(PathsApiSpec, conn, 200)
-      end
+      assert_raise RuntimeError,
+                   ~r/the connection was not validated by Moonwalk.Plugs.ValidateRequest/,
+                   fn ->
+                     valid_response(PathsApiSpec, conn, 200)
+                   end
 
       # status is checked
       assert_raise RuntimeError, ~r/expected response with status 999/, fn ->

@@ -35,11 +35,18 @@ defmodule Moonwalk.Controller do
 
     quote bind_quoted: binding() do
       {verb, spec} = Controller.__pop_verb(spec)
-      shared_parameters = :lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_parameters, []))
-      shared_tags = :lists.flatten(:lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_tags, [])))
+
+      shared_parameters =
+        :lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_parameters, []))
+
+      shared_tags =
+        :lists.flatten(:lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_tags, [])))
 
       operation =
-        Operation.from_controller!(spec, shared_parameters: shared_parameters, shared_tags: shared_tags)
+        Operation.from_controller!(spec,
+          shared_parameters: shared_parameters,
+          shared_tags: shared_tags
+        )
 
       @moonwalk_operations {action, operation, verb}
     end

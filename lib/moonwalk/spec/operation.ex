@@ -122,7 +122,9 @@ defmodule Moonwalk.Spec.Operation do
     defined_by_op = Map.new(parameters, fn %{name: name, in: loc} -> {{name, loc}, true} end)
 
     add_parameters =
-      Enum.filter(shared_parameters, fn %{name: name, in: loc} -> not Map.has_key?(defined_by_op, {name, loc}) end)
+      Enum.filter(shared_parameters, fn %{name: name, in: loc} ->
+        not Map.has_key?(defined_by_op, {name, loc})
+      end)
 
     {:ok, parameters ++ add_parameters}
   end
@@ -163,7 +165,8 @@ defmodule Moonwalk.Spec.Operation do
   end
 
   defp cast_responses(other) do
-    raise ArgumentError, "operation macro expects a map or list of responses, got: #{inspect(other)}"
+    raise ArgumentError,
+          "operation macro expects a map or list of responses, got: #{inspect(other)}"
   end
 
   defp response_code!(:default) do
@@ -173,7 +176,10 @@ defmodule Moonwalk.Spec.Operation do
   defp response_code!(status) do
     Plug.Conn.Status.code(status)
   rescue
-    _ -> reraise ArgumentError, "invalid status given to :responses, got: #{inspect(status)}", __STACKTRACE__
+    _ ->
+      reraise ArgumentError,
+              "invalid status given to :responses, got: #{inspect(status)}",
+              __STACKTRACE__
   end
 
   defp merge_tags(self_tags, shared_tags) do

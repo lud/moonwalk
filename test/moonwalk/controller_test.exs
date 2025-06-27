@@ -47,12 +47,22 @@ defmodule Moonwalk.ControllerTest do
       assert %Operation{requestBody: %RequestBody{required: true}} = op0
 
       # spec with a schema and options is required
-      spec1 = [operation_id: :some_operation, request_body: {SomeSchema, []}, responses: [ok: true]]
+      spec1 = [
+        operation_id: :some_operation,
+        request_body: {SomeSchema, []},
+        responses: [ok: true]
+      ]
+
       op1 = Operation.from_controller!(spec1)
       assert %Operation{requestBody: %RequestBody{required: true}} = op1
 
       # spec with a schema and options can be made non-required
-      spec2 = [operation_id: :some_operation, request_body: {SomeSchema, [required: false]}, responses: [ok: true]]
+      spec2 = [
+        operation_id: :some_operation,
+        request_body: {SomeSchema, [required: false]},
+        responses: [ok: true]
+      ]
+
       op2 = Operation.from_controller!(spec2)
       assert %Operation{requestBody: %RequestBody{required: false}} = op2
 
@@ -175,7 +185,9 @@ defmodule Moonwalk.ControllerTest do
       spec = [
         operation_id: :some_operation,
         request_body: SomeSchema,
-        responses: %{200 => [description: "hello", content: %{"xxx/xxx" => [schema: %{i_am_a_schema: true}]}]}
+        responses: %{
+          200 => [description: "hello", content: %{"xxx/xxx" => [schema: %{i_am_a_schema: true}]}]
+        }
       ]
 
       op = Operation.from_controller!(spec)
@@ -196,7 +208,12 @@ defmodule Moonwalk.ControllerTest do
     end
 
     test "supports atom codes" do
-      spec = [operation_id: :some_operation, request_body: SomeSchema, responses: [ok: true, bad_request: true]]
+      spec = [
+        operation_id: :some_operation,
+        request_body: SomeSchema,
+        responses: [ok: true, bad_request: true]
+      ]
+
       op = Operation.from_controller!(spec)
 
       assert %Moonwalk.Spec.Operation{
@@ -223,7 +240,11 @@ defmodule Moonwalk.ControllerTest do
     end
 
     test "invalid atom codes" do
-      spec = [operation_id: :some_operation, request_body: SomeSchema, responses: [SOME_UNKNOWN_STATUS: %{}]]
+      spec = [
+        operation_id: :some_operation,
+        request_body: SomeSchema,
+        responses: [SOME_UNKNOWN_STATUS: %{}]
+      ]
 
       assert_raise ArgumentError, ~r/invalid status .+ :SOME_UNKNOWN_STATUS/, fn ->
         Operation.from_controller!(spec)
@@ -231,7 +252,11 @@ defmodule Moonwalk.ControllerTest do
     end
 
     test "unknown integer codes are accepted" do
-      spec = [operation_id: :some_operation, request_body: SomeSchema, responses: %{123_456 => {%{}, []}}]
+      spec = [
+        operation_id: :some_operation,
+        request_body: SomeSchema,
+        responses: %{123_456 => {%{}, []}}
+      ]
 
       assert %Moonwalk.Spec.Operation{
                responses: %{

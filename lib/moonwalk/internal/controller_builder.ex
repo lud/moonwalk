@@ -25,7 +25,8 @@ defmodule Moonwalk.Internal.ControllerBuilder do
 
       {:error, errmsg} when is_binary(errmsg) ->
         raise ArgumentError,
-          message: "could not cast key #{inspect(key)} when building #{inspect(target)}, got: #{errmsg}"
+          message:
+            "could not cast key #{inspect(key)} when building #{inspect(target)}, got: #{errmsg}"
     end
   end
 
@@ -101,7 +102,8 @@ defmodule Moonwalk.Internal.ControllerBuilder do
     end
   end
 
-  def take_default_lazy({target, input, output}, key, generate, cast \\ &nocast/1) when is_function(generate, 0) do
+  def take_default_lazy({target, input, output}, key, generate, cast \\ &nocast/1)
+      when is_function(generate, 0) do
     case pop(input, key) do
       {:ok, value, input} -> with_cast(target, input, output, key, value, cast)
       :error -> {target, input, Map.put(output, key, generate.())}

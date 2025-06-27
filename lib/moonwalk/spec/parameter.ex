@@ -17,7 +17,8 @@ defmodule Moonwalk.Spec.Parameter do
       in:
         JSV.Schema.string_to_atom_enum(
           %{
-            description: "The location of the parameter. Allowed values: query, header, path, cookie. Required."
+            description:
+              "The location of the parameter. Allowed values: query, header, path, cookie. Required."
           },
           [
             :query,

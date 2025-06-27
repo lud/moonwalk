@@ -253,13 +253,20 @@ defmodule Moonwalk.Web.LabTest do
 
     test "path parameters are collected", %{conn: conn} do
       conn =
-        get_reply(conn, ~p"/provided/some-lab/alchemists", [q: "some search", page: 2, per_page: 10], fn
-          conn, _params ->
-            assert %{lab: "some-lab"} == conn.private.moonwalk.path_params
-            assert %{q: "some search", page: 2, per_page: 10} == conn.private.moonwalk.query_params
+        get_reply(
+          conn,
+          ~p"/provided/some-lab/alchemists",
+          [q: "some search", page: 2, per_page: 10],
+          fn
+            conn, _params ->
+              assert %{lab: "some-lab"} == conn.private.moonwalk.path_params
 
-            json(conn, @alchemists_page)
-        end)
+              assert %{q: "some search", page: 2, per_page: 10} ==
+                       conn.private.moonwalk.query_params
+
+              json(conn, @alchemists_page)
+          end
+        )
 
       assert %{"data" => [_, _]} = valid_response(DeclarativeApiSpec, conn, 200)
     end

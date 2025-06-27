@@ -42,7 +42,11 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {mod, arg} when is_atom(mod) -> {mod, arg}
       end
 
-    %{error_handler: error_handler, query_reader_opts: query_reader_opts, body_reader: body_reader}
+    %{
+      error_handler: error_handler,
+      query_reader_opts: query_reader_opts,
+      body_reader: body_reader
+    }
   end
 
   def call(conn, opts) do
@@ -221,7 +225,9 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   # map, because plug parsers will always return a map.
   #
 
-  defp validate_body(conn, body, false = _required?, _, _) when body in [nil, ""] when map_size(body) == 0 do
+  defp validate_body(conn, body, false = _required?, _, _)
+       when body in [nil, ""]
+       when map_size(body) == 0 do
     {:ok, %{}, conn}
   end
 
@@ -237,7 +243,8 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {:error, %InvalidBodyError{validation_error: validation_error, value: body}, conn}
 
       {:error, :media_type_match} ->
-        {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body}, conn}
+        {:error, %UnsupportedMediaTypeError{media_type: "#{primary}/#{secondary}", value: body},
+         conn}
     end
   end
 
@@ -280,7 +287,8 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   defp ensure_fetched_body!(body) do
     case body do
       %Plug.Conn.Unfetched{} ->
-        raise ArgumentError, "body is not fetched, use plug parsers or a custom plug to fetch the body"
+        raise ArgumentError,
+              "body is not fetched, use plug parsers or a custom plug to fetch the body"
 
       _ ->
         :ok
