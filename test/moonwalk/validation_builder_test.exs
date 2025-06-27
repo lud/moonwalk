@@ -8,6 +8,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
   alias Moonwalk.Spec.Paths
   alias Moonwalk.Spec.RequestBody
   alias Moonwalk.TestWeb.DeclarativeApiSpec
+  alias Moonwalk.TestWeb.Helpers
   alias Moonwalk.TestWeb.PathsApiSpec
   use ExUnit.Case, async: true
 
@@ -110,7 +111,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
 
       operation :a,
         operation_id: "same-same",
-        responses: Moonwalk.TestWeb.Helpers.dummy_responses()
+        responses: Helpers.dummy_responses()
     end
 
     defmodule DupBController do
@@ -118,7 +119,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
 
       operation :b,
         operation_id: "same-same",
-        responses: Moonwalk.TestWeb.Helpers.dummy_responses()
+        responses: Helpers.dummy_responses()
     end
 
     defmodule SomeRouterWithDuplicates do

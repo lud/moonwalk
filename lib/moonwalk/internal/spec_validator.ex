@@ -37,4 +37,8 @@ defmodule Moonwalk.Internal.SpecValidator do
   def validate!(data) do
     JSV.validate!(data, @openapi_schema)
   end
+
+  def validate(data) do
+    JSV.validate(data, @openapi_schema)
+  end
 end

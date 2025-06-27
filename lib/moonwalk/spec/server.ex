@@ -50,7 +50,7 @@ defmodule Moonwalk.Spec.Server do
       url = %URI{scheme: scheme, host: host, port: port, path: path}
       %__MODULE__{url: URI.to_string(url)}
     else
-      x -> raise ArgumentError, "could not build url from configuration: #{inspect(x)}"
+      e -> raise ArgumentError, "could not build url from configuration: #{inspect(e)}"
     end
   end
 end
