@@ -1,5 +1,7 @@
 defmodule Moonwalk.ConnCase do
   alias Moonwalk.TestWeb.Responder
+  alias Phoenix.ConnTest
+  alias Plug.Conn
   import ExUnit.Assertions
   require Phoenix.ConnTest
   use ExUnit.CaseTemplate
@@ -24,9 +26,9 @@ defmodule Moonwalk.ConnCase do
     req_accept = Map.get(tags, :req_accept, "application/json")
 
     conn =
-      Phoenix.ConnTest.build_conn()
-      |> Plug.Conn.put_req_header("content-type", req_content_type)
-      |> Plug.Conn.put_req_header("accept", req_accept)
+      ConnTest.build_conn()
+      |> Conn.put_req_header("content-type", req_content_type)
+      |> Conn.put_req_header("accept", req_accept)
 
     {:ok, conn: conn}
   end
@@ -63,14 +65,14 @@ defmodule Moonwalk.ConnCase do
   def post_reply(conn, path, payload, fun) when is_function(fun, 2) do
     conn
     |> with_response(fun)
-    |> Phoenix.ConnTest.post(path, payload)
+    |> ConnTest.post(path, payload)
     |> check_responder()
   end
 
   def get_reply(conn, path, query_params \\ [], fun) when is_function(fun, 2) do
     conn
     |> with_response(fun)
-    |> Phoenix.ConnTest.get(path, query_params)
+    |> ConnTest.get(path, query_params)
     |> check_responder()
   end
 end

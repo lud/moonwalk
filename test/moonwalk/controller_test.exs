@@ -5,7 +5,8 @@ defmodule Moonwalk.ControllerTest do
   use ExUnit.Case, async: true
 
   defmodule SomeSchema do
-    require(JSV).defschema(JSV.Schema.props(a: %{type: :integer}))
+    alias JSV.Schema
+    require(JSV).defschema(Schema.props(a: %{type: :integer}))
   end
 
   test "define with inline request body schema" do

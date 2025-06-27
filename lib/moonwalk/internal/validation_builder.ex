@@ -1,8 +1,9 @@
 defmodule Moonwalk.Internal.ValidationBuilder do
+  alias JSV.Builder
+  alias JSV.Cast
   alias JSV.Key
   alias JSV.Ref
   alias JSV.RNS
-  alias Moonwalk.Internal.SpecValidator
   alias Moonwalk.Spec.Operation
   alias Moonwalk.Spec.Parameter
   alias Moonwalk.Spec.PathItem
@@ -11,7 +12,7 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   alias Moonwalk.Spec.Response
 
   def build_operations(normal_spec, opts) when is_map(opts) do
-    spec = SpecValidator.validate!(normal_spec)
+    spec = Moonwalk.Internal.SpecValidator.validate!(normal_spec)
 
     to_build = stream_operations(spec)
 
@@ -318,22 +319,22 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   defp parameter_precast(schema, rev_path, ns, jsv_ctx) do
     case schema do
       %{"type" => "integer"} ->
-        {:precast, &JSV.Cast.string_to_integer/1}
+        {:precast, &Cast.string_to_integer/1}
 
       %{"type" => "boolean"} ->
-        {:precast, &JSV.Cast.string_to_boolean/1}
+        {:precast, &Cast.string_to_boolean/1}
 
       %{"type" => "number"} ->
-        {:precast, &JSV.Cast.string_to_number/1}
+        {:precast, &Cast.string_to_number/1}
 
       %{"type" => "array", "items" => %{"type" => "integer"}} ->
-        {:precast, {:list, &JSV.Cast.string_to_integer/1}}
+        {:precast, {:list, &Cast.string_to_integer/1}}
 
       %{"type" => "array", "items" => %{"type" => "boolean"}} ->
-        {:precast, {:list, &JSV.Cast.string_to_boolean/1}}
+        {:precast, {:list, &Cast.string_to_boolean/1}}
 
       %{"type" => "array", "items" => %{"type" => "number"}} ->
-        {:precast, {:list, &JSV.Cast.string_to_number/1}}
+        {:precast, {:list, &Cast.string_to_number/1}}
 
       %{"$ref" => _} = subschema ->
         parameter_precast_ref(subschema, rev_path, ns, jsv_ctx)
@@ -365,9 +366,9 @@ defmodule Moonwalk.Internal.ValidationBuilder do
 
     ref = Ref.parse!(ref, sub_ns)
     {:build, builder, jsv_validators} = jsv_ctx
-    new_builder = JSV.Builder.ensure_resolved!(builder, ref)
+    new_builder = Builder.ensure_resolved!(builder, ref)
     key = Key.of(ref)
-    resolved = JSV.Builder.fetch_resolved!(builder, key)
+    resolved = Builder.fetch_resolved!(builder, key)
     {resolved.raw, sub_ns, {:build, new_builder, jsv_validators}}
   rescue
     _ -> :noprecast

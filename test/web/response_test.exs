@@ -1,8 +1,7 @@
 defmodule Moonwalk.Web.ResponseTest do
   alias Moonwalk.TestWeb.PathsApiSpec
-  use Moonwalk.ConnCase, async: true
-
   import Moonwalk.Test
+  use Moonwalk.ConnCase, async: true
 
   describe "with generated api" do
     test "response without defined operation", %{conn: conn} do

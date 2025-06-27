@@ -1,4 +1,6 @@
 defmodule Moonwalk.SpecTest do
+  alias JSV.Codec
+  alias Moonwalk.Internal.SpecValidator
   alias Moonwalk.Spec.Components
   alias Moonwalk.Spec.OpenAPI
   alias Moonwalk.Spec.Paths
@@ -18,7 +20,7 @@ defmodule Moonwalk.SpecTest do
   end
 
   defp cast_to_structs(normal) do
-    Moonwalk.Internal.SpecValidator.validate!(normal)
+    SpecValidator.validate!(normal)
   end
 
   test "petstore with references" do
@@ -26,7 +28,7 @@ defmodule Moonwalk.SpecTest do
     json =
       "test/support/data/petstore-refs.json"
       |> File.read!()
-      |> JSV.Codec.decode!()
+      |> Codec.decode!()
 
     assert %OpenAPI{} =
              Moonwalk.normalize_spec!(json)
@@ -37,7 +39,7 @@ defmodule Moonwalk.SpecTest do
     json =
       "test/support/data/train-travel-api.json"
       |> File.read!()
-      |> JSV.Codec.decode!()
+      |> Codec.decode!()
 
     assert %OpenAPI{} =
              Moonwalk.normalize_spec!(json)
@@ -48,7 +50,7 @@ defmodule Moonwalk.SpecTest do
     json =
       "test/support/data/redocly-museum-api.json"
       |> File.read!()
-      |> JSV.Codec.decode!()
+      |> Codec.decode!()
 
     assert %OpenAPI{} =
              Moonwalk.normalize_spec!(json)
@@ -213,7 +215,6 @@ defmodule Moonwalk.SpecTest do
     end
 
     defmodule Standalone do
-      import JSV
       alias Moonwalk.SpecTest.MutualRecursiveB
 
       def schema do
@@ -225,10 +226,9 @@ defmodule Moonwalk.SpecTest do
     end
 
     defmodule MutualRecursiveA do
-      import JSV
       alias Moonwalk.SpecTest.MutualRecursiveB
 
-      defschema(%{
+      require(JSV).defschema(%{
         type: :object,
         title: "RecA",
         properties: %{
@@ -238,9 +238,7 @@ defmodule Moonwalk.SpecTest do
     end
 
     defmodule MutualRecursiveB do
-      import JSV
-
-      defschema(%{
+      require(JSV).defschema(%{
         type: :object,
         properties: %{
           a: MutualRecursiveA

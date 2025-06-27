@@ -8,7 +8,6 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
   alias Moonwalk.Spec.Paths
   alias Moonwalk.Spec.RequestBody
   alias Moonwalk.TestWeb.DeclarativeApiSpec
-  alias Moonwalk.TestWeb.Helpers
   alias Moonwalk.TestWeb.PathsApiSpec
   use ExUnit.Case, async: true
 
@@ -107,6 +106,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
 
   test "duplicate operation ids" do
     defmodule DupAController do
+      alias Moonwalk.TestWeb.Helpers
       use Moonwalk.Controller
 
       operation :a,
@@ -115,6 +115,7 @@ defmodule Moonwalk.Internal.ValidationBuilderTest do
     end
 
     defmodule DupBController do
+      alias Moonwalk.TestWeb.Helpers
       use Moonwalk.Controller
 
       operation :b,

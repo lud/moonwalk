@@ -1,4 +1,5 @@
 defmodule Moonwalk.Spec.SecurityScheme do
+  alias JSV.Schema
   require JSV
   use Moonwalk.Internal.SpecObject
 
@@ -9,7 +10,7 @@ defmodule Moonwalk.Spec.SecurityScheme do
     description: "Defines a security scheme for operations.",
     properties: %{
       type:
-        JSV.Schema.string_to_atom_enum(
+        Schema.string_to_atom_enum(
           %{
             description:
               "The type of the security scheme. Allowed values: apiKey, http, mutualTLS, oauth2, openIdConnect. Required."
@@ -28,7 +29,7 @@ defmodule Moonwalk.Spec.SecurityScheme do
         description: "The name of the header, query, or cookie parameter (for apiKey). Required for apiKey."
       },
       in:
-        JSV.Schema.string_to_atom_enum(
+        Schema.string_to_atom_enum(
           %{
             description: "The location of the API key. Allowed values: query, header, cookie. Required for apiKey."
           },

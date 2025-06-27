@@ -1,9 +1,11 @@
 defmodule Moonwalk.ErrorHandler do
+  alias JSV.Codec
   alias Moonwalk.Errors.InvalidBodyError
   alias Moonwalk.Errors.InvalidParameterError
   alias Moonwalk.Errors.MissingParameterError
   alias Moonwalk.Errors.UnsupportedMediaTypeError
   alias Plug.Conn
+  alias Plug.Conn.Status
 
   @moduledoc false
 
@@ -142,8 +144,8 @@ defmodule Moonwalk.ErrorHandler do
 
   defp status_to_message(status) when is_atom(status) do
     status
-    |> Conn.Status.code()
-    |> Conn.Status.reason_phrase()
+    |> Status.code()
+    |> Status.reason_phrase()
   end
 
   defp format_html_errors(reason) do
@@ -214,8 +216,8 @@ defmodule Moonwalk.ErrorHandler do
 
   defp json_encode(payload, opts) do
     case opts[:pretty] do
-      true -> JSV.Codec.format!(payload)
-      _ -> JSV.Codec.encode!(payload)
+      true -> Codec.format!(payload)
+      _ -> Codec.encode!(payload)
     end
   end
 

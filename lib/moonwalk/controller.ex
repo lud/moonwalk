@@ -1,17 +1,18 @@
 defmodule Moonwalk.Controller do
   alias Moonwalk.Spec.Operation
   alias Moonwalk.Spec.Parameter
+  alias __MODULE__
 
   defmacro __using__(opts) do
     quote bind_quoted: binding() do
-      import Moonwalk.Controller
+      import Controller
       Moonwalk.TestWeb.Helpers
 
       Module.register_attribute(__MODULE__, :moonwalk_parameters, accumulate: true)
       Module.register_attribute(__MODULE__, :moonwalk_tags, accumulate: true)
       Module.register_attribute(__MODULE__, :moonwalk_operations, accumulate: true)
 
-      @before_compile Moonwalk.Controller
+      @before_compile Controller
     end
   end
 
@@ -33,12 +34,12 @@ defmodule Moonwalk.Controller do
     spec = ensure_operation_id(spec, action, __CALLER__)
 
     quote bind_quoted: binding() do
-      {verb, spec} = Moonwalk.Controller.__pop_verb(spec)
+      {verb, spec} = Controller.__pop_verb(spec)
       shared_parameters = :lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_parameters, []))
       shared_tags = :lists.flatten(:lists.reverse(Module.get_attribute(__MODULE__, :moonwalk_tags, [])))
 
       operation =
-        Moonwalk.Spec.Operation.from_controller!(spec, shared_parameters: shared_parameters, shared_tags: shared_tags)
+        Operation.from_controller!(spec, shared_parameters: shared_parameters, shared_tags: shared_tags)
 
       @moonwalk_operations {action, operation, verb}
     end
@@ -49,7 +50,7 @@ defmodule Moonwalk.Controller do
     opts = maybe_expand_aliases(opts, __CALLER__)
 
     quote bind_quoted: binding() do
-      {verb, opts} = Moonwalk.Controller.__pop_verb(opts)
+      {verb, opts} = Controller.__pop_verb(opts)
       @moonwalk_operations {action, {:use_operation, to_string(operation_id)}, verb}
     end
   end
@@ -136,13 +137,13 @@ defmodule Moonwalk.Controller do
       Enum.map(moonwalk_operations, fn {action, operation, verb} ->
         case operation do
           false ->
-            Moonwalk.Controller._ignore_action(action)
+            Controller._ignore_action(action)
 
           %Operation{} ->
-            Moonwalk.Controller._define_operation(action, operation, verb)
+            Controller._define_operation(action, operation, verb)
 
           {:use_operation, _} = using ->
-            Moonwalk.Controller._define_operation(action, using, verb)
+            Controller._define_operation(action, using, verb)
         end
       end)
 
@@ -176,7 +177,7 @@ defmodule Moonwalk.Controller do
     quote bind_quoted: binding() do
       @doc false
 
-      match_verb = Moonwalk.Controller.__verb_matcher(verb)
+      match_verb = Controller.__verb_matcher(verb)
 
       # This is used by Paths.from_router / Paths.from_routes to retrieve
       # operations defined with the operation macro.
@@ -195,7 +196,7 @@ defmodule Moonwalk.Controller do
   def _define_operation(action, {:use_operation, operation_id}, verb) do
     quote bind_quoted: binding() do
       @doc false
-      match_verb = Moonwalk.Controller.__verb_matcher(verb)
+      match_verb = Controller.__verb_matcher(verb)
 
       # This is used by the ValidateRequest plug to retrieve the operation from
       # the phoenix controller/action.

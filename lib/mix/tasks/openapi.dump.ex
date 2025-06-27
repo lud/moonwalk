@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Openapi.Dump do
+  alias CliMate.CLI
+  alias JSV.Codec
   use Mix.Task
 
   @command [
@@ -39,7 +41,7 @@ defmodule Mix.Tasks.Openapi.Dump do
   """
 
   def run(argv) do
-    %{arguments: %{module: module}, options: opts} = CliMate.CLI.parse_or_halt!(argv, @command)
+    %{arguments: %{module: module}, options: opts} = CLI.parse_or_halt!(argv, @command)
 
     module.spec()
     |> Moonwalk.normalize_spec!()
@@ -66,7 +68,7 @@ defmodule Mix.Tasks.Openapi.Dump do
           :ok
 
         {:error, verr} ->
-          CliMate.CLI.warn("""
+          CLI.warn("""
           Some errors were found when validating the OpenAPI speficication:
 
           #{Exception.format_banner(:error, verr)}
@@ -85,14 +87,14 @@ defmodule Mix.Tasks.Openapi.Dump do
 
   defp encode(spec, %{pretty: true}) do
     cond do
-      typefix(JSV.Codec.supports_ordered_formatting?()) -> JSV.Codec.format_ordered_to_iodata!(spec, &key_sorter/2)
-      typefix(JSV.Codec.supports_formatting?()) -> JSV.Codec.format_to_iodata!(spec)
-      :other -> raise ArgumentError, "Pretty printing is not supported by #{JSV.Codec.codec()}."
+      typefix(Codec.supports_ordered_formatting?()) -> Codec.format_ordered_to_iodata!(spec, &key_sorter/2)
+      typefix(Codec.supports_formatting?()) -> Codec.format_to_iodata!(spec)
+      :other -> raise ArgumentError, "Pretty printing is not supported by #{Codec.codec()}."
     end
   end
 
   defp encode(spec, _) do
-    JSV.Codec.encode!(spec)
+    Codec.encode!(spec)
   end
 
   @key_order Map.new(

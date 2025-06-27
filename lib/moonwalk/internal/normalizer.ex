@@ -1,4 +1,5 @@
 defmodule Moonwalk.Internal.Normalizer do
+  alias JSV.Schema
   alias Moonwalk.Errors.NormalizeError
   alias Moonwalk.Spec.NormalizationContext
   alias Moonwalk.Spec.OpenAPI
@@ -38,7 +39,7 @@ defmodule Moonwalk.Internal.Normalizer do
 
   defp initialize_context_with_predefs(schemas_map) do
     {predefs, others} =
-      Enum.split_with(schemas_map, fn {_refname, schema} -> is_atom(schema) and JSV.Schema.schema_module?(schema) end)
+      Enum.split_with(schemas_map, fn {_refname, schema} -> is_atom(schema) and Schema.schema_module?(schema) end)
 
     # Other schemas can be maps, and those maps can contain schema modules that
     # we will normalize. So we need to reserve the refname and mark the schemas
@@ -407,7 +408,7 @@ defmodule Moonwalk.Internal.Normalizer do
   # When the atom is a module we will call the .schema() function from it,
   # otherwise it's a sub schema value, we turn it into a string.
   defp do_normalize_schema(atom, ctx) when is_atom(atom) do
-    if JSV.Schema.schema_module?(atom) do
+    if Schema.schema_module?(atom) do
       normalize_module_schema(atom, ctx)
     else
       do_normalize_schema(Atom.to_string(atom), ctx)
