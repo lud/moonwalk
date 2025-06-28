@@ -21,7 +21,13 @@ defmodule Moonwalk.TestWeb.ParamController do
     Responder.reply(conn, params)
   end
 
-  # Parameter is defined after some operations. Operation above does not have
+  operation :no_params, responses: [ok: true]
+
+  def no_params(conn, params) do
+    Responder.reply(conn, params)
+  end
+
+  # Parameter is defined after some operations. Operations above does not have
   # this parameter.
   parameter :slug, in: :path, schema: %{type: :string, pattern: "[a-z-]+"}
 

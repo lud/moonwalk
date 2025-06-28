@@ -1,5 +1,8 @@
 defmodule Mix.Tasks.Mnwk.Phx.Test do
   use Mix.Task
+
+  @moduledoc false
+
   @requirements ["app.config"]
 
   @impl true

@@ -3,10 +3,47 @@ defmodule Moonwalk.Controller do
   alias Moonwalk.Spec.Parameter
   alias __MODULE__
 
+  @moduledoc """
+  Provides macros to define OpenAPI operations directly from controllers.
+
+  Macros requires to `use #{inspect(__MODULE__)}` from your controllers. This
+  can be done wherever `use Phoenix.Controller` is called. With Phoenix, this is
+  generally in your `MyAppWeb` module, in the `controller` function:
+
+      defmodule MyAppWeb do
+        def controller do
+          quote do
+            use Phoenix.Controller,
+              formats: [:html, :json],
+              layouts: [html: MyAppWeb.Layouts]
+
+            use Moonwalk.Controller # <-- Add it there once for all
+
+            use Gettext, backend: MyAppWeb.Gettext
+
+            import Plug.Conn
+
+            unquote(verified_routes())
+          end
+        end
+      end
+
+
+  It can also be useful to define a new `api_controller` function, to separate
+  controllers that define an HTTP API.
+
+  You would then use that function in your API controllers:
+
+      defmodule MyAppWeb.UserController do
+        use MyAppWeb, :api_controller
+
+        # ...
+      end
+  """
+
   defmacro __using__(opts) do
     quote bind_quoted: binding() do
       import Controller
-      Moonwalk.TestWeb.Helpers
 
       Module.register_attribute(__MODULE__, :moonwalk_parameters, accumulate: true)
       Module.register_attribute(__MODULE__, :moonwalk_tags, accumulate: true)
@@ -16,7 +53,90 @@ defmodule Moonwalk.Controller do
     end
   end
 
-  defmacro operation(action, spec \\ [])
+  @doc """
+  Defines an OpenAPI operation for the given Phoenix action (the function listed
+  in the router that will handle the conn).
+
+  This macro accepts the function name and a list of options that will define an
+  `#{inspect(Operation)}`.
+
+  ### Options
+
+  * `:operation_id` - The ID of the operation that is used throughout the
+    validation features. If missing, an id is automatically generated. Operation
+    IDs must be unique.
+  * `:tags` - A list of tags (strings) to attach to the operation.
+  * `:description` - An optional string to describe the operation in the OpenAPI
+    spec.
+  * `:summary` - A short summary of what the operation does.
+  * `:parameters` - A keyword list with parameter names as keys and parameter
+    definitions as values. Parameters are query params but also path params. See
+    below for more information.
+  * `:request_body` - A map of possible content types and responses definitions.
+    A schema module can be given directly to define a single
+  * `:responses` - A map or keyword list where keys are status codes (integers
+    or atoms) and values are responses definitions. See below for responses
+    formats.
+
+  ### Defining parameters
+
+  Parameters are organized by their name and their `:in` option. Two parameters
+  with the same key can coexist if their `:in` option is different. The `:query`
+  and `:path` values for `:in` are currently supported.
+
+  Parameters support the following options:
+
+  * `:in` - Either `:path` or `:query`. Required.
+  * `:schema` - A JSON schema or Module name exporting a `schema/0` function.
+  * `:required` - A boolean, defaults to `true` for `:path` params, `false`
+    otherwise.
+  * `:examples` - A list of examples.
+
+  #### Parameters example
+
+      # Imaginary GET /api/users/:organization route
+
+      operation :list_users,
+        operation_id: "ListUsers",
+        parameters: [
+          organization: [in: :path,  required: true,  schema: %{type: :string}],
+          page:         [in: :query, required: false, schema: %{type: :integer, minimum: 1}],
+          per_page:     [in: :query, required: false, schema: %{type: :integer, minimum: 1}]
+        ],
+        # ...
+
+      def list_users(conn, params) do
+        # ...
+      end
+
+  ### Examples
+
+  A simple example with an operation that returns a single `200` response.
+
+      operation :list_users,
+        operation_id: "ListUsers",
+        tags: ["users", "public"],
+        responses: [ok: MyAppWeb.Schemas.UserResponse]
+
+      def list_users(conn, _params) do
+        users = get_users_from_somewhere()
+
+        conn
+        |> put_status(200)
+        |> json(%{users: users})
+      end
+
+
+  """
+
+  IO.warn(
+    "todo provide a :default option for params (not part of the spec, how to add it in the spec automatically?)"
+  )
+
+  IO.warn("todo unfinished")
+  IO.warn("todo we need a demo app!")
+
+  defmacro operation(action, spec)
 
   # TODO(doc) when using the {schema, opts} syntax, the :required option of a
   # request body is set to true by default.
@@ -289,5 +409,19 @@ defmodule Moonwalk.Controller do
 
   def __verb_matcher(verb) when is_atom(verb) do
     verb
+  end
+
+  def path_param(%Plug.Conn{} = conn, key, default \\ nil) do
+    case conn do
+      %{private: %{moonwalk: %{path_params: %{^key => value}}}} -> value
+      _ -> default
+    end
+  end
+
+  def query_param(%Plug.Conn{} = conn, key, default \\ nil) do
+    case conn do
+      %{private: %{moonwalk: %{query_params: %{^key => value}}}} -> value
+      _ -> default
+    end
   end
 end

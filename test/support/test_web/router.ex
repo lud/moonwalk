@@ -33,6 +33,8 @@ defmodule Moonwalk.TestWeb.Router do
       get "/manual-form-show", BodyController, :manual_form_show
     end
 
+    get "/no-params", Moonwalk.TestWeb.ParamController, :no_params
+
     scope "/params/:slug", Moonwalk.TestWeb do
       get "/t/:theme", ParamController, :single_path_param
       get "/t/:theme/c/:color", ParamController, :two_path_params

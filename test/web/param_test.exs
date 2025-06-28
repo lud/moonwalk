@@ -13,6 +13,29 @@ defmodule Moonwalk.Web.ParamTest do
   # - /t/:theme accepts only "dark" or "light"
   # - /c/:color accepts only "red" or "blue"
 
+  describe "no params" do
+    test "path_params and query_params is always defined", %{conn: conn} do
+      conn =
+        get_reply(
+          conn,
+          ~p"/generated/no-params",
+          fn
+            conn, _params ->
+              # Default phoenix params are not changed
+
+              assert %{} == conn.query_params
+              assert %{} == conn.private.moonwalk.path_params
+              assert %{} == conn.private.moonwalk.query_params
+              assert %{} == conn.private.moonwalk.body_params
+
+              json(conn, %{data: "okay"})
+          end
+        )
+
+      assert %{"data" => "okay"} = json_response(conn, 200)
+    end
+  end
+
   describe "single path param" do
     test "valid param", %{conn: conn} do
       conn =
@@ -338,22 +361,49 @@ defmodule Moonwalk.Web.ParamTest do
       # give them.
 
       conn =
-        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10", fn conn,
-                                                                                            params ->
-          # standard phoenix behaviour should not be changed, the path params have priority
-          assert %{
-                   "slug" => "some-slug",
-                   "shape" => "square",
-                   "theme" => "light",
-                   "color" => "red"
-                 } == params
+        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10", fn
+          conn, params ->
+            # standard phoenix behaviour should not be changed, the path params have priority
+            assert %{
+                     "slug" => "some-slug",
+                     "shape" => "square",
+                     "theme" => "light",
+                     "color" => "red"
+                   } == params
 
-          assert %{"shape" => "10"} == conn.query_params
+            assert %{"shape" => "10"} == conn.query_params
 
-          # moonwalk data is properly cast
-          assert %{shape: 10} == conn.private.moonwalk.query_params
+            # moonwalk data is properly cast
+            assert %{shape: 10} == conn.private.moonwalk.query_params
 
-          json(conn, %{data: "ok"})
+            json(conn, %{data: "ok"})
+        end)
+
+      assert %{"data" => "ok"} = json_response(conn, 200)
+    end
+  end
+
+  describe "controller helpers" do
+    test "should return value from params", %{conn: conn} do
+      conn =
+        get_reply(conn, ~p"/generated/params/some-slug/s/square/t/light/c/red?shape=10", fn
+          conn, _params ->
+            import Moonwalk.Controller
+
+            assert "some-slug" == path_param(conn, :slug)
+            assert :square == path_param(conn, :shape)
+            assert :light == path_param(conn, :theme)
+            assert :red == path_param(conn, :color)
+
+            assert 10 == query_param(conn, :shape)
+
+            assert nil == query_param(conn, :theme)
+            assert :some_default == query_param(conn, :theme, :some_default)
+
+            assert nil == query_param(conn, :color)
+            assert :some_default == query_param(conn, :color, :some_default)
+
+            json(conn, %{data: "ok"})
         end)
 
       assert %{"data" => "ok"} = json_response(conn, 200)

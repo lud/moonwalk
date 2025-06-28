@@ -1,4 +1,5 @@
 defmodule Plug.Parsers.TEST do
+  @moduledoc false
   def init(opts) do
     opts
   end

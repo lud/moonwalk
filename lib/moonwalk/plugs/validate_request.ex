@@ -144,7 +144,9 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   end
 
   defp run_validations(conn, {validations, jsv_root}) do
-    Enum.reduce_while(validations, {:ok, _private = %{}, conn}, fn
+    empty_params = %{body_params: %{}, query_params: %{}, path_params: %{}}
+
+    Enum.reduce_while(validations, {:ok, empty_params, conn}, fn
       validation, {:ok, private, conn} ->
         # we are not collecting all errors but rather stop on the first error. If
         # parameters are wrong, as they handle path parameters we act as if the
@@ -228,7 +230,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   defp validate_body(conn, body, false = _required?, _, _)
        when body in [nil, ""]
        when map_size(body) == 0 do
-    {:ok, %{}, conn}
+    {:ok, %{body_params: nil}, conn}
   end
 
   defp validate_body(conn, body, _required?, media_matchers, jsv_root) do

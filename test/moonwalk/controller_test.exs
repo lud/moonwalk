@@ -15,7 +15,7 @@ defmodule Moonwalk.ControllerTest do
       # passing a map as the request body is handled as a schema. we should
       # have a default content type of application/json associated with this
       # schema.
-      request_body: %{type: :string},
+      request_body: {%{type: :string}, []},
       tags: [:a, :b],
       description: "some description",
       summary: "some summary",

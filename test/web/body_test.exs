@@ -38,9 +38,9 @@ defmodule Moonwalk.Web.BodyTest do
     test "non required body should be ok when body is empty", %{conn: conn} do
       # This works only because the route accepts content type */*
       conn =
-        post_reply(conn, ~p"/generated/body/boolean-schema-false", @no_payload, fn conn,
-                                                                                   _params ->
-          json(conn, %{data: "ok"})
+        post_reply(conn, ~p"/generated/body/boolean-schema-false", @no_payload, fn
+          conn, _params ->
+            json(conn, %{data: "ok"})
         end)
 
       assert %{"data" => "ok"} = json_response(conn, 200)
@@ -217,12 +217,13 @@ defmodule Moonwalk.Web.BodyTest do
     test "empty body is accepted", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn =
-        post_reply(conn, ~p"/generated/body/module-single-no-required", @no_payload, fn conn,
-                                                                                        _params ->
-          # No content is set
-          refute is_map_key(conn.private.moonwalk, :body_params)
+        post_reply(conn, ~p"/generated/body/module-single-no-required", @no_payload, fn
+          conn, _params ->
+            # No content is set but the body_params key is always defined. Instead
+            # of an empty map it is set to nil
+            assert nil == conn.private.moonwalk.body_params
 
-          json(conn, %{data: "ok"})
+            json(conn, %{data: "ok"})
         end)
 
       assert %{"data" => "ok"} = json_response(conn, 200)
@@ -231,14 +232,14 @@ defmodule Moonwalk.Web.BodyTest do
     test "valid body is parsed as usual", %{conn: conn} do
       # schema with wildcard content type is just `false`
       conn =
-        post_reply(conn, ~p"/generated/body/module-single-no-required", @valid_payload, fn conn,
-                                                                                           _params ->
-          assert %PlantSchema{
-                   name: "Monstera Deliciosa",
-                   sunlight: :bright_indirect
-                 } = conn.private.moonwalk.body_params
+        post_reply(conn, ~p"/generated/body/module-single-no-required", @valid_payload, fn
+          conn, _params ->
+            assert %PlantSchema{
+                     name: "Monstera Deliciosa",
+                     sunlight: :bright_indirect
+                   } = conn.private.moonwalk.body_params
 
-          json(conn, %{data: "ok"})
+            json(conn, %{data: "ok"})
         end)
 
       assert %{"data" => "ok"} = json_response(conn, 200)

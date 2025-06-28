@@ -32,6 +32,11 @@ defmodule Moonwalk.Internal.SpecValidator do
   require Moonwalk.Spec.Tag
   require Moonwalk.Spec.XML
 
+  @moduledoc """
+  This module validates a raw spec according to the JSON schema defined in
+  `#{inspect(OpenAPI)}.`
+  """
+
   @openapi_schema JSV.build!(OpenAPI)
 
   def validate!(data) do

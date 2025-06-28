@@ -17,7 +17,7 @@ defmodule Moonwalk.TestWeb.BodyController do
 
   # pass the schema directly as the value of request_body
   operation :inline_single,
-    request_body: @plant_schema,
+    request_body: {@plant_schema, []},
     responses: dummy_responses()
 
   def inline_single(conn, params) do
@@ -26,7 +26,7 @@ defmodule Moonwalk.TestWeb.BodyController do
 
   operation :module_single,
     operation_id: :custom_operation_id_module_single,
-    request_body: {PlantSchema, []},
+    request_body: PlantSchema,
     responses: dummy_responses()
 
   def module_single(conn, params) do

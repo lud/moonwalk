@@ -2,6 +2,33 @@ defmodule Moonwalk do
   alias Moonwalk.Internal.Normalizer
   alias Moonwalk.Internal.ValidationBuilder
 
+  @moduledoc """
+  The main API to work with OpenAPI specifications.
+
+  This module can be used to define a specification module that will then be
+  used in your Phoenix router and controllers.
+
+  ### Example
+
+  ```elixir
+  defmodule MyAppWeb.OpenAPISpec do
+    alias Moonwalk.Spec.Paths
+    alias Moonwalk.Spec.Server
+    use Moonwalk
+
+    @impl true
+    def spec do
+      %{
+        openapi: "3.1.1",
+        info: %{title: "My App API", version: "1.0.0"},
+        servers: [Server.from_config(:my_app, MyAppWeb.Endpoint)],
+        paths: Paths.from_router(MyAppWeb.Router, filter: &String.starts_with?(&1.path, "/api/"))
+      }
+    end
+  end
+  ```
+  """
+
   @type cache_key :: {:moonwalk_cache, module, responses? :: boolean, variant :: term}
 
   @doc """
@@ -57,12 +84,10 @@ defmodule Moonwalk do
   >
   > If you return a new variant from this callback, cache entries stored with
   > previous variants in the key are not automatically cleaned. You will need to
-  > take care of that. See `c:cache/1` to implement you a cache mechanism that
-  > you can control.
+  > take care of that. See `c:cache/1` to implement a cache mechanism that you
+  > can control.
   """
   @callback cache_variant :: term
-
-  @optional_callbacks [jsv_opts: 0, cache: 1, cache_variant: 0]
 
   defmacro __using__(_) do
     quote do
@@ -149,8 +174,8 @@ defmodule Moonwalk do
   @doc """
   Normalizes OpenAPI specification data.
 
-  Takes specification data (raw maps or structs) and normalizes it according to
-  the OpenAPI specification structure defined in the `Moonwalk.Spec.*` spec_modules.
+  Takes specification data (raw maps or structs) and normalizes it to a
+  JSON-compatible version (with binary keys).
   """
   def normalize_spec!(data) do
     Normalizer.normalize!(data)

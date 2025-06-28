@@ -75,7 +75,8 @@ defmodule Moonwalk.MixProject do
         {Moonwalk.ConnCase, "test/support/conn_case"},
         {Moonwalk, "lib/moonwalk"},
         {Mix.Tasks, "lib/mix/tasks", flavor: :mix_task},
-        {Plug, "test/support/test_web/plug"}
+        {Plug, "test/support/test_web/plug"},
+        {Mix.Tasks.Mnwk, :ignore}
       ]
     ]
   end

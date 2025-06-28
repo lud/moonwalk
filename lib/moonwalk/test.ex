@@ -2,6 +2,41 @@ defmodule Moonwalk.Test do
   alias Moonwalk.JsonSchema.Formats.HttpStructuredField
   alias Moonwalk.Plugs.ValidateRequest
 
+  @moduledoc """
+  Provides the `valid_response/3` test helper to validate API responses in your
+  ExUnit tests.
+  """
+
+  @doc ~S"""
+  Validates that the given conn bears a response that is valid with regard to
+  the OpenAPI operation that served it, and returns the response.
+
+  Responses returned with an `"application/json"` content-type (or compatible
+  json content type) in adequation with the spec will be decoded.
+
+  It is encouraged to wrap this function with a custom helper, typically in your
+  `MyAppWeb.ConnCase` test helper:
+
+      defmodule MyAppWeb.ConnCase do
+
+        # ...
+
+        # You can wrap the helper function this way so you do not have to pass
+        # The spec module in every call:
+        def valid_response(conn, status) do
+          Moonwalk.Test.valid_response(MyAppWeb.OpenAPISpec, conn, status)
+        end
+      end
+
+
+  Then use the helper in your tests:
+
+      test "should return the user info", %{conn: conn} do
+        %{id: id} = user_fixture(username: "joe", roles: ["admin"])
+        conn = get(conn, ~p"/api/users/#{id}")
+        assert %{"username" => "joe", "roles" => ["admin"]} = valid_response(conn, 200)
+      end
+  """
   def valid_response(spec_module, %Plug.Conn{} = conn, status) when is_integer(status) do
     body = Phoenix.ConnTest.response(conn, status)
 

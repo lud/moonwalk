@@ -39,8 +39,11 @@ defmodule Moonwalk.Spec.RequestBody do
     ref
   end
 
+  # TODO(doc) document that atoms are used as schemas, but not maps anymore.
+  # Maps are still used as schemas when given with a tuple.
+  #
   def from_controller!(schema)
-      when is_map(schema) or is_atom(schema)
+      when is_atom(schema)
       when is_boolean(schema) do
     from_controller!({schema, []})
   end

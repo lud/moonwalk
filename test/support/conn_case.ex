@@ -6,6 +6,8 @@ defmodule Moonwalk.ConnCase do
   require Phoenix.ConnTest
   use ExUnit.CaseTemplate
 
+  @moduledoc false
+
   @endpoint Moonwalk.TestWeb.Endpoint
 
   using do

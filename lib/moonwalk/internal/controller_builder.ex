@@ -96,6 +96,11 @@ defmodule Moonwalk.Internal.ControllerBuilder do
   end
 
   def take_default({target, input, output}, key, default, cast \\ &nocast/1) do
+    if key == :default do
+      pop(input, key) |> dbg()
+      default |> dbg()
+    end
+
     case pop(input, key) do
       {:ok, value, input} -> with_cast(target, input, output, key, value, cast)
       :error -> {target, input, Map.put(output, key, default)}

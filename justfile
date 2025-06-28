@@ -32,5 +32,8 @@ changelog:
 css-min:
   npx css-minify -f priv/assets/error.css -o priv/assets
 
-check: deps _mix_format _mix_check docs _git_status
+dump:
+  mix openapi.dump Moonwalk.TestWeb.PathsApiSpec --pretty -o samples/openapi.json
+
+check: deps _mix_format _mix_check docs dump _git_status
 
