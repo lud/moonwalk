@@ -35,12 +35,16 @@ defmodule Moonwalk.Spec.Server do
     |> collect()
   end
 
-  # TODO(doc) explain why opt app is required (allows to not start the app)
-  #
-  # TODO(doc) explain that we cannot reliably rebuild the same URL as phoenix
-  # would do, and server URL may be hardcoded instead.
-  #
-  # TODO(doc) defaults to https
+  @doc """
+  Returns an URL based on the `:url` configuration of the endpoint.
+
+  If not all the parts of the URL are configured the following defaults are
+  used:
+
+  * `:port` defaults to `443`.
+  * `:scheme` defaults to `"https"`.
+  * `:path` defaults to `"/"`.
+  """
   def from_config(otp_app, endpoint_module) when is_atom(otp_app) and is_atom(endpoint_module) do
     with {:ok, config} <- Application.fetch_env(otp_app, endpoint_module),
          {:ok, url} <- Keyword.fetch(config, :url),
