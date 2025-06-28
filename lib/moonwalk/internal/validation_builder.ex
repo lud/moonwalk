@@ -11,6 +11,8 @@ defmodule Moonwalk.Internal.ValidationBuilder do
   alias Moonwalk.Spec.RequestBody
   alias Moonwalk.Spec.Response
 
+  @moduledoc false
+
   def build_operations(normal_spec, opts) when is_map(opts) do
     spec = Moonwalk.Internal.SpecValidator.validate!(normal_spec)
 

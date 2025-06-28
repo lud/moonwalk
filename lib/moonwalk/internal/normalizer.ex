@@ -192,7 +192,7 @@ defmodule Moonwalk.Internal.Normalizer do
   end
 
   if Mix.env() == :prod do
-    def collect(%__MODULE__{data: data, sourcemod: sourcemod, ctx: ctx, out: outlist}) do
+    def collect(%__MODULE__{data: data, ctx: ctx, out: outlist}) do
       {extensions, _leftovers} = collect_remaining(data)
       collected = Map.merge(Map.new(extensions), Map.new(outlist))
       {collected, ctx}

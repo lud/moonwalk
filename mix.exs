@@ -8,14 +8,14 @@ defmodule Moonwalk.MixProject do
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      docs: [],
+      docs: docs(),
       deps: deps(),
       dialyzer: dialyzer(),
       modkit: modkit()
     ]
   end
 
-  defp elixirc_paths(:prod) do
+  defp elixirc_paths(noweb) when noweb in [:prod, :doc] do
     ["lib"]
   end
 
@@ -41,7 +41,7 @@ defmodule Moonwalk.MixProject do
       {:cli_mate, "~> 0.8.1"},
 
       # Dev
-      {:libdev, "~> 0.1.0", only: [:dev, :test], runtime: false},
+      {:libdev, "~> 0.1.0", only: [:dev, :test, :doc], runtime: false},
 
       # Test
       # {:phoenix, "~> 1.8.0-rc", only: [:dev, :test]},
@@ -49,11 +49,25 @@ defmodule Moonwalk.MixProject do
     ]
   end
 
+  defp docs do
+    [
+      groups_for_modules: [
+        "Main API": [Moonwalk, Moonwalk.Controller],
+        Plugs: ~r{Moonwalk\.Plugs\.},
+        Testing: [Moonwalk.Test],
+        "OpenAPI Spec 3.1": ~r{Moonwalk\.Spec\.},
+        "JSON Schema Extensions": ~r{Moonwalk\.JsonSchema\.}
+      ],
+      nest_modules_by_prefix: [Moonwalk.Spec]
+    ]
+  end
+
   def cli do
     [
       preferred_envs: [
         dialyzer: :test,
-        "mnwk.phx.test": :test
+        "mnwk.phx.test": :test,
+        docs: :doc
       ]
     ]
   end

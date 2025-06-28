@@ -1,5 +1,6 @@
 defmodule Moonwalk.Errors do
   alias Moonwalk.Internal.Normalizer
+  @moduledoc false
 
   defmodule InvalidBodyError do
     @enforce_keys [:value, :validation_error]

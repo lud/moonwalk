@@ -3,7 +3,7 @@ defmodule Moonwalk.Internal.ControllerBuilder do
   # macro.
   @moduledoc false
 
-  @undef :__undefined__
+  @undef :__undef__
   def build(opts, target) when is_list(opts) when is_map(opts) do
     {target, opts, %{}}
   end
