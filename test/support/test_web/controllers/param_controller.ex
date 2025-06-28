@@ -8,7 +8,7 @@ defmodule Moonwalk.TestWeb.ParamController do
   @color Schema.string_to_atom_enum([:red, :blue])
   @query_int Schema.integer(minimum: 10, maximum: 100)
 
-  # TODO(doc) import formatter
+  # TODO(doc) import formatter in readme
 
   operation :array_types,
     parameters: [

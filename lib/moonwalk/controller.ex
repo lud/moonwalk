@@ -82,6 +82,8 @@ defmodule Moonwalk.Controller do
     or atoms) and values are responses definitions. See below for responses
     formats.
 
+  Pass `false` instead of the options to ignore an action function.
+
   ## Defining parameters
 
   Parameters are organized by their name and their `:in` option. Two parameters
@@ -141,7 +143,7 @@ defmodule Moonwalk.Controller do
   * Supported atoms are `true` (a JSON schema that accepts anything), `false` (a
     JSON schema that rejects everything) or a module name. The module must
     export a `schema/0` function that returns a JSON schema.
-  * When passing a tuple, the firt element is a schema (boolean or module), but
+  * When passing a tuple, the first element is a schema (boolean or module), but
     a direct JSON schema map (like `%{type: :object, ...}`) is also accepted.
     The second tuple element is a list of options for the response body object.
 
@@ -268,15 +270,14 @@ defmodule Moonwalk.Controller do
 
   Of course, mixing all styles together is discouraged for readability.
 
+  ## Ignore operations
+
+
+
   """
   @doc group: "Controller Macros"
   defmacro operation(action, spec)
 
-  # TODO(doc) when using the {schema, opts} syntax, the :required option of a
-  # request body is set to true by default.
-  #
-  # TODO(doc) this makes the function ignored by moonwalk, as we cannot chose a
-  # verb.
   defmacro operation(action, false) do
     quote do
       @moonwalk_operations {unquote(action), false, nil}
@@ -330,6 +331,15 @@ defmodule Moonwalk.Controller do
       def list_users(conn, params) do
         # ...
       end
+
+  > #### Parameter names always create atoms {: .warning}
+  >
+  > Query and path parameters defined in OpenAPI specifications always define
+  > the corresponding atoms, even if that specification is read from a JSON
+  > file, or defined manually in code with string keys.
+  >
+  > For that reason it is ill advised to use specs generated dynamically at
+  > runtime without validating their content.
   """
   @doc group: "Controller Macros"
   defmacro use_operation(action, operation_id, opts \\ []) do
@@ -356,6 +366,7 @@ defmodule Moonwalk.Controller do
   In the following example, the second operation defines its own version of the
   `per_page` parameter to limit the number of users returned in a single page.
 
+      # This macro can be called multiple times
       parameter :slug, in: :path, schema: %{type: :string, pattern: "[0-9a-z-]+"}
       parameter :page, in: :query, schema: %{type: :integer, minimum: 1}
       parameter :per_page, in: :query, schema: %{type: :integer, minimum: 1, maximum: 100}
@@ -398,7 +409,9 @@ defmodule Moonwalk.Controller do
 
   ## Example
 
+      # This macro can be called multiple times
       tags ["users", "v1"]
+      tags ["other-tag"]
 
       operation :list_users,
         operation_id: "ListUsers",

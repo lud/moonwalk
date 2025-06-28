@@ -282,10 +282,6 @@ defmodule Moonwalk.Internal.ValidationBuilder do
     {built_params, jsv_ctx}
   end
 
-  # TODO(doc) Document that the parameters names are generating atoms. As the
-  # spec can be provided from raw JSON documents, it can be a problem if some
-  # app is building validations on the fly. Maybe add an option to keep those as
-  # binaries.
   defp build_parameter_validation(parameter, rev_path, jsv_ctx) do
     key = String.to_atom(parameter.name)
 

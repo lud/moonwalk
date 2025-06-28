@@ -121,7 +121,9 @@ defmodule Moonwalk do
     end
   end
 
-  # TODO(doc)
+  @doc """
+  Default options used for the `JSV.build/2` function when building schemas.
+  """
   def default_jsv_opts do
     [
       default_meta: JSV.default_meta(),
@@ -129,9 +131,9 @@ defmodule Moonwalk do
     ]
   end
 
-  # TODO(doc) returns a tuple with the JSV root
-  # TODO(doc) opt :cache, defaults to true
-  # TODO(doc) opt :responses, defaults to false
+  @doc false
+  # opt :cache defaults to true
+  # opt :responses defaults to false
   def build_spec!(spec_module, opts \\ []) do
     cache? = Keyword.get(opts, :cache, true)
 

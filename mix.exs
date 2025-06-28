@@ -56,6 +56,7 @@ defmodule Moonwalk.MixProject do
         Plugs: ~r{Moonwalk\.Plugs\.},
         Testing: [Moonwalk.Test],
         "OpenAPI Spec 3.1": ~r{Moonwalk\.Spec\.},
+        Parsers: ~r{Moonwalk\.Parsers\.},
         "JSON Schema Extensions": ~r{Moonwalk\.JsonSchema\.}
       ],
       nest_modules_by_prefix: [Moonwalk.Spec]

@@ -1,5 +1,5 @@
-defmodule Moonwalk.JsonSchema.Formats.HttpStructuredFieldTest do
-  alias Moonwalk.JsonSchema.Formats.HttpStructuredField
+defmodule Moonwalk.Parsers.HttpStructuredFieldTest do
+  alias Moonwalk.Parsers.HttpStructuredField
   use ExUnit.Case, async: true
 
   defp unwrap!(v) do

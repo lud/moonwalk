@@ -145,9 +145,6 @@ defmodule Moonwalk.Spec.Operation do
   defp cast_responses(responses) when is_list(responses) do
     normal =
       Map.new(responses, fn
-        # TODO(doc) responses can be given as status codes atoms. They will be
-        # validated.
-
         # We do not reject unknown integer status codes, this could be blocking
         # for users with special needs.
         {code, resp} when is_integer(code) ->

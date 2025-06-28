@@ -68,6 +68,11 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         end
       end
 
+  Finally, request body validation will only work if the body is fetched from
+  the conn. This is generally done by the `Plug.Parsers` plug. It can also be
+  done by a custom plug if you are implementing an API that is working with
+  plaintext or custom formats.
+
   ## Request validation
 
   Requests will be validated according to the request body schemas and parameter
@@ -103,6 +108,21 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     payload in error handlers. Defaults to `true` when `Mix.env() != :prod`,
     defaults to `false` otherwise.
   * Unknown options are collected and passed to the error handler.
+
+  ## Non-required bodies
+
+  A request body is considered empty if `""`, `nil` or an empty map (`%{}`). In
+  that case, if the operation defines the request body with `required: false`
+  (which is the default value!), the body validation will be skipped.
+
+  The empty map is a special case because `Plug.Parsers` implementations cannot
+  return anything else than a map. If a client sends an HTTP request with an
+  `"application/json"` content-type but no body, the JSON parser in the Plug
+  library will still return an empty map.
+
+  To avoid problems, always define request bodies as required if you can. This
+  is made automatically when using the "definition shortcuts" described in
+  `#{inspect(Moonwalk.Controller)}.operation/2`.
 
   ## Error handling
 
@@ -144,14 +164,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   @behaviour Plug
 
-  # TODO(doc) the option :query_reader option is passed to
-  # Conn.fetch_query_params/2
-  #
-  # TODO(doc) the body must be fetched. If unfetched but body should be
-  # validated, this is an error.
-  #
-  # TODO(doc) :pretty_errors and unknown options are passed to the error
-  # handler.
+  @impl true
   def init(opts) do
     query_reader_opts =
       Keyword.get(opts, :query_reader,
@@ -182,6 +195,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
     }
   end
 
+  @impl true
   def call(conn, opts) do
     conn = ensure_query_params(conn, opts)
     {controller, action} = fetch_phoenix!(conn)
@@ -354,11 +368,6 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {acc, errors}
     end
   end
-
-  # TODO(doc) a body is considered empty if "" or nil, and in this case we do
-  # not run the validations. This also applies when the body params is an empty
-  # map, because plug parsers will always return a map.
-  #
 
   defp validate_body(conn, body, false = _required?, _, _)
        when body in [nil, ""]

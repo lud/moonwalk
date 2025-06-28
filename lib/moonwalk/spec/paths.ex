@@ -26,12 +26,24 @@ defmodule Moonwalk.Spec.Paths do
     |> collect()
   end
 
-  # TODO(doc) opts
+  @doc """
+  Accepts a Phoenix router module and returns paths that point to a controller
+  with operations defined for its actions.
+
+  ### Options
+
+  * `:filter` - A predicate function to limit routes defined in your OpenAPI
+    specification. This predicate is not called for every route, only on routes
+    that define an operation.
+  """
   def from_router(router, opts \\ []) when is_atom(router) do
     from_routes(router.__routes__(), opts)
   end
 
-  # TODO(doc) opts
+  @doc """
+  Same as `from_router/2` but directly accepts the return value of
+  `router_module.__routes__()`.
+  """
   def from_routes(routes, opts \\ []) do
     user_filter = Keyword.get(opts, :filter, fn _ -> true end)
 

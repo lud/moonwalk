@@ -1,15 +1,7 @@
 defmodule Moonwalk.JsonSchema.Formats do
-  @moduledoc """
-  Implements formats described in https://spec.openapis.org/api/format.json for
-  `JSV`'s format validation. Some of the described formats are already
-  implemented in JSV directly.
-  """
-
-  # TODO(doc) HTML and commonmark are lousy formats, we are not validating them
-  # TODO(doc) number formats apply to the "number" type. So an int16 format will
-  # invalidate a float.
-
   import JSV.Vocabulary, only: [with_decimal: 1]
+
+  @behaviour JSV.FormatValidator
 
   @string_formats [
     "base64url",
@@ -19,14 +11,9 @@ defmodule Moonwalk.JsonSchema.Formats do
     "commonmark",
     "html",
     "media-range",
-    "password",
-    "sf-binary",
-    "sf-boolean",
-    "sf-decimal",
-    "sf-integer",
-    "sf-string",
-    "sf-token"
+    "password"
   ]
+
   @number_formats [
     "double-int",
     "double",
@@ -42,16 +29,77 @@ defmodule Moonwalk.JsonSchema.Formats do
   # numbers as-is or as string
   @numeric_formats ["decimal", "decimal128", "int64", "uint64"]
 
-  # if Code.ensure_loaded?(AbnfParsec)  do
-  #   alias Moonwalk.JsonSchema.Formats.HttpStructuredField
-  #   require HttpStructuredField
+  known_sf_formats = [
+    "sf-binary",
+    "sf-boolean",
+    "sf-decimal",
+    "sf-integer",
+    "sf-string",
+    "sf-token"
+  ]
 
-  #   @sf_formats ["sf-binary"]
-  # else
-  @sf_formats []
-  # end
+  if Code.ensure_loaded?(AbnfParsec) do
+    alias Moonwalk.Parsers.HttpStructuredField
+    require HttpStructuredField
+
+    @sf_formats known_sf_formats
+  else
+    @sf_formats []
+  end
 
   @all_formats @string_formats ++ @number_formats ++ @numeric_formats ++ @sf_formats
+
+  md_list = fn formats -> formats |> Enum.sort() |> Enum.map(&[" - `", &1, "`\n"]) end
+
+  @moduledoc """
+  Implements formats described in https://spec.openapis.org/api/format.json for
+  `JSV`'s format validation. Some of the described formats are already
+  implemented in JSV directly.
+
+  All schemas used by this library can use those formats in any schema, on top
+  of all formats already supported by `JSV`.
+
+  Use the `c:Moonwalk.jsv_opts/0` callback to add your own formats.
+
+  The `html` and `commonmark` formats are not validating anything and will
+  accept any string.
+
+  ### Number formats
+
+  Number formats apply to the `number` JSON type. So an `int16` format will be
+  used on floats and reject them.
+
+  `Decimal` values are supported.
+
+  #{md_list.(@number_formats)}
+
+  ### Numeric formats
+
+  Those apply to numbers and strings, as their value is not representable in
+  every programming language.
+
+  `Decimal` values are supported.
+
+  #{md_list.(@numeric_formats)}
+
+  ### String formats
+
+  String formats only apply when the value is a string, much like the default
+  JSON schema formats like "date", "uri", _etc._.
+
+  #{md_list.(@string_formats)}
+
+  ### HTTP Structured fields formats
+
+  HTTP structured fields are generally used for headers. While this library does
+  not provide header validation yet, they are supported for OpenAPI
+  specification compliance.
+
+  The [`{:abnf_parsec, "~> 2.0"}`](https://hex.pm/packages/abnf_parsec)
+  dependency is required for them to be available.
+
+  #{md_list.(known_sf_formats)}
+  """
 
   def supported_formats do
     @all_formats
@@ -234,11 +282,11 @@ defmodule Moonwalk.JsonSchema.Formats do
 
   # -- Helpers ----------------------------------------------------------------
 
-  def str_or_float(data, _errmsg) when is_number(data) do
+  defp str_or_float(data, _errmsg) when is_number(data) do
     {:ok, data}
   end
 
-  def str_or_float(data, errmsg) when is_binary(data) do
+  defp str_or_float(data, errmsg) when is_binary(data) do
     case Float.parse(data) do
       {v, ""} -> {:ok, v}
       _ -> {:error, errmsg}
@@ -246,21 +294,21 @@ defmodule Moonwalk.JsonSchema.Formats do
   end
 
   with_decimal do
-    def str_or_float(%Decimal{} = data, _errmsg) do
+    defp str_or_float(%Decimal{} = data, _errmsg) do
       {:ok, Decimal.to_float(data)}
     end
   end
 
-  def to_float(data) when is_float(data) do
+  defp to_float(data) when is_float(data) do
     data
   end
 
-  def to_float(data) when is_integer(data) do
+  defp to_float(data) when is_integer(data) do
     1.0 * data
   end
 
   with_decimal do
-    def to_float(%Decimal{} = data) do
+    defp to_float(%Decimal{} = data) do
       Decimal.to_float(data)
     end
   end
@@ -288,7 +336,7 @@ defmodule Moonwalk.JsonSchema.Formats do
   end
 
   defp expect_sf_item(data, expected_type) do
-    case Moonwalk.JsonSchema.Formats.HttpStructuredField.parse_sf_item(data) do
+    case Moonwalk.Parsers.HttpStructuredField.parse_sf_item(data) do
       {:ok, {^expected_type, value, _}} -> {:ok, value}
       {:ok, _} -> {:error, "invalid structured field type"}
       {:error, {errmsg, _}} -> {:error, errmsg}

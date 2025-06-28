@@ -12,7 +12,6 @@ defmodule Moonwalk.TestWeb.MetaController do
   tags ["shared1", "zzz"]
   parameter :shared1, in: :query
 
-  # TODO(doc) macros can be called multiple times and are cumulative
   tags ["shared2", "zzz"]
   parameter :shared2, in: :query, schema: %{pattern: "[0-9]+"}
 

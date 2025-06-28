@@ -1,5 +1,5 @@
 defmodule Moonwalk.Test do
-  alias Moonwalk.JsonSchema.Formats.HttpStructuredField
+  alias Moonwalk.Parsers.HttpStructuredField
   alias Moonwalk.Plugs.ValidateRequest
 
   @moduledoc """

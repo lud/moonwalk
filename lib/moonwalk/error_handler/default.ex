@@ -37,13 +37,6 @@ defmodule Moonwalk.ErrorHandler.Default do
 
   @behaviour Moonwalk.ErrorHandler
 
-  # TODO(doc) define a behaviour with the right specs to know what error tuples
-  # are passed. Parameters errors can be invalid or missing.
-
-  # TODO(doc) the default error handler will serve text/html only if the request
-  # specifically allows it. Otherwise it's JSON. This help when debugging with
-  # cURL by not having to put the Accept header all the time.
-
   def handle_error(conn, reason, opts) do
     operation_id = conn.private.moonwalk.operation_id
 

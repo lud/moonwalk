@@ -44,10 +44,6 @@ defmodule Moonwalk.Spec.Response do
     |> collect()
   end
 
-  # TODO(doc) document that atoms are used as schemas, but not maps anymore.
-  # Maps are still used as schemas when given with a tuple.
-  #
-  # TODO(doc) a default description is provided
   def from_controller!(%Reference{} = ref) do
     ref
   end

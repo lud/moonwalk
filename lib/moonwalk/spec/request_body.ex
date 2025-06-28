@@ -33,23 +33,16 @@ defmodule Moonwalk.Spec.RequestBody do
     {:ok, from_controller!(spec)}
   end
 
-  # TODO(doc) document that maps are always used as schemas
-
   def from_controller!(%Reference{} = ref) do
     ref
   end
 
-  # TODO(doc) document that atoms are used as schemas, but not maps anymore.
-  # Maps are still used as schemas when given with a tuple.
-  #
   def from_controller!(schema)
       when is_atom(schema)
       when is_boolean(schema) do
     from_controller!({schema, []})
   end
 
-  # TODO(doc) document that required is set to true by default when passing a
-  # schema
   def from_controller!({schema, spec}) do
     spec = Keyword.put_new(spec, :required, true)
 
