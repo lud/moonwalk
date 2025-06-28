@@ -51,6 +51,11 @@ defmodule Moonwalk.Web.BodyTest do
     test "valid body", %{conn: conn} do
       conn =
         post_reply(conn, ~p"/generated/body/inline-single", @valid_payload, fn conn, _params ->
+          import Moonwalk.Controller
+
+          assert %{"name" => "Monstera Deliciosa", "sunlight" => :bright_indirect} ==
+                   body_params(conn)
+
           json(conn, %{data: "ok"})
         end)
 
@@ -88,13 +93,16 @@ defmodule Moonwalk.Web.BodyTest do
     # Same test as before but the schema is given as a module
     test "valid body", %{conn: conn} do
       conn =
-        post_reply(conn, ~p"/generated/body/module-single", @valid_payload, fn conn, _params ->
-          assert %PlantSchema{
-                   name: "Monstera Deliciosa",
-                   sunlight: :bright_indirect
-                 } = conn.private.moonwalk.body_params
+        post_reply(conn, ~p"/generated/body/module-single", @valid_payload, fn
+          conn, _params ->
+            import Moonwalk.Controller
 
-          json(conn, %{data: "ok"})
+            assert %PlantSchema{
+                     name: "Monstera Deliciosa",
+                     sunlight: :bright_indirect
+                   } = body_params(conn)
+
+            json(conn, %{data: "ok"})
         end)
 
       assert %{"data" => "ok"} = json_response(conn, 200)
@@ -222,6 +230,9 @@ defmodule Moonwalk.Web.BodyTest do
             # No content is set but the body_params key is always defined. Instead
             # of an empty map it is set to nil
             assert nil == conn.private.moonwalk.body_params
+
+            import Moonwalk.Controller
+            assert nil == body_params(conn)
 
             json(conn, %{data: "ok"})
         end)

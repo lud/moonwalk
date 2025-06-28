@@ -41,7 +41,7 @@ defmodule Moonwalk.TestWeb.ResponseController do
   # Returns a response with the wrong content-type (text/plain instead of application/json)
   operation :bad_content_type,
     operation_id: "fortune_bad_content_type",
-    responses: [ok: FortuneCookie]
+    responses: [ok: {FortuneCookie, description: "hello!"}]
 
   def bad_content_type(conn, _) do
     text(conn, "not json")
@@ -49,7 +49,13 @@ defmodule Moonwalk.TestWeb.ResponseController do
 
   operation :default_resp,
     operation_id: "fortune_default_resp",
-    responses: %{200 => FortuneCookie, :default => GenericError}
+    responses: %{
+      200 => FortuneCookie,
+      :default => [
+        description: "some description",
+        content: %{"application/json" => %{schema: GenericError}}
+      ]
+    }
 
   def default_resp(conn, _) do
     conn

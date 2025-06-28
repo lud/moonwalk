@@ -539,7 +539,7 @@ defmodule Moonwalk.SpecTest do
                  %{in: :query, name: "self1"},
                  %{in: :query, name: "self2"},
                  %{in: :query, name: "shared1"},
-                 %{in: :query, name: "shared2"}
+                 %{in: :query, name: "shared2", schema: %{"pattern" => "[0-9]+"}}
                ],
                tags: ["zzz", "aaa", "shared1", "shared2"]
              } =

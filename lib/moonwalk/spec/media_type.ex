@@ -28,7 +28,7 @@ defmodule Moonwalk.Spec.MediaType do
   def normalize!(data, ctx) do
     data
     |> from(__MODULE__, ctx)
-    |> normalize_default([:tags, :summary, :description, :operationId, :deprecated])
+    |> normalize_default([:tags, :summary, :description, :operationId, :deprecated, :encoding])
     |> normalize_subs(
       examples: {:map, {:or_ref, :default}},
       encoding: {:map, Moonwalk.Spec.Encoding}

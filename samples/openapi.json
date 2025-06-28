@@ -594,6 +594,23 @@
         "parameters": []
       }
     },
+    "/generated/no-params": {
+      "get": {
+        "tags": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "param_no_params_KN6VVKI",
+        "parameters": []
+      }
+    },
     "/generated/params/{slug}/arrays": {
       "get": {
         "tags": [],
@@ -1039,7 +1056,7 @@
                 }
               }
             },
-            "description": "no description"
+            "description": "hello!"
           }
         },
         "operationId": "fortune_bad_content_type",
@@ -1147,7 +1164,7 @@
                 }
               }
             },
-            "description": "no description"
+            "description": "some description"
           }
         },
         "operationId": "fortune_default_resp",
