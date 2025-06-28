@@ -49,6 +49,8 @@ defmodule Moonwalk.TestWeb.Router do
       end
     end
 
+    post "/no-html-errors", Moonwalk.TestWeb.JsonErrorsController, :create_plant
+
     scope "/resp", Moonwalk.TestWeb do
       get "/fortune-200-no-operation", ResponseController, :no_operation
       get "/fortune-200-valid", ResponseController, :valid

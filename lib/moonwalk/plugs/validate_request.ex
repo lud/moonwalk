@@ -107,6 +107,10 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   * `:pretty_errors` - A boolean to control pretty printing of JSON errors
     payload in error handlers. Defaults to `true` when `Mix.env() != :prod`,
     defaults to `false` otherwise.
+  * `:html_errors` - A boolean to control whether the default error handler is
+    allowed to return HTML errors when the request accepts HTML. This is useful
+    to quickly read errors when opening an url directly from the browser.
+    Defaults to `true`.
   * Unknown options are collected and passed to the error handler.
 
   ## Non-required bodies
@@ -166,20 +170,18 @@ defmodule Moonwalk.Plugs.ValidateRequest do
 
   @impl true
   def init(opts) do
-    query_reader_opts =
-      Keyword.get(opts, :query_reader,
-        length: 1_000_000,
-        validate_utf8: true
-      )
+    query_reader_opts = Keyword.get(opts, :query_reader, length: 1_000_000, validate_utf8: true)
 
     opts =
-      Keyword.put_new_lazy(opts, :pretty_errors, fn ->
+      opts
+      |> Keyword.put_new_lazy(:pretty_errors, fn ->
         # Default to true only when mix is available:
         # * in dev/test environment.
         # * when compiling releases with phoenix set to compile-time. In that
         #   case we do not want pretty errors by default in production.
         function_exported?(Mix, :env, 0) && Mix.env() != :prod
       end)
+      |> Keyword.put_new(:html_errors, true)
 
     {handler, opts_no_handler} = Keyword.pop(opts, :error_handler, Moonwalk.ErrorHandler.Default)
 

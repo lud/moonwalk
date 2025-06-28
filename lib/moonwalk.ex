@@ -2,8 +2,6 @@ defmodule Moonwalk do
   alias Moonwalk.Internal.Normalizer
   alias Moonwalk.Internal.ValidationBuilder
 
-  IO.warn("todo we need a demo app!")
-
   @moduledoc """
   The main API to work with OpenAPI specifications.
 

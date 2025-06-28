@@ -7,8 +7,6 @@ defmodule Moonwalk.ErrorHandler.Default do
   alias Plug.Conn
   alias Plug.Conn.Status
 
-  IO.warn("todo disable html responses")
-
   @status_invalid_body :unprocessable_entity
   @status_unsupported_media_type :unsupported_media_type
   @status_parameters_errors :bad_request
@@ -28,11 +26,17 @@ defmodule Moonwalk.ErrorHandler.Default do
     _#{Status.reason_phrase(Status.code(@status_parameters_errors))}_ - When
     validating query and path parameters.
 
-  HTTP responses from this handler will be a JSON representation of the given
-  error, except when the incoming request specifically accepts HTML
+  ## Error formatting
 
-  In that case the HTTP response sent by this error handler will be an HTML page
-  describing the error.
+  For request specifically accepting HTML (`"html"` is found in the Accept
+  header), this handler will present errors in an HTML document with basic
+  styles.
+
+  In any other case, a JSON representation of errors is returned with the
+  `"application/json"` content type.
+
+  Disable HTML entirely with the `html_errors: false` option when using the
+  `#{inspect(Moonwalk.Plugs.ValidateRequest)}` plug.
   """
 
   @behaviour Moonwalk.ErrorHandler
@@ -53,7 +57,8 @@ defmodule Moonwalk.ErrorHandler.Default do
   end
 
   defp response_formatter(conn, opts) do
-    with [accept | _] <- Plug.Conn.get_req_header(conn, "accept"),
+    with true <- Keyword.get(opts, :html_errors),
+         [accept | _] <- Plug.Conn.get_req_header(conn, "accept"),
          true <- accept =~ "html" do
       :html
     else

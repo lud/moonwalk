@@ -470,6 +470,7 @@ defmodule Moonwalk.SpecTest do
                "/generated/meta/before-metas",
                "/generated/meta/overrides-param",
                "/generated/method/p",
+               "/generated/no-html-errors",
                "/generated/no-params",
                "/generated/params/{slug}/arrays",
                "/generated/params/{slug}/boolean-schema-false",

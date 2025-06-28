@@ -388,7 +388,9 @@
             "in": "query",
             "name": "shared2",
             "required": false,
-            "schema": true
+            "schema": {
+              "pattern": "[0-9]+"
+            }
           }
         ]
       }
@@ -592,6 +594,47 @@
         },
         "operationId": "mTRACE",
         "parameters": []
+      }
+    },
+    "/generated/no-html-errors": {
+      "post": {
+        "tags": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": true
+              }
+            },
+            "description": "no description"
+          }
+        },
+        "operationId": "json_errors_create_plant_OMWLINA",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "an_int",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlantSchema"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PlantSchema"
+              }
+            }
+          },
+          "required": true
+        }
       }
     },
     "/generated/no-params": {
