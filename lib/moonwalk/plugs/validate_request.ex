@@ -6,6 +6,142 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   alias Plug.Conn
   require Logger
 
+  @moduledoc """
+  This plug will match incoming requests to operations defined with the
+  `#{inspect(Moonwalk.Controller)}.operation/2` or
+  `#{inspect(Moonwalk.Controller)}.use_operation/2` macros and retrieved from a
+  provided OpenAPI Specification module.
+
+  ## Pluggin' in
+
+  To use this plug in a controller, the
+  `#{inspect(Moonwalk.Plugs.SpecProvider)}` plug must be used in the router for
+  the corresponding routes.
+
+      defmodule MyAppWeb.Router do
+        use Phoenix.Router
+
+        pipeline :api do
+          plug Moonwalk.Plugs.SpecProvider, spec: MyAppWeb.OpenAPISpec
+        end
+
+        scope "/api" do
+          pipe_through :api
+
+          scope "/users", MyAppWeb do
+            get "/", UserController, :list_users
+          end
+        end
+      end
+
+  This plug must then be used in controllers. It is possible to call the plug in
+  every controller where you want validation, or to define it globally in your
+  `MyAppWeb` module.
+
+  While you can directly patch the `MyAppWeb.controller` function if all your
+  controllers belong to the HTTP API, we suggest to create a new
+  `api_controller` function in your `MyAppWeb` module.
+
+  Duplicate the `controller` function and add this plug and also `use
+  Moonwalk.Controller`.
+
+      defmodule MyAppWeb do
+        def controller do
+          # ...
+        end
+
+        def api_controller do
+          quote do
+            use Phoenix.Controller, formats: [:json], layouts: []
+
+            # Use the controller helpers to define operations
+            use Moonwalk.Controller
+
+            use Gettext, backend: MyAppWeb.Gettext
+            import Plug.Conn
+
+            # Use the plug here. This has to be after `use Phoenix.Controller`.
+            plug Moonwalk.Plugs.ValidateRequest
+
+            unquote(verified_routes())
+          end
+        end
+      end
+
+  ## Request validation
+
+  Requests will be validated according to the request body schemas and parameter
+  schemas defined in operations. The data will also be cast to the expected
+  types:
+
+  * Parameters whose schemas define a `type` of `boolean` or `integer` will be
+    cast to that type. Arrays of such types are supported as well.
+  * Parameters with type `string` and a `format` supported by `JSV` will be also
+    cast according to that format. Output values for formats are described in
+    the [JSV
+    documentation](https://hexdocs.pm/jsv/validation-basics.html#formats). This
+    includes, URI, Date, DateTime and Duration.
+  * Request bodies are cast to their given schema too. When using raw schemas
+    defined as maps, the main changes to the data is the cast of formats, just
+    as for parameters. When schemas are defined using module names, and when
+    those modules' structs are created with `JSV.defschema/1`, the request
+    bodies will be cast to those structs.
+
+  Request bodies will be validated according to the expected operation
+  content-types, and the actual content-type of the request.
+
+  ## Options
+
+  * `:query_reader_opts` - If a Plug.Conn struct enters this plug without its
+    query parameters being fetched, this plug will fetch them automatically
+    using `Conn.fetch_query_params(conn, query_reader_opts)`. The default value
+    is `[length: 1_000_000, validate_utf8: true]`.
+  * `:error_handler` - A module or `{module, argument}` tuple. The error handler
+    must implement the `#{inspect(Moonwalk.ErrorHandler)}` behaviour. It will be
+    called on validation errors. Defaults to `Moonwalk.ErrorHandler.Default`.
+  * `:pretty_errors` - A boolean to control pretty printing of JSON errors
+    payload in error handlers. Defaults to `true` when `Mix.env() != :prod`,
+    defaults to `false` otherwise.
+  * Unknown options are collected and passed to the error handler.
+
+  ## Error handling
+
+  Validation can fail at various steps:
+
+  * Parameters validation
+  * Content-type matching
+  * Body validation
+
+  On failure, the validation stops immediately. If a parameter is invalid, the
+  body is not validated and the error handler is called with a single category
+  of errors. In the case of parameters, multiple errors can be passed to the
+  handler if multiple parameters are invalid or missing.
+
+  Custom error handlers must implement the `Moonwalk.ErrorHandler` behaviour and
+  be ready to accept all error reasons that this plug can generate. Such reasons
+  are described in the `t:Moonwalk.ErrorHandler.reason/0` type.
+
+  The 3rd argment passed to the `c:Moonwalk.ErrorHandler.handle_error/3` depends
+  on the `:error_handler` function. When defined as a module, the argument is
+  all the other options given to this plug:
+
+      plug Moonwalk.Plugs.ValidateRequest,
+        error_handler: MyErrorHandler,
+        pretty_errors: true,
+        custom_opt: "foo"
+
+  This will allow the handler to receive `:pretty_errors`, `:custom_opt` and
+  other options with default values.
+
+  When passing a tuple, the second element will be passed as-is:
+
+      plug Moonwalk.Plugs.ValidateRequest,
+        error_handler: {MyErrorHandler, "foo"}
+
+  In the example above, the error handler will only receive `"foo"` as the 3rd
+  argument of `c:Moonwalk.ErrorHandler.handle_error/3`.
+  """
+
   @behaviour Plug
 
   # TODO(doc) the option :query_reader option is passed to
@@ -17,13 +153,11 @@ defmodule Moonwalk.Plugs.ValidateRequest do
   # TODO(doc) :pretty_errors and unknown options are passed to the error
   # handler.
   def init(opts) do
-    {query_reader_opts, opts} =
-      Keyword.pop(opts, :query_reader,
+    query_reader_opts =
+      Keyword.get(opts, :query_reader,
         length: 1_000_000,
         validate_utf8: true
       )
-
-    {body_reader, opts} = Keyword.pop(opts, :body_reader, {Plug.Conn, :read_body, []})
 
     opts =
       Keyword.put_new_lazy(opts, :pretty_errors, fn ->
@@ -34,18 +168,17 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         function_exported?(Mix, :env, 0) && Mix.env() != :prod
       end)
 
-    {handler, opts_no_handler} = Keyword.pop(opts, :error_handler, Moonwalk.ErrorHandler)
+    {handler, opts_no_handler} = Keyword.pop(opts, :error_handler, Moonwalk.ErrorHandler.Default)
 
     error_handler =
       case handler do
-        mod when is_atom(mod) -> {handler, opts_no_handler}
+        mod when is_atom(mod) -> {mod, opts_no_handler}
         {mod, arg} when is_atom(mod) -> {mod, arg}
       end
 
     %{
       error_handler: error_handler,
-      query_reader_opts: query_reader_opts,
-      body_reader: body_reader
+      query_reader_opts: query_reader_opts
     }
   end
 
@@ -59,7 +192,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
          {:ok, private, conn1} <- run_validations(conn1, validations_with_root) do
       merge_private(conn1, private)
     else
-      {:error, {:invalid_parameters, errors} = reason, next_conn} when is_list(errors) ->
+      {:error, {:parameters_errors, errors} = reason, next_conn} when is_list(errors) ->
         call_error_handler(next_conn, reason, opts.error_handler)
 
       {:error, %InvalidBodyError{} = reason, next_conn} ->
@@ -182,7 +315,7 @@ defmodule Moonwalk.Plugs.ValidateRequest do
         {:ok, private, conn}
 
       _ ->
-        {:error, {:invalid_parameters, path_errors ++ query_errors}, conn}
+        {:error, {:parameters_errors, path_errors ++ query_errors}, conn}
     end
   end
 

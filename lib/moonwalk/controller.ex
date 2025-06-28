@@ -23,6 +23,9 @@ defmodule Moonwalk.Controller do
 
             import Plug.Conn
 
+            # This is alwo where you will plug the validation
+            plug Moonwalk.Plugs.ValidateRequest
+
             unquote(verified_routes())
           end
         end

@@ -1,12 +1,4 @@
 defmodule Moonwalk.Plugs.SpecProvider do
-  # Why do we need a plug to provide the spec?
-  #
-  # Because we may want to attach a controller action and its operation ID to
-  # multiple API specifications. So the spec should be attached to routes, not
-  # controllers. This is why this plug is to be called in the router modules,
-  # while the ValidateRequest plug will take whatever spec was given in the conn
-  # and fetch the operation ID from there.
-
   alias Moonwalk.Plugs.ValidateRequest
 
   @moduledoc """
@@ -36,6 +28,18 @@ defmodule Moonwalk.Plugs.SpecProvider do
           get "/hello", HelloController, :hello
         end
       end
+
+  > ### Why do we need this? {: .info}
+  >
+  > Why not directly pass the spec module to `#{inspect(ValidateRequest)}`?
+  >
+  > Because we may want to attach a controller action and its operation ID to
+  > multiple API specifications.
+  >
+  > For that reason, specs are attached to routes using a pipeline, and not to
+  > controllers. This is why this plug is used in router modules, while the
+  > `#{inspect(ValidateRequest)}` plug will take whatever spec was given in the
+  > conn and fetch the operation ID from there.
   """
 
   @behaviour Plug

@@ -66,17 +66,12 @@ defmodule Moonwalk.Spec.Parameter do
         type: :object,
         additionalProperties: %{anyOf: [Moonwalk.Spec.Reference, Moonwalk.Spec.Example]},
         description: "Examples of the parameter's potential value."
-      },
+      }
       # content: %{
       #   type: :object,
       #   additionalProperties: Moonwalk.Spec.MediaType,
       #   description: "A map containing parameter representations for different media types."
       # }
-      default: %{
-        description:
-          "Storage for default parameter in controller. This is not " <>
-            "part of the OpenAPI specification and is not serialized to JSON."
-      }
     },
     required: [:name, :in]
   })
@@ -99,7 +94,6 @@ defmodule Moonwalk.Spec.Parameter do
     ])
     |> normalize_schema(:schema)
     |> skip(:content)
-    |> skip(:default)
     |> collect()
   end
 
@@ -113,7 +107,6 @@ defmodule Moonwalk.Spec.Parameter do
     |> put(:name, name)
     |> take_required(:in, &validate_location/1)
     |> take_default(:schema, _boolean_schema = true)
-    |> take_default(:default, :__undef__)
     |> take_default_lazy(:required, fn -> Access.fetch(spec, :in) == {:ok, :path} end)
     |> take_default_lazy(:examples, fn ->
       case Access.fetch(spec, :example) do
