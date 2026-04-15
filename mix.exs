@@ -37,7 +37,7 @@ defmodule Moonwalk.MixProject do
       {:phoenix, ">= 1.7.0"},
       {:decimal, "~> 2.0", optional: true},
       {:abnf_parsec, "~> 2.0", optional: true},
-      {:cli_mate, "~> 0.9.0"},
+      {:cli_mate, "~> 0.10.0"},
 
       # Dev
       {:libdev, "~> 0.2.1", only: [:dev, :test, :doc], runtime: false},
