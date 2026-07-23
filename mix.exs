@@ -40,7 +40,7 @@ defmodule Moonwalk.MixProject do
       {:cli_mate, "~> 0.10.0"},
 
       # Dev
-      {:libdev, "~> 0.3.1", only: [:dev, :test, :doc], runtime: false},
+      {:libdev, "~> 0.4.0", only: [:dev, :test, :doc], runtime: false},
 
       # Test
       # {:phoenix, "~> 1.8.0-rc", only: [:dev, :test]},
